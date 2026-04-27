@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { toast } from "@/hooks/use-toast"
-import { Lock, KeyRound, Smartphone, ShieldCheck, ShieldOff, Copy, Monitor, Trash2 } from "lucide-react"
+import { Lock, KeyRound, Smartphone, ShieldCheck, ShieldOff, Copy, Monitor, Trash2, Eye, EyeOff, Info, ExternalLink } from "lucide-react"
 
 interface SessionRow {
   id: string
@@ -23,6 +23,14 @@ export default function SecurityPage() {
   const { data: session, update: updateSession } = useSession()
   const [sessions, setSessions] = useState<SessionRow[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [tenantId, setTenantId] = useState<string | null>(null)
+
+  // Google OAuth state
+  const [googleEnabled, setGoogleEnabled] = useState(false)
+  const [googleClientId, setGoogleClientId] = useState("")
+  const [googleClientSecret, setGoogleClientSecret] = useState("")
+  const [showGoogleSecret, setShowGoogleSecret] = useState(false)
+  const [savingGoogle, setSavingGoogle] = useState(false)
 
   // 2FA state
   const [twoFAEnabled, setTwoFAEnabled] = useState(false)
@@ -38,6 +46,33 @@ export default function SecurityPage() {
   useEffect(() => {
     setTwoFAEnabled(!!(session?.user as any)?.twoFactorEnabled)
   }, [session])
+
+  // Resolve tenantId (support impersonate)
+  useEffect(() => {
+    const id = session?.user?.tenants?.[0]?.id
+    if (id) { setTenantId(id); return }
+    const match = document.cookie.match(/impersonate-tenant=([^;]+)/)
+    const slug = match?.[1]
+    if (slug) {
+      fetch(`/api/tenant/by-slug?slug=${slug}`)
+        .then((r) => r.json())
+        .then((data) => { if (data.id) setTenantId(data.id) })
+    }
+  }, [session?.user?.tenants])
+
+  // Load Google OAuth config
+  useEffect(() => {
+    if (!tenantId) return
+    fetch(`/api/tenant/settings?tenantId=${tenantId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.google) {
+          setGoogleEnabled(true)
+          setGoogleClientId(data.google.clientId || "")
+          setGoogleClientSecret(data.google.clientSecret || "")
+        }
+      })
+  }, [tenantId])
 
   // Fetch sessions
   useEffect(() => {
@@ -123,6 +158,27 @@ export default function SecurityPage() {
     if (res.ok) {
       setSessions((prev) => prev.filter((s) => s.id !== sessionId))
       toast({ title: "Session dihapus", description: "Perangkat berhasil dikeluarkan." })
+    }
+  }
+
+  const handleSaveGoogle = async () => {
+    if (!tenantId) return
+    setSavingGoogle(true)
+    const res = await fetch("/api/tenant/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tenantId,
+        settings: googleEnabled
+          ? { google: { clientId: googleClientId, clientSecret: googleClientSecret } }
+          : { google: null },
+      }),
+    })
+    setSavingGoogle(false)
+    if (res.ok) {
+      toast({ title: "Disimpan", description: "Konfigurasi Google OAuth berhasil disimpan." })
+    } else {
+      toast({ title: "Gagal", description: "Terjadi kesalahan.", variant: "destructive" })
     }
   }
 
@@ -328,6 +384,99 @@ export default function SecurityPage() {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Google OAuth — full width */}
+        <Card className="glass border-0 lg:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Login dengan Google</CardTitle>
+                  <CardDescription>Izinkan pengguna login menggunakan akun Google</CardDescription>
+                </div>
+              </div>
+              <button
+                onClick={() => setGoogleEnabled(!googleEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${googleEnabled ? "bg-primary" : "bg-muted"}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${googleEnabled ? "translate-x-6" : "translate-x-1"}`} />
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {/* Info */}
+            <div className="flex items-start gap-3 rounded-xl bg-muted/40 p-4">
+              <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Jika tidak dikonfigurasi, sistem menggunakan Google OAuth default platform.</p>
+                <p>Aktifkan dan isi Client ID/Secret dari Google Cloud Console Anda untuk menggunakan OAuth sendiri.</p>
+              </div>
+            </div>
+
+            {googleEnabled && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Google Client ID</Label>
+                  <Input
+                    value={googleClientId}
+                    onChange={(e) => setGoogleClientId(e.target.value)}
+                    placeholder="xxxx.apps.googleusercontent.com"
+                    className="rounded-xl font-mono text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Google Client Secret</Label>
+                  <div className="relative">
+                    <Input
+                      type={showGoogleSecret ? "text" : "password"}
+                      value={googleClientSecret}
+                      onChange={(e) => setGoogleClientSecret(e.target.value)}
+                      placeholder="GOCSPX-..."
+                      className="rounded-xl pr-10 font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowGoogleSecret(!showGoogleSecret)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showGoogleSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Callback URL info */}
+                <div className="sm:col-span-2 rounded-xl border bg-muted/30 p-4 space-y-2">
+                  <p className="text-xs font-semibold">Authorized Redirect URI (tambahkan di Google Cloud Console):</p>
+                  <code className="text-xs bg-background rounded-lg px-3 py-2 block font-mono select-all">
+                    {typeof window !== "undefined" ? `${window.location.origin}/api/auth/callback/google` : "https://yourdomain.com/api/auth/callback/google"}
+                  </code>
+                  <a
+                    href="https://console.cloud.google.com/apis/credentials"
+                    target="_blank"
+                    rel="noopener"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    <ExternalLink className="h-3 w-3" /> Buka Google Cloud Console
+                  </a>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <Button
+                className="gap-2 btn-gradient text-white border-0 rounded-xl"
+                onClick={handleSaveGoogle}
+                disabled={savingGoogle}
+              >
+                {savingGoogle ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : null}
+                Simpan Pengaturan Google
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
