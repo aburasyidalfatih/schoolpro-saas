@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
-import { Breadcrumb } from "@/components/shared/breadcrumb"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -53,7 +52,6 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
           <Header />
         </header>
         <main className="flex-1 overflow-y-auto bg-mesh p-4 lg:p-6" style={{ viewTransitionName: "page-content" }}>
-          <Breadcrumb />
           {children}
         </main>
       </div>

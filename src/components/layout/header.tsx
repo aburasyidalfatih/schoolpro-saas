@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react"
 import { useTheme } from "next-themes"
 import { usePathname } from "next/navigation"
-import { Bell, Moon, Sun, LogOut, User, Settings, Search } from "lucide-react"
+import { Bell, Moon, Sun, LogOut, User, Settings, Search, Home, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -18,12 +18,90 @@ import {
 import Link from "next/link"
 import { TenantSwitcher } from "@/components/shared/tenant-switcher"
 
+const labelMap: Record<string, string> = {
+  dashboard: "Dashboard",
+  settings: "Pengaturan",
+  appearance: "Tampilan & Tema",
+  security: "Keamanan",
+  users: "Pengguna",
+  invite: "Undang Anggota",
+  roles: "Peran & Izin",
+  billing: "Langganan",
+  history: "Riwayat Pembayaran",
+  notifications: "Notifikasi",
+  preferences: "Preferensi",
+  reports: "Laporan",
+  trends: "Tren",
+  export: "Export Data",
+  audit: "Audit Log",
+  website: "Kelola Website",
+  about: "Profil & Tentang",
+  services: "Layanan",
+  gallery: "Galeri",
+  contact: "Kontak",
+  "super-admin": "Super Admin",
+  payments: "Pembayaran",
+  analytics: "Analitik",
+  "my-documents": "Dokumen Saya",
+  "my-schedule": "Jadwal",
+  "my-messages": "Pesan",
+  help: "Panduan",
+  faq: "FAQ",
+  tenants: "Tenant",
+  plans: "Paket & Harga",
+  admins: "Super Admin",
+  activity: "Aktivitas",
+  revenue: "Pendapatan",
+  email: "Email & SMTP",
+  whatsapp: "WhatsApp",
+  payment: "Payment Gateway",
+}
+
+function HeaderBreadcrumb() {
+  const pathname = usePathname()
+  const segments = pathname.split("/").filter(Boolean)
+
+  if (segments.length <= 1) {
+    // Root page — just show home icon
+    return (
+      <div className="flex items-center gap-1.5 text-sm">
+        <Home className="h-3.5 w-3.5 text-muted-foreground" />
+      </div>
+    )
+  }
+
+  const crumbs = segments.map((seg, i) => {
+    const href = "/" + segments.slice(0, i + 1).join("/")
+    const label = labelMap[seg] || seg.charAt(0).toUpperCase() + seg.slice(1)
+    const isLast = i === segments.length - 1
+    return { href, label, isLast }
+  })
+
+  return (
+    <nav className="flex items-center gap-1 text-sm">
+      <Link href={`/${segments[0]}`} className="text-muted-foreground hover:text-foreground transition-colors">
+        <Home className="h-3.5 w-3.5" />
+      </Link>
+      {crumbs.slice(1).map((crumb) => (
+        <span key={crumb.href} className="flex items-center gap-1">
+          <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+          {crumb.isLast ? (
+            <span className="font-semibold text-foreground">{crumb.label}</span>
+          ) : (
+            <Link href={crumb.href} className="text-muted-foreground hover:text-foreground transition-colors">
+              {crumb.label}
+            </Link>
+          )}
+        </span>
+      ))}
+    </nav>
+  )
+}
+
 export function Header() {
   const { data: session } = useSession()
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
-
-  const currentTenant = session?.user?.tenants?.[0]
 
   const isSuperAdminPanel = pathname.startsWith("/super-admin")
 
@@ -34,16 +112,10 @@ export function Header() {
     .toUpperCase()
     .slice(0, 2) || "U"
 
-  const headerTitle = isSuperAdminPanel
-    ? "Super Admin Panel"
-    : currentTenant?.name || "Dashboard"
-
   return (
     <>
-      <div className="flex items-center gap-3">
-        <h2 className="text-base font-semibold text-foreground">
-          {headerTitle}
-        </h2>
+      <div className="flex items-center gap-3 min-w-0">
+        <HeaderBreadcrumb />
         {!isSuperAdminPanel && <TenantSwitcher />}
       </div>
 
