@@ -13,8 +13,8 @@ export default function WebsiteHomePage() {
   const { data: session } = useSession()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [tenantId, setTenantId] = useState<string | null>(null)
-  const [slug, setSlug] = useState<string | null>(null)
+  const [tenantId, setTenantId] = useState<string | null>(session?.user?.tenants?.[0]?.id || null)
+  const [slug, setSlug] = useState<string | null>(session?.user?.tenants?.[0]?.slug || null)
   const [form, setForm] = useState({
     name: "",
     tagline: "",
@@ -23,12 +23,28 @@ export default function WebsiteHomePage() {
   })
 
   useEffect(() => {
-    const id = session?.user?.tenants?.[0]?.id
-    const s = session?.user?.tenants?.[0]?.slug
-    if (!id) return
-    setTenantId(id)
-    setSlug(s || null)
-    fetch(`/api/tenant/website?tenantId=${id}`)
+    const sessionTenantId = session?.user?.tenants?.[0]?.id
+    const sessionSlug = session?.user?.tenants?.[0]?.slug
+    if (sessionTenantId) {
+      setTenantId(sessionTenantId)
+      setSlug(sessionSlug || null)
+      return
+    }
+    // Impersonate mode: resolve from cookie
+    const match = document.cookie.match(/impersonate-tenant=([^;]+)/)
+    const impersonateSlug = match?.[1]
+    if (impersonateSlug) {
+      setSlug(impersonateSlug)
+      fetch(`/api/tenant/by-slug?slug=${impersonateSlug}`)
+        .then((r) => r.json())
+        .then((data) => { if (data.id) setTenantId(data.id) })
+        .catch(() => {})
+    }
+  }, [session?.user?.tenants])
+
+  useEffect(() => {
+    if (!tenantId) return
+    fetch(`/api/tenant/website?tenantId=${tenantId}`)
       .then((r) => r.json())
       .then((data) => {
         setForm({
@@ -40,7 +56,7 @@ export default function WebsiteHomePage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [session])
+  }, [tenantId])
 
   const handleSave = async () => {
     if (!tenantId) return

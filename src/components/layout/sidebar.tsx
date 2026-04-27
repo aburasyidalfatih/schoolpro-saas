@@ -77,6 +77,23 @@ function getTenantMenu(basePath: string): MenuSection[] {
       ],
     },
     {
+      title: "Website",
+      items: [
+        {
+          label: "Kelola Website",
+          href: `${basePath}/website`,
+          icon: LayoutTemplate,
+          children: [
+            { label: "Beranda", href: `${basePath}/website`, icon: Home },
+            { label: "Profil & Tentang", href: `${basePath}/website/about`, icon: Info },
+            { label: "Layanan", href: `${basePath}/website/services`, icon: Briefcase },
+            { label: "Galeri", href: `${basePath}/website/gallery`, icon: Image },
+            { label: "Kontak", href: `${basePath}/website/contact`, icon: Phone },
+          ],
+        },
+      ],
+    },
+    {
       title: "Manajemen",
       items: [
         {
@@ -140,24 +157,9 @@ function getTenantMenu(basePath: string): MenuSection[] {
           children: [
             { label: "Umum", href: `${basePath}/settings`, icon: Building2 },
             { label: "Tampilan & Tema", href: `${basePath}/settings/appearance`, icon: Palette },
+            { label: "Email (SMTP)", href: `${basePath}/settings/email`, icon: Mail },
+            { label: "WhatsApp Gateway", href: `${basePath}/settings/whatsapp`, icon: Megaphone },
             { label: "Keamanan", href: `${basePath}/settings/security`, icon: Lock },
-          ],
-        },
-      ],
-    },
-    {
-      title: "Website",
-      items: [
-        {
-          label: "Kelola Website",
-          href: `${basePath}/website`,
-          icon: LayoutTemplate,
-          children: [
-            { label: "Beranda", href: `${basePath}/website`, icon: Home },
-            { label: "Profil & Tentang", href: `${basePath}/website/about`, icon: Info },
-            { label: "Layanan", href: `${basePath}/website/services`, icon: Briefcase },
-            { label: "Galeri", href: `${basePath}/website/gallery`, icon: Image },
-            { label: "Kontak", href: `${basePath}/website/contact`, icon: Phone },
           ],
         },
       ],
