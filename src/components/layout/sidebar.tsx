@@ -39,6 +39,12 @@ import {
   Calendar,
   FolderOpen,
   User,
+  LayoutTemplate,
+  Home,
+  Image,
+  Briefcase,
+  Phone,
+  Info,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -135,6 +141,23 @@ function getTenantMenu(basePath: string): MenuSection[] {
             { label: "Umum", href: `${basePath}/settings`, icon: Building2 },
             { label: "Tampilan & Tema", href: `${basePath}/settings/appearance`, icon: Palette },
             { label: "Keamanan", href: `${basePath}/settings/security`, icon: Lock },
+          ],
+        },
+      ],
+    },
+    {
+      title: "Website",
+      items: [
+        {
+          label: "Kelola Website",
+          href: `${basePath}/website`,
+          icon: LayoutTemplate,
+          children: [
+            { label: "Beranda", href: `${basePath}/website`, icon: Home },
+            { label: "Profil & Tentang", href: `${basePath}/website/about`, icon: Info },
+            { label: "Layanan", href: `${basePath}/website/services`, icon: Briefcase },
+            { label: "Galeri", href: `${basePath}/website/gallery`, icon: Image },
+            { label: "Kontak", href: `${basePath}/website/contact`, icon: Phone },
           ],
         },
       ],
