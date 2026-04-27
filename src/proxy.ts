@@ -26,14 +26,26 @@ export function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Subdomain detected: namatenant.domain.com → rewrite ke /dashboard
-  // Tenant dideteksi dari subdomain via cookie/header
+  // ============================================================
+  // SUBDOMAIN DETECTED: tenant1.domain.com
+  // ============================================================
+
   const url = request.nextUrl.clone()
 
-  // Set subdomain info di header agar bisa diakses di server components
+  // /dashboard pada subdomain → tetap ke /dashboard (admin panel tenant)
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/login") || pathname.startsWith("/register")) {
+    const response = NextResponse.rewrite(url)
+    response.headers.set("x-tenant-slug", subdomain)
+    return response
+  }
+
+  // Semua path lain pada subdomain → rewrite ke /site/[slug]/...
+  // tenant1.domain.com/ → /site/tenant1
+  // tenant1.domain.com/about → /site/tenant1/about
+  url.pathname = `/site/${subdomain}${pathname}`
+
   const response = NextResponse.rewrite(url)
   response.headers.set("x-tenant-slug", subdomain)
-
   return response
 }
 

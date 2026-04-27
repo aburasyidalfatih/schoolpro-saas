@@ -20,6 +20,22 @@ model Tenant {
   theme       String   @default("aurora")
   isActive    Boolean  @default(true)
   settings    String?  // JSON string untuk settings tenant
+
+  // Website company profile fields
+  tagline     String?
+  about       String?  // Rich text / markdown
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  whatsapp    String?
+  instagram   String?
+  facebook    String?
+  youtube     String?
+  services    String?  // JSON array of services
+  heroImage   String?
+  gallery     String?  // JSON array of image URLs
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

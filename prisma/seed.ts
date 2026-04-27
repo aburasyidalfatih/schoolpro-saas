@@ -42,7 +42,22 @@ async function main() {
     create: {
       name: "Demo Organisasi",
       slug: "demo",
-      description: "Tenant demo untuk testing",
+      description: "Kami adalah perusahaan teknologi yang berdedikasi memberikan solusi digital terbaik untuk bisnis Anda.",
+      tagline: "Solusi Digital untuk Bisnis Modern",
+      about: "Didirikan pada tahun 2020, Demo Organisasi telah melayani lebih dari 500 klien dari berbagai sektor industri. Kami percaya bahwa teknologi yang tepat dapat mengubah cara bisnis beroperasi dan berkembang. Tim kami terdiri dari profesional berpengalaman yang siap membantu Anda mencapai tujuan bisnis.",
+      address: "Jl. Teknologi No. 123, Jakarta Selatan 12345",
+      phone: "021-12345678",
+      email: "info@demo-organisasi.com",
+      whatsapp: "6281234567890",
+      instagram: "demo.organisasi",
+      services: JSON.stringify([
+        { title: "Pengembangan Web", description: "Pembuatan website profesional dengan teknologi terkini untuk meningkatkan kehadiran digital bisnis Anda.", icon: "🌐" },
+        { title: "Aplikasi Mobile", description: "Pengembangan aplikasi mobile native dan cross-platform untuk Android dan iOS.", icon: "📱" },
+        { title: "Konsultasi IT", description: "Konsultasi strategis untuk transformasi digital dan optimalisasi infrastruktur IT.", icon: "💡" },
+        { title: "Cloud Solutions", description: "Migrasi dan pengelolaan infrastruktur cloud untuk skalabilitas dan efisiensi.", icon: "☁️" },
+        { title: "Keamanan Siber", description: "Audit keamanan, penetration testing, dan implementasi sistem keamanan.", icon: "🔒" },
+        { title: "Data Analytics", description: "Analisis data dan business intelligence untuk pengambilan keputusan berbasis data.", icon: "📊" },
+      ]),
     },
   })
 
