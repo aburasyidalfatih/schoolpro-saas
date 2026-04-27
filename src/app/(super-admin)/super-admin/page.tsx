@@ -1,0 +1,63 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Building2, Users, CreditCard, Activity, TrendingUp } from "lucide-react"
+import Link from "next/link"
+
+interface Stats {
+  tenantCount: number
+  userCount: number
+  activeTenants: number
+  totalRevenue: number
+  recentPayments: number
+}
+
+export default function SuperAdminDashboard() {
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  useEffect(() => {
+    fetch("/api/super-admin/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {})
+  }, [])
+
+  const formatCurrency = (n: number) =>
+    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n)
+
+  const cards = [
+    { label: "Total Tenant", value: stats?.tenantCount ?? "—", icon: Building2, gradient: "from-blue-500/10 to-cyan-500/10", iconColor: "text-blue-600 dark:text-blue-400", href: "/super-admin/tenants" },
+    { label: "Total Pengguna", value: stats?.userCount ?? "—", icon: Users, gradient: "from-emerald-500/10 to-teal-500/10", iconColor: "text-emerald-600 dark:text-emerald-400", href: "/super-admin/users" },
+    { label: "Pendapatan", value: stats ? formatCurrency(stats.totalRevenue) : "—", icon: CreditCard, gradient: "from-amber-500/10 to-orange-500/10", iconColor: "text-amber-600 dark:text-amber-400", href: "/super-admin/payments" },
+    { label: "Tenant Aktif", value: stats?.activeTenants ?? "—", icon: Activity, gradient: "from-violet-500/10 to-purple-500/10", iconColor: "text-violet-600 dark:text-violet-400", href: "/super-admin/analytics" },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Super Admin Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Kelola dan pantau seluruh platform SaasMasterPro</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {cards.map((stat) => (
+          <Link key={stat.label} href={stat.href}>
+            <Card className="glass border-0 hover-lift cursor-pointer">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${stat.gradient}`}>
+                    <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+                  </div>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="text-2xl font-bold tracking-tight">{stat.value}</div>
+                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
