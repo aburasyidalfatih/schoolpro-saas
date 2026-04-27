@@ -21,7 +21,8 @@ export const viewport: Viewport = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Baca tema dari cookie (di-set saat admin tenant ganti tema)
+  // Baca tema dari cookie untuk SSR — hanya berlaku untuk dashboard/tenant pages
+  // Landing page dan super admin selalu pakai aurora (override di masing-masing layout)
   const cookieStore = await cookies()
   const colorTheme = cookieStore.get("color-theme")?.value || "aurora"
 
