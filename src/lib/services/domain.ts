@@ -82,54 +82,21 @@ export async function verifyDomainDns(
 const CACHE_TTL_SECONDS = 3600
 const CACHE_PREFIX = "smp:domain:"
 
-// Lazy-load Redis hanya jika env tersedia (hindari error di dev tanpa Redis)
-let redisClient: import("ioredis").Redis | null = null
-
-async function getRedis(): Promise<import("ioredis").Redis | null> {
-  if (!process.env.UPSTASH_REDIS_REST_URL) return null
-  if (redisClient) return redisClient
-  try {
-    const { Redis } = await import("ioredis")
-    redisClient = new Redis(process.env.UPSTASH_REDIS_REST_URL)
-    return redisClient
-  } catch {
-    return null
-  }
-}
-
-// In-memory fallback untuk development
-const memCache = new Map<string, { slug: string; expiresAt: number }>()
+import { getRedisClient } from "@/lib/redis"
 
 export async function cacheDomainSlug(domain: string, slug: string): Promise<void> {
-  const redis = await getRedis()
-  if (redis) {
-    await redis.set(`${CACHE_PREFIX}${domain}`, slug, "EX", CACHE_TTL_SECONDS)
-    return
-  }
-  memCache.set(domain, { slug, expiresAt: Date.now() + CACHE_TTL_SECONDS * 1000 })
+  const redis = await getRedisClient()
+  await redis.set(`${CACHE_PREFIX}${domain}`, slug, CACHE_TTL_SECONDS)
 }
 
 export async function getCachedDomainSlug(domain: string): Promise<string | null> {
-  const redis = await getRedis()
-  if (redis) {
-    return redis.get(`${CACHE_PREFIX}${domain}`)
-  }
-  const entry = memCache.get(domain)
-  if (!entry) return null
-  if (Date.now() > entry.expiresAt) {
-    memCache.delete(domain)
-    return null
-  }
-  return entry.slug
+  const redis = await getRedisClient()
+  return redis.get(`${CACHE_PREFIX}${domain}`)
 }
 
 export async function invalidateDomainCache(domain: string): Promise<void> {
-  const redis = await getRedis()
-  if (redis) {
-    await redis.del(`${CACHE_PREFIX}${domain}`)
-    return
-  }
-  memCache.delete(domain)
+  const redis = await getRedisClient()
+  await redis.del(`${CACHE_PREFIX}${domain}`)
 }
 
 // ==================== DB HELPERS ====================
