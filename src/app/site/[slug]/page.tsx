@@ -32,8 +32,8 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
 
   if (!tenant) notFound()
 
-  const services = (tenant.services as any[]) || []
-  const rawGallery = (tenant.gallery as any[]) || []
+  const services = Array.isArray(tenant.services) ? tenant.services : []
+  const rawGallery = Array.isArray(tenant.gallery) ? tenant.gallery : []
   const gallery = rawGallery.map((item: any) =>
     typeof item === "string" ? { url: item, caption: "" } : item
   )
