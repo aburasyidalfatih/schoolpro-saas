@@ -10,7 +10,7 @@ const websiteSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   tagline: z.string().max(200).optional().nullable(),
   description: z.string().max(1000).optional().nullable(),
-  about: z.string().max(5000).optional().nullable(),
+  about: z.string().max(10000).optional().nullable(),
   logo: z.string().max(500).optional().nullable(),
   heroImage: z.string().max(500).optional().nullable(),
   // Kontak
@@ -24,8 +24,11 @@ const websiteSchema = z.object({
   facebook: z.string().max(100).optional().nullable(),
   youtube: z.string().max(100).optional().nullable(),
   // Konten JSON
-  services: z.any().optional().nullable(), // Native Json
-  gallery: z.any().optional().nullable(),  // Native Json
+  services: z.any().optional().nullable(),
+  gallery: z.any().optional().nullable(),
+  // SEO
+  seoTitle: z.string().max(70).optional().nullable(),
+  seoDesc: z.string().max(160).optional().nullable(),
 })
 
 // GET: ambil data website tenant
@@ -44,6 +47,7 @@ export async function GET(req: Request) {
       about: true, logo: true, heroImage: true, address: true, phone: true,
       email: true, website: true, whatsapp: true, instagram: true,
       facebook: true, youtube: true, services: true, gallery: true,
+      seoTitle: true, seoDesc: true,
     },
   })
 

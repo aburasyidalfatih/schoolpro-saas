@@ -1,6 +1,16 @@
 import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
-import { ImageIcon } from "lucide-react"
+import { GalleryGrid } from "./gallery-grid"
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const tenant = await db.tenant.findUnique({ where: { slug }, select: { name: true, seoTitle: true, seoDesc: true } })
+  if (!tenant) return {}
+  return {
+    title: `Galeri | ${tenant.seoTitle || tenant.name}`,
+    description: `Galeri foto ${tenant.name}`,
+  }
+}
 
 export default async function GalleryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -10,7 +20,11 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
   })
   if (!tenant) notFound()
 
-  const gallery = (tenant.gallery as string[]) || []
+  // Support both old format (string[]) and new format ({url, caption}[])
+  const raw = (tenant.gallery as any[]) || []
+  const gallery = raw.map((item: any) =>
+    typeof item === "string" ? { url: item, caption: "" } : item
+  )
 
   return (
     <>
@@ -25,21 +39,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
       </section>
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        {gallery.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {gallery.map((url, i) => (
-              <div key={i} className="group relative aspect-square rounded-2xl overflow-hidden border">
-                <img src={url} alt={`Gallery ${i + 1}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20">
-            <ImageIcon className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Galeri Belum Tersedia</h3>
-            <p className="text-muted-foreground">Foto dan dokumentasi akan segera ditambahkan.</p>
-          </div>
-        )}
+        <GalleryGrid items={gallery} />
       </section>
     </>
   )

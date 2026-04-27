@@ -32,9 +32,11 @@ model Tenant {
   instagram   String?
   facebook    String?
   youtube     String?
-  services    Json?    // JSON array of services
+  services    Json?    // JSON array of {title, description, icon, order}
   heroImage   String?
-  gallery     Json?    // JSON array of image URLs
+  gallery     Json?    // JSON array of {url, caption, order}
+  seoTitle    String?  // Custom SEO title
+  seoDesc     String?  // Custom SEO description (max 160 chars)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -44,6 +46,7 @@ model Tenant {
   notifications Notification[]
   payments      Payment[]
   auditLogs     AuditLog[]
+  contactSubmissions ContactSubmission[]
 
   @@index([isActive])
   @@index([plan])
@@ -238,6 +241,28 @@ model FileUpload {
 
   @@index([tenantId])
   @@map("file_uploads")
+}
+
+// ==================== CONTACT SUBMISSIONS ====================
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, isRead])
+  @@index([createdAt])
+  @@map("contact_submissions")
 }
 
 // ==================== PLATFORM SETTINGS ====================
