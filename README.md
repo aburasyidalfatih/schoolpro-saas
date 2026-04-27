@@ -18,27 +18,29 @@ Starter kit multi-tenant SaaS profesional berbasis Next.js 16, React 19, dan Aut
 
 ## Fitur Utama
 
-- Multi-tenancy (subdomain routing, tenant isolation, tenant switcher)
+- Multi-tenancy (subdomain routing + custom domain, tenant isolation, tenant switcher)
 - Role-based access (Super Admin / Owner / Admin / Member)
 - Auth: Credentials + Google OAuth
 - 2FA/TOTP (Google Authenticator compatible + backup codes)
+- Custom domain per-tenant dengan DNS verification (TXT record)
+- Tenant branding (logo, nama — update instan di sidebar via React Context)
+- Avatar upload untuk profil user
 - React Compiler (automatic memoization, zero manual useMemo/useCallback)
-- Proxy-level auth protection (redirect unauthenticated users)
+- Edge Runtime proxy dengan JWT validation (auth.config.ts split)
+- Security headers (CSP, X-Frame-Options, HSTS, Referrer-Policy)
 - Dashboard analytics real (stats dari database)
 - Audit log real dengan pagination (tenant + global)
 - Notifikasi real dengan mark-as-read + preferensi per channel
 - Confirmation dialog untuk semua destructive actions
-- 2FA/TOTP (Google Authenticator compatible + backup codes)
 - Impersonation 2 level (super admin → tenant, admin → user)
 - Payment gateway + webhook dengan retry mechanism
-- Notifikasi multi-channel dengan preferensi user
-- Audit log lengkap (action, entity, IP, user agent)
-- File upload dengan MIME validation
+- File upload dengan MIME validation + path traversal prevention
 - Data export ke Excel
 - 8 tema warna per-tenant
 - Dark/light mode
 - Structured logging (JSON di production)
 - Health check endpoint
+- Rate limiting (Redis production / in-memory dev)
 
 ## Quick Start
 
@@ -91,37 +93,86 @@ npm run db:studio    # Open Prisma Studio
 ```
 src/
 ├── app/
-│   ├── (auth)/          # Login, register, forgot password
-│   ├── (dashboard)/     # Dashboard tenant (admin & member)
-│   ├── (super-admin)/   # Panel super admin
-│   ├── api/             # API routes
-│   │   ├── auth/        # Auth, 2FA, sessions
-│   │   ├── export/      # Excel export
-│   │   ├── health/      # Health check
-│   │   ├── payment/     # Tripay webhook
-│   │   ├── super-admin/ # Tenant management, settings
-│   │   ├── tenant/      # Users, invite, theme
-│   │   └── upload/      # File upload
-│   ├── error.tsx        # Error boundary
-│   ├── global-error.tsx # Global error boundary
-│   ├── not-found.tsx    # 404 page
-│   └── layout.tsx       # Root layout
+│   ├── (auth)/                    # Login, register, forgot/reset password
+│   ├── (dashboard)/               # Dashboard tenant (admin & member)
+│   │   └── dashboard/
+│   │       ├── settings/
+│   │       │   ├── page.tsx       # Profil, organisasi, notifikasi
+│   │       │   ├── appearance/    # Tema warna & dark mode
+│   │       │   ├── domain/        # Custom domain + DNS verification
+│   │       │   ├── email/         # SMTP settings
+│   │       │   ├── payment/       # Payment gateway settings
+│   │       │   ├── security/      # 2FA, sesi aktif, Google OAuth
+│   │       │   └── whatsapp/      # WhatsApp gateway settings
+│   │       ├── website/
+│   │       │   ├── page.tsx       # Overview & statistik website
+│   │       │   ├── about/         # Identitas, hero image, tentang kami
+│   │       │   ├── contact/       # Informasi kontak
+│   │       │   ├── gallery/       # Galeri foto
+│   │       │   └── services/      # Layanan
+│   │       ├── notifications/     # Daftar notifikasi + preferensi
+│   │       ├── users/             # Manajemen pengguna tenant
+│   │       ├── billing/           # Langganan & riwayat pembayaran
+│   │       ├── reports/           # Laporan & analitik
+│   │       └── audit/             # Audit log tenant
+│   ├── (super-admin)/             # Panel super admin
+│   ├── (landing)/                 # Landing page publik
+│   ├── site/[slug]/               # Website publik tenant (rewrite target)
+│   ├── api/
+│   │   ├── auth/                  # Register, forgot-password, 2FA, sessions
+│   │   ├── export/                # Excel export
+│   │   ├── files/[...path]/       # Serve uploaded files
+│   │   ├── health/                # Health check
+│   │   ├── internal/
+│   │   │   └── domain-lookup/     # Edge-safe domain→slug resolver (untuk proxy)
+│   │   ├── payment/               # Tripay webhook
+│   │   ├── super-admin/           # Tenant management, platform settings
+│   │   ├── tenant/
+│   │   │   ├── domain/            # Custom domain CRUD + DNS verify
+│   │   │   ├── notifications/     # Notifikasi + preferensi
+│   │   │   ├── settings/          # SMTP, WhatsApp, Google OAuth config
+│   │   │   ├── theme/             # Tema warna tenant
+│   │   │   ├── users/             # Manajemen user tenant
+│   │   │   ├── website/           # Konten website tenant
+│   │   │   └── ...                # billing, audit, invite, stats
+│   │   ├── upload/                # File upload
+│   │   ├── user/                  # Profile, change-password
+│   │   └── website/[slug]/        # Public website API
+│   ├── error.tsx                  # Error boundary
+│   ├── global-error.tsx           # Global error boundary
+│   ├── not-found.tsx              # 404 page
+│   └── layout.tsx                 # Root layout
 ├── components/
-│   ├── layout/          # Header, Sidebar
-│   ├── providers/       # Session, Theme, Color Theme
-│   ├── shared/          # DataTable, Pagination, ConfirmDialog, etc.
-│   └── ui/              # Radix UI primitives
+│   ├── layout/                    # Header, Sidebar
+│   ├── providers/
+│   │   ├── color-theme-provider   # Tema warna per-tenant
+│   │   ├── session-provider       # NextAuth session
+│   │   └── tenant-branding-provider # Nama & logo tenant (instant update)
+│   ├── shared/                    # DataTable, Pagination, ConfirmDialog, etc.
+│   └── ui/                        # Radix UI primitives
 ├── lib/
-│   ├── services/        # Audit, Export, Notification, Payment, Token, Upload, 2FA
-│   ├── validations/     # Zod schemas (auth, tenant, super-admin)
-│   ├── api-utils.ts     # parseBody, apiHandler
-│   ├── auth.ts          # Auth.js v5 config
-│   ├── db.ts            # Prisma client
-│   ├── logger.ts        # Structured logger
-│   ├── rate-limit.ts    # Redis + in-memory rate limiter
-│   └── utils.ts         # cn, formatCurrency, generateSlug, etc.
-├── types/               # TypeScript declarations
-└── __tests__/           # Unit tests
+│   ├── services/
+│   │   ├── audit.ts               # Audit log helper
+│   │   ├── domain.ts              # Custom domain: DNS verify, Redis cache
+│   │   ├── export.ts              # Excel export
+│   │   ├── notification.ts        # Multi-channel notification sender
+│   │   ├── payment.ts             # Tripay integration + retry
+│   │   ├── two-factor.ts          # TOTP + backup codes
+│   │   └── upload.ts              # File upload + MIME validation
+│   ├── validations/
+│   │   ├── auth.ts                # Login, register, reset password schemas
+│   │   └── domain.ts              # Custom domain validation
+│   ├── api-utils.ts               # parseBody, apiHandler, requireAuth
+│   ├── auth.ts                    # Auth.js v5 full config (Node.js)
+│   ├── auth.config.ts             # Auth.js edge-safe config (untuk proxy)
+│   ├── db.ts                      # Prisma client singleton
+│   ├── logger.ts                  # Structured logger (JSON prod / pretty dev)
+│   ├── rate-limit.ts              # Redis + in-memory rate limiter
+│   ├── tenant-guard.ts            # Tenant access guard helpers
+│   └── utils.ts                   # cn, formatCurrency, generateSlug, etc.
+├── proxy.ts                       # Next.js 16 proxy (auth + subdomain + custom domain routing)
+├── types/                         # TypeScript declarations
+└── __tests__/                     # Unit tests (Vitest)
 ```
 
 ## Environment Variables
@@ -133,15 +184,18 @@ Lihat `.env.example` untuk daftar lengkap. Yang wajib:
 | `DATABASE_URL` | Connection string database |
 | `AUTH_URL` | URL aplikasi (http://localhost:3000) |
 | `AUTH_SECRET` | Secret untuk JWT signing |
+| `NEXT_PUBLIC_ROOT_DOMAIN` | Root domain (localhost:3000) |
+| `INTERNAL_API_SECRET` | Secret untuk internal API (domain lookup) |
 
 Opsional untuk production:
 
 | Variable | Keterangan |
 |----------|-----------|
-| `UPSTASH_REDIS_REST_URL` | Redis untuk rate limiting |
+| `UPSTASH_REDIS_REST_URL` | Redis untuk rate limiting & domain cache |
 | `TRIPAY_API_KEY` | Payment gateway |
 | `SMTP_HOST` | Email SMTP |
 | `STARSENDER_API_KEY` | WhatsApp gateway |
+| `GOOGLE_CLIENT_ID` | Google OAuth |
 
 ## Deploy ke Production
 
