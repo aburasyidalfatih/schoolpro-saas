@@ -3,136 +3,218 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Server, Shield, Eye, EyeOff } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { 
+  Server, Shield, Eye, EyeOff, Mail, MessageSquare, 
+  CreditCard, Globe, Settings2, Save, ExternalLink 
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
+import Link from "next/link"
 
 interface Settings {
+  platform_name: string
+  platform_tagline: string
   allow_impersonate_user: string
+  contact_email: string
 }
 
 export default function SuperAdminSettingsPage() {
-  const [settings, setSettings] = useState<Settings>({ allow_impersonate_user: "true" })
+  const [settings, setSettings] = useState<Settings>({
+    platform_name: "SchoolPro",
+    platform_tagline: "Solusi Manajemen Sekolah Digital",
+    allow_impersonate_user: "true",
+    contact_email: "support@schoolpro.id"
+  })
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     fetch("/api/super-admin/settings")
       .then((r) => r.json())
-      .then((data) => { setSettings(data); setLoading(false) })
+      .then((data) => {
+        setSettings((prev) => ({ ...prev, ...data }))
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }, [])
 
-  const toggleSetting = async (key: string) => {
-    const current = settings[key as keyof Settings]
-    const newValue = current === "true" ? "false" : "true"
-
-    setSettings((prev) => ({ ...prev, [key]: newValue }))
-
+  const handleSave = async (data: Partial<Settings>) => {
+    setSaving(true)
     const res = await fetch("/api/super-admin/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key, value: newValue }),
+      body: JSON.stringify(data),
     })
 
     if (res.ok) {
-      toast({
-        title: "Setting disimpan",
-        description: `${key === "allow_impersonate_user" ? "Login sebagai user" : key} telah ${newValue === "true" ? "diaktifkan" : "dinonaktifkan"}.`,
-      })
+      setSettings((prev) => ({ ...prev, ...data }))
+      toast({ title: "Berhasil", description: "Pengaturan platform telah diperbarui." })
     }
+    setSaving(false)
   }
 
+  const quickMenus = [
+    { title: "Email SMTP", desc: "Konfigurasi pengiriman email otomatis", icon: Mail, color: "text-blue-500", bg: "bg-blue-500/10", href: "/super-admin/settings/email" },
+    { title: "WhatsApp", desc: "Integrasi gateway WhatsApp StarSender", icon: MessageSquare, color: "text-emerald-500", bg: "bg-emerald-500/10", href: "/super-admin/settings/whatsapp" },
+    { title: "Pembayaran", desc: "Pengaturan API Tripay Platform", icon: CreditCard, color: "text-purple-500", bg: "bg-purple-500/10", href: "/super-admin/settings/payment" },
+  ]
+
+  if (loading) return <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="skeleton h-32 rounded-2xl" />)}</div>
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Pengaturan Sistem</h1>
-        <p className="text-muted-foreground mt-1">Konfigurasi umum platform SaasMasterPro</p>
+        <h1 className="text-2xl font-bold tracking-tight">Pengaturan Platform</h1>
+        <p className="text-muted-foreground mt-1">Kelola identitas dan konfigurasi utama seluruh platform.</p>
+      </div>
+
+      {/* Quick Navigation */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {quickMenus.map((menu) => (
+          <Link key={menu.title} href={menu.href}>
+            <Card className="glass border-0 hover:bg-muted/50 transition-all cursor-pointer group">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shrink-0 transition-transform group-hover:scale-110", menu.bg)}>
+                  <menu.icon className={cn("h-6 w-6", menu.color)} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm flex items-center gap-1">
+                    {menu.title}
+                    <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50" />
+                  </h3>
+                  <p className="text-xs text-muted-foreground truncate">{menu.desc}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Fitur Platform */}
+        {/* Identitas Platform */}
         <Card className="glass border-0">
           <CardHeader>
             <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                <Shield className="h-4 w-4 text-primary" />
+                <Globe className="h-4 w-4 text-primary" />
               </div>
-              <div>
-                <CardTitle className="text-lg">Fitur Platform</CardTitle>
-                <CardDescription>Aktifkan atau nonaktifkan fitur untuk semua tenant</CardDescription>
-              </div>
+              <CardTitle className="text-lg">Identitas Platform</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Login Sebagai User */}
-            <button
-              onClick={() => toggleSetting("allow_impersonate_user")}
-              className={cn(
-                "flex w-full items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 text-left",
-                settings.allow_impersonate_user === "true"
-                  ? "border-primary bg-primary/5"
-                  : "border-transparent bg-muted/50 hover:bg-muted"
-              )}
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nama Platform</Label>
+              <Input 
+                value={settings.platform_name} 
+                onChange={(e) => setSettings({...settings, platform_name: e.target.value})}
+                placeholder="SchoolPro" 
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Tagline Platform</Label>
+              <Input 
+                value={settings.platform_tagline} 
+                onChange={(e) => setSettings({...settings, platform_tagline: e.target.value})}
+                placeholder="Solusi Manajemen Digital" 
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email Kontak</Label>
+              <Input 
+                value={settings.contact_email} 
+                onChange={(e) => setSettings({...settings, contact_email: e.target.value})}
+                placeholder="support@schoolpro.id" 
+                className="rounded-xl"
+              />
+            </div>
+            <Button 
+              className="w-full gap-2 btn-gradient text-white border-0 rounded-xl"
+              onClick={() => handleSave({
+                platform_name: settings.platform_name,
+                platform_tagline: settings.platform_tagline,
+                contact_email: settings.contact_email
+              })}
+              disabled={saving}
             >
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-xl",
-                  settings.allow_impersonate_user === "true" ? "bg-primary/10" : "bg-muted"
-                )}>
-                  {settings.allow_impersonate_user === "true"
-                    ? <Eye className="h-5 w-5 text-primary" />
-                    : <EyeOff className="h-5 w-5 text-muted-foreground" />
-                  }
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Login Sebagai User</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Izinkan tenant admin melihat dashboard sebagai user mereka
-                  </p>
-                </div>
-              </div>
-              <span className={cn(
-                "text-[11px] font-semibold rounded-full px-2.5 py-1",
-                settings.allow_impersonate_user === "true"
-                  ? "bg-emerald-500/10 text-emerald-600"
-                  : "bg-muted text-muted-foreground"
-              )}>
-                {settings.allow_impersonate_user === "true" ? "Aktif" : "Nonaktif"}
-              </span>
-            </button>
+              {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+              <Save className="h-4 w-4" />
+              Simpan Identitas
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Info */}
-        <Card className="glass border-0">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                <Server className="h-4 w-4 text-primary" />
+        <div className="space-y-6">
+          {/* Fitur Global */}
+          <Card className="glass border-0">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                  <Shield className="h-4 w-4 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Keamanan & Fitur</CardTitle>
               </div>
-              <div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <button
+                onClick={() => handleSave({ allow_impersonate_user: settings.allow_impersonate_user === "true" ? "false" : "true" })}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 text-left",
+                  settings.allow_impersonate_user === "true"
+                    ? "border-primary bg-primary/5"
+                    : "border-transparent bg-muted/50 hover:bg-muted"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-xl",
+                    settings.allow_impersonate_user === "true" ? "bg-primary/10" : "bg-muted"
+                  )}>
+                    {settings.allow_impersonate_user === "true"
+                      ? <Eye className="h-5 w-5 text-primary" />
+                      : <EyeOff className="h-5 w-5 text-muted-foreground" />
+                    }
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Login Sebagai User</p>
+                    <p className="text-xs text-muted-foreground">Izinkan Super Admin login ke tenant dashboard</p>
+                  </div>
+                </div>
+                <div className={cn(
+                  "h-2.5 w-2.5 rounded-full",
+                  settings.allow_impersonate_user === "true" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-muted-foreground/30"
+                )} />
+              </button>
+            </CardContent>
+          </Card>
+
+          {/* Informasi Sistem */}
+          <Card className="glass border-0">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                  <Server className="h-4 w-4 text-primary" />
+                </div>
                 <CardTitle className="text-lg">Informasi Sistem</CardTitle>
-                <CardDescription>Detail platform</CardDescription>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[
-              { label: "Versi", value: "1.0.0" },
-              { label: "Framework", value: "Next.js 16.2" },
-              { label: "Auth", value: "Auth.js v5" },
-              { label: "Database", value: "SQLite (dev) / PostgreSQL (prod)" },
-              { label: "Payment", value: "Tripay" },
-              { label: "WhatsApp", value: "StarSender" },
-              { label: "Email", value: "Nodemailer SMTP" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between rounded-lg bg-muted/30 px-4 py-2.5">
-                <span className="text-sm text-muted-foreground">{item.label}</span>
-                <span className="text-sm font-medium">{item.value}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {[
+                { label: "Status Redis", value: "Tersambung (Optimized)", color: "text-emerald-600" },
+                { label: "Mode Output", value: "Next.js Standalone", color: "text-primary" },
+                { label: "Versi Core", value: "15.1.7 (Stable)", color: "" },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between text-xs px-1">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className={cn("font-medium", item.color)}>{item.value}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

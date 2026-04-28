@@ -1,174 +1,185 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CreditCard, Check, Clock, Receipt, ArrowRight } from "lucide-react"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
-
-const plans = [
-  { name: "Gratis", price: 0, priceLabel: "Rp 0", period: "selamanya", plan: "free", features: ["1 Pengguna", "100 Data", "Notifikasi In-App"] },
-  { name: "Pro", price: 199000, priceLabel: "Rp 199.000", period: "/bulan", plan: "pro", popular: true, features: ["10 Pengguna", "Data Tak Terbatas", "Semua Notifikasi", "Export Excel", "Dukungan Prioritas"] },
-  { name: "Enterprise", price: 499000, priceLabel: "Rp 499.000", period: "/bulan", plan: "enterprise", features: ["Pengguna Tak Terbatas", "Custom Domain", "API Access", "Dukungan Dedicated"] },
-]
-
-interface Payment { id: string; reference: string; amount: number; status: string; plan: string; createdAt: string; paidAt: string | null }
+import { 
+  CreditCard, CheckCircle2, Zap, Users, 
+  Info, ArrowRight, ShieldCheck, Star 
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function BillingPage() {
-  const { data: session } = useSession()
-  const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
-  const [upgrading, setUpgrading] = useState<string | null>(null)
-  const [tenantId, setTenantId] = useState<string | null>(null)
-  const [currentPlan, setCurrentPlan] = useState("free")
+  const [checkingOut, setCheckingOut] = useState(false)
+  const [data, setData] = useState<any>(null)
+  const [studentCount, setStudentCount] = useState(50)
 
   useEffect(() => {
-    const id = session?.user?.tenants?.[0]?.id
-    if (!id) return
-    setTenantId(id)
-    // Fetch payment history
-    fetch(`/api/tenant/billing?tenantId=${id}`)
+    fetch("/api/tenant/billing")
       .then((r) => r.json())
-      .then((data) => { setPayments(data.data || []); setCurrentPlan(data.plan || "free"); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [session])
+      .then((res) => {
+        setData(res)
+        setStudentCount(res.pricing?.MIN_STUDENTS || 50)
+        setLoading(false)
+      })
+  }, [])
 
-  const handleUpgrade = async (plan: typeof plans[0]) => {
-    if (!tenantId) return
-    setUpgrading(plan.plan)
+  const pricing = data?.pricing || { PRICE_PER_STUDENT: 30000, MIN_STUDENTS: 50 }
+  const totalCost = studentCount * pricing.PRICE_PER_STUDENT
+
+  const handleCheckout = async () => {
+    if (studentCount < pricing.MIN_STUDENTS) {
+      toast({ title: "Gagal", description: `Minimal upgrade adalah ${pricing.MIN_STUDENTS} siswa`, variant: "destructive" })
+      return
+    }
+
+    setCheckingOut(true)
     const res = await fetch("/api/tenant/billing/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tenantId, plan: plan.plan, amount: plan.price }),
+      body: JSON.stringify({ studentCount }),
     })
-    const data = await res.json()
-    setUpgrading(null)
-    if (res.ok && data.paymentUrl) {
-      window.open(data.paymentUrl, "_blank")
+
+    const result = await res.json()
+    setCheckingOut(false)
+
+    if (res.ok) {
+      if (result.checkoutUrl && result.checkoutUrl !== "#") {
+        window.location.href = result.checkoutUrl
+      } else {
+        toast({ title: "Invoice Dibuat", description: "Silakan cek email Anda untuk detail pembayaran." })
+      }
     } else {
-      toast({ title: "Gagal", description: data.error || "Tidak dapat membuat transaksi.", variant: "destructive" })
+      toast({ title: "Error", description: result.error, variant: "destructive" })
     }
   }
 
-  const statusBadge = (status: string) => {
-    const map: Record<string, string> = {
-      paid: "bg-emerald-500/10 text-emerald-600",
-      pending: "bg-amber-500/10 text-amber-600",
-      failed: "bg-destructive/10 text-destructive",
-      expired: "bg-muted text-muted-foreground",
-    }
-    return map[status] || map.pending
-  }
+  if (loading) return <div className="skeleton h-96 rounded-2xl" />
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       <div>
-        <h1 className="text-2xl font-bold">Langganan</h1>
-        <p className="text-muted-foreground">Kelola paket langganan Anda</p>
+        <h1 className="text-2xl font-bold tracking-tight">Langganan & Penagihan</h1>
+        <p className="text-muted-foreground mt-1">Kelola paket sekolah dan kuota siswa Anda.</p>
       </div>
 
-      {/* Current plan badge */}
-      <Card className="glass border-0">
-        <CardContent className="flex items-center gap-4 p-5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <CreditCard className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Paket Aktif</p>
-            <p className="text-lg font-bold capitalize">{currentPlan}</p>
-          </div>
-          <span className="ml-auto text-xs bg-primary/10 text-primary rounded-full px-3 py-1 font-semibold capitalize">{currentPlan}</span>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Status Paket Saat Ini */}
+        <Card className={cn(
+          "lg:col-span-1 border-0 shadow-lg",
+          data?.plan === "pro" ? "bg-primary text-primary-foreground" : "glass"
+        )}>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              {data?.plan === "pro" ? <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" /> : <Zap className="h-5 w-5 text-primary" />}
+              Paket Saat Ini
+            </CardTitle>
+            <CardDescription className={data?.plan === "pro" ? "text-primary-foreground/80" : ""}>
+              Status akun sekolah Anda
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-3xl font-bold uppercase tracking-widest">
+              {data?.plan || "FREE"}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Kuota Siswa</span>
+                <span className="font-bold">{data?.studentQuota || 0}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Status Akun</span>
+                <Badge variant={data?.isActive ? "secondary" : "destructive"}>
+                  {data?.isActive ? "Aktif" : "Non-aktif"}
+                </Badge>
+              </div>
+            </div>
+            {data?.plan === "free" && (
+              <div className="pt-4 border-t border-white/20">
+                <p className="text-xs opacity-80 flex items-start gap-2">
+                  <Info className="h-4 w-4 shrink-0" />
+                  Anda menggunakan paket gratis. Upgrade ke PRO untuk fitur manajemen siswa lengkap.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Plans */}
-      <div className="grid gap-5 md:grid-cols-3">
-        {plans.map((plan) => {
-          const isCurrent = currentPlan === plan.plan
-          return (
-            <Card key={plan.name} className={`glass border-0 relative ${plan.popular ? "ring-2 ring-primary" : ""}`}>
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full btn-gradient px-4 py-1 text-xs font-semibold text-white shadow">
-                  Paling Populer
+        {/* Form Upgrade */}
+        <Card className="lg:col-span-2 glass border-0">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Upgrade ke Paket PRO</CardTitle>
+                <CardDescription>Bayar sesuai jumlah siswa aktif (Pay-per-Student)</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Users className="h-4 w-4" /> Jumlah Siswa Aktif
+                  </Label>
+                  <Input 
+                    type="number" 
+                    min={pricing.MIN_STUDENTS} 
+                    value={studentCount} 
+                    onChange={(e) => setStudentCount(Number(e.target.value))}
+                    className="rounded-xl h-12 text-lg font-semibold"
+                  />
+                  <p className="text-[10px] text-muted-foreground">Minimal upgrade: {pricing.MIN_STUDENTS} siswa</p>
                 </div>
-              )}
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  {plan.name}
-                  {isCurrent && <span className="text-xs bg-primary/10 text-primary rounded-full px-2 py-1">Aktif</span>}
-                </CardTitle>
-                <CardDescription>
-                  <span className="text-2xl font-bold text-foreground">{plan.priceLabel}</span>
-                  <span className="text-sm text-muted-foreground"> {plan.period}</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 mb-6">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-primary shrink-0" />
-                      {f}
+                
+                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 space-y-1">
+                  <p className="text-xs text-muted-foreground">Estimasi Biaya</p>
+                  <div className="flex items-end gap-1 text-primary">
+                    <span className="text-sm font-semibold">Rp</span>
+                    <span className="text-3xl font-bold">{totalCost.toLocaleString("id-ID")}</span>
+                  </div>
+                  <p className="text-[10px] opacity-70 italic text-primary">Biaya Rp {pricing.PRICE_PER_STUDENT.toLocaleString("id-ID")} / siswa / tahun</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label>Fitur yang Anda dapatkan:</Label>
+                <ul className="space-y-2 text-sm">
+                  {[
+                    "Manajemen Data Siswa Lengkap",
+                    "E-Rapor & Cetak Dokumen Otomatis",
+                    "Keuangan & SPP Digital",
+                    "Fitur Absensi & Notifikasi Ortu",
+                    "Support Prioritas 24/7",
+                  ].map((feat) => (
+                    <li key={feat} className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      <span>{feat}</span>
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className={`w-full rounded-xl gap-2 ${plan.popular && !isCurrent ? "btn-gradient text-white border-0" : ""}`}
-                  variant={isCurrent ? "outline" : "default"}
-                  disabled={isCurrent || plan.price === 0 || upgrading === plan.plan}
-                  onClick={() => !isCurrent && plan.price > 0 && handleUpgrade(plan)}
-                >
-                  {upgrading === plan.plan ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  ) : isCurrent ? (
-                    "Paket Saat Ini"
-                  ) : plan.price === 0 ? (
-                    "Gratis"
-                  ) : (
-                    <><ArrowRight className="h-4 w-4" /> Upgrade</>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+              </div>
+            </div>
 
-      {/* Payment history */}
-      <Card className="glass border-0">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10"><Receipt className="h-4 w-4 text-primary" /></div>
-            <div><CardTitle className="text-lg">Riwayat Pembayaran</CardTitle><CardDescription>Transaksi langganan Anda</CardDescription></div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="space-y-2">{[1,2].map(i => <div key={i} className="skeleton h-12 rounded-xl" />)}</div>
-          ) : payments.length === 0 ? (
-            <div className="text-center py-8">
-              <Clock className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-sm text-muted-foreground">Belum ada riwayat pembayaran</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {payments.map((p) => (
-                <div key={p.id} className="flex items-center justify-between rounded-xl border p-4">
-                  <div>
-                    <p className="text-sm font-semibold capitalize">{p.plan}</p>
-                    <p className="text-xs text-muted-foreground">{p.reference} · {formatDate(p.createdAt)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">{formatCurrency(p.amount)}</p>
-                    <span className={`text-[10px] font-semibold rounded-full px-2 py-0.5 ${statusBadge(p.status)}`}>{p.status}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            <Button 
+              className="w-full h-12 rounded-xl btn-gradient text-white border-0 gap-2 text-lg shadow-lg shadow-primary/20"
+              disabled={checkingOut || studentCount < pricing.MIN_STUDENTS}
+              onClick={handleCheckout}
+            >
+              {checkingOut ? "Menyiapkan Invoice..." : "Upgrade Sekarang"}
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

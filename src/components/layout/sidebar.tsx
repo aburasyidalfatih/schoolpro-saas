@@ -72,7 +72,9 @@ interface MenuSection {
 }
 
 // --- TENANT ADMIN MENU ---
-function getTenantMenu(basePath: string): MenuSection[] {
+function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
+  const isPro = plan === "pro"
+
   return [
     {
       items: [
@@ -107,6 +109,16 @@ function getTenantMenu(basePath: string): MenuSection[] {
       title: "Manajemen",
       items: [
         {
+          label: "Akademik & Siswa",
+          href: isPro ? `${basePath}/students` : `${basePath}/billing`,
+          icon: isPro ? Users : Lock,
+          children: isPro ? [
+            { label: "Daftar Siswa", href: `${basePath}/students`, icon: UserCog },
+            { label: "Absensi", href: `${basePath}/attendance`, icon: ClipboardList },
+            { label: "E-Rapor", href: `${basePath}/reports/grades`, icon: FileText },
+          ] : undefined
+        },
+        {
           label: "Pengguna",
           href: `${basePath}/users`,
           icon: Users,
@@ -123,20 +135,7 @@ function getTenantMenu(basePath: string): MenuSection[] {
           children: [
             { label: "Langganan", href: `${basePath}/billing`, icon: Wallet },
             { label: "Riwayat Pembayaran", href: `${basePath}/billing/history`, icon: Receipt },
-          ],
-        },
-      ],
-    },
-    {
-      title: "Komunikasi",
-      items: [
-        {
-          label: "Notifikasi",
-          href: `${basePath}/notifications`,
-          icon: Bell,
-          children: [
-            { label: "Semua Notifikasi", href: `${basePath}/notifications`, icon: BellRing },
-            { label: "Preferensi", href: `${basePath}/notifications/preferences`, icon: BellOff },
+            ...(isPro ? [{ label: "Pembayaran SPP", href: `${basePath}/billing/spp`, icon: Receipt }] : []),
           ],
         },
       ],
@@ -146,13 +145,13 @@ function getTenantMenu(basePath: string): MenuSection[] {
       items: [
         {
           label: "Laporan",
-          href: `${basePath}/reports`,
-          icon: BarChart3,
-          children: [
+          href: isPro ? `${basePath}/reports` : `${basePath}/billing`,
+          icon: isPro ? BarChart3 : Lock,
+          children: isPro ? [
             { label: "Analitik", href: `${basePath}/reports`, icon: PieChart },
             { label: "Tren", href: `${basePath}/reports/trends`, icon: TrendingUp },
             { label: "Export Data", href: `${basePath}/reports/export`, icon: ClipboardList },
-          ],
+          ] : undefined,
         },
         { label: "Audit Log", href: `${basePath}/audit`, icon: FileText },
       ],
@@ -238,6 +237,7 @@ function getSuperAdminMenu(): MenuSection[] {
           children: [
             { label: "Semua Tenant", href: "/super-admin/tenants", icon: Globe },
             { label: "Paket & Harga", href: "/super-admin/tenants/plans", icon: Tag },
+            { label: "Pengajuan Sekolah", href: "/super-admin/applications", icon: FileText },
           ],
         },
         {
@@ -314,6 +314,7 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
   const currentTenantSlug = session?.user?.tenants?.[0]?.slug
   const currentTenant = session?.user?.tenants?.find((t) => t.slug === currentTenantSlug) || session?.user?.tenants?.[0]
   const currentRole = currentTenant?.role || "member"
+  const currentPlan = (session?.user as any)?.tenants?.[0]?.plan || "free"
 
   // Branding: pakai context (update instan) untuk nama & logo, fallback ke session
   const brandName = isSuperAdminPath ? "SaasMasterPro" : (branding.name || currentTenant?.name || "SaasMasterPro")
@@ -330,7 +331,7 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
   if (isSuperAdminPath) {
     sections = getSuperAdminMenu()
   } else if (isAdminRole) {
-    sections = getTenantMenu(basePath)
+    sections = getTenantMenu(basePath, currentPlan)
   } else {
     sections = getMemberMenu(basePath)
   }
@@ -467,7 +468,6 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                     ) : (
                       <Link
                         href={item.href}
-                        transitionTypes={["slide-forward"]}
                         className={cn(
                           "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                           isActive
@@ -495,7 +495,6 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                               <Link
                                 key={child.href}
                                 href={child.href}
-                                transitionTypes={["slide-forward"]}
                                 className={cn(
                                   "group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-200",
                                   isSubActive ? "text-primary bg-primary/5" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
@@ -518,14 +517,16 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
       </nav>
 
       {/* Bottom card */}
-      {!collapsed && !isSuperAdminPath && (
+      {!collapsed && !isSuperAdminPath && currentPlan === "free" && (
         <div className="p-3">
-          <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 p-4">
-            <p className="text-xs font-medium text-foreground">Paket Gratis</p>
-            <p className="text-xs text-muted-foreground mt-1">Upgrade untuk fitur lengkap</p>
+          <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 p-4 border border-primary/10">
+            <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <Lock className="h-3 w-3 text-primary" /> Paket Gratis
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-1">Upgrade ke PRO untuk fitur manajemen siswa lengkap.</p>
             <Link href={`${basePath}/billing`}>
-              <Button size="sm" className="mt-3 w-full rounded-lg btn-gradient text-white text-xs h-8 border-0">
-                Upgrade
+              <Button size="sm" className="mt-3 w-full rounded-lg btn-gradient text-white text-xs h-8 border-0 shadow-sm shadow-primary/20">
+                Upgrade Sekarang
               </Button>
             </Link>
           </div>

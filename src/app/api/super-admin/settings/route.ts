@@ -16,16 +16,29 @@ export async function PUT(req: Request) {
   const session = await auth()
   if (!session?.user?.isSuperAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-  const { platformSettingSchema } = await import("@/lib/validations/super-admin")
-  const { parseBody } = await import("@/lib/api-utils")
-  const parsed = await parseBody(req, platformSettingSchema)
-  if (parsed.error) return parsed.error
-  const { key, value } = parsed.data
+  const body = await req.json()
+  
+  // Jika body adalah object key-value (Batch Update)
+  if (typeof body === 'object' && !body.key) {
+    const updates = Object.entries(body).map(([key, value]) => 
+      db.platformSetting.upsert({
+        where: { key },
+        update: { value: String(value) },
+        create: { key, value: String(value) },
+      })
+    )
+    await Promise.all(updates)
+    return NextResponse.json({ message: "Pengaturan batch berhasil disimpan" })
+  }
 
+  // Support single update (legacy)
+  const { platformSettingSchema } = await import("@/lib/validations/super-admin")
+  const { key, value } = body
+  
   await db.platformSetting.upsert({
     where: { key },
-    update: { value },
-    create: { key, value },
+    update: { value: String(value) },
+    create: { key, value: String(value) },
   })
 
   return NextResponse.json({ message: "Setting disimpan" })

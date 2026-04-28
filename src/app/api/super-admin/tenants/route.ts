@@ -61,3 +61,36 @@ export async function DELETE(req: Request) {
   await db.tenant.delete({ where: { id: parsed.data.id } })
   return NextResponse.json({ message: "Tenant dihapus" })
 }
+
+export async function PUT(req: Request) {
+  const session = await auth()
+  if (!session?.user?.isSuperAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  const body = await req.json()
+  const { id, name, slug, domain, plan, isActive, studentQuota } = body
+
+  if (!id) return NextResponse.json({ error: "ID Tenant diperlukan" }, { status: 400 })
+
+  try {
+    const updated = await db.tenant.update({
+      where: { id },
+      data: {
+        name,
+        slug,
+        domain: domain || null,
+        plan,
+        isActive,
+        studentQuota: Number(studentQuota || 0)
+      }
+    })
+
+    return NextResponse.json({ message: "Tenant berhasil diupdate", data: updated })
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: "Slug atau Domain sudah digunakan" }, { status: 400 })
+    }
+    return NextResponse.json({ error: "Gagal mengupdate tenant" }, { status: 500 })
+  }
+}

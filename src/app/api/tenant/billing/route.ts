@@ -1,23 +1,29 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { getPricingConfig } from "@/lib/services/billing"
 
-export async function GET(req: Request) {
+export async function GET() {
   const session = await auth()
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!session?.tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const url = new URL(req.url)
-  const tenantId = url.searchParams.get("tenantId")
-  if (!tenantId) return NextResponse.json({ error: "tenantId harus diisi" }, { status: 400 })
-
-  const [tenant, payments] = await Promise.all([
-    db.tenant.findUnique({ where: { id: tenantId }, select: { plan: true } }),
-    db.payment.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: "desc" },
-      take: 20,
+  const [tenant, pricing] = await Promise.all([
+    db.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: {
+        id: true,
+        name: true,
+        plan: true,
+        studentQuota: true,
+        isActive: true,
+        expiresAt: true
+      }
     }),
+    getPricingConfig()
   ])
 
-  return NextResponse.json({ plan: tenant?.plan || "free", data: payments })
+  return NextResponse.json({
+    ...tenant,
+    pricing
+  })
 }
