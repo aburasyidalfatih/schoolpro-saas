@@ -38,6 +38,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
+  productionBrowserSourceMaps: false, // Hemat RAM: jangan buat source maps
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -48,8 +49,9 @@ const nextConfig: NextConfig = {
     remotePatterns: ALLOWED_IMAGE_DOMAINS,
   },
   experimental: {
-    // Jika ingin menggunakan React Compiler di Next.js 15, letakkan di dalam experimental
-    // reactCompiler: false,
+    // Membatasi penggunaan memori saat kompilasi
+    cpus: 1, 
+    workerThreads: false,
   },
   async headers() {
     return [
