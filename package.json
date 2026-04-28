@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
+    "build": "NODE_OPTIONS='--max-old-space-size=2048' next build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
     "start": "next start",
     "start:prod": "pm2 start ecosystem.config.js",
     "stop:prod": "pm2 stop ecosystem.config.js && pm2 delete schoolpro-dev",
@@ -21,8 +21,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
-  },
-  "dependencies": {
+    },
+    "dependencies": {
     "@auth/prisma-adapter": "^2.0.0",
     "@babel/core": "^7.29.0",
     "@babel/types": "^7.29.0",
@@ -53,7 +53,7 @@
     "exceljs": "^4.4.0",
     "ioredis": "^5.10.1",
     "lucide-react": "^1.11.0",
-    "next": "^16.2.4",
+    "next": "15.1.7",
     "next-auth": "^5.0.0-beta.31",
     "next-themes": "^0.4.6",
     "nodemailer": "^6.9.0",
@@ -77,7 +77,7 @@
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
-    "eslint-config-next": "^14.1.0",
+    "eslint-config-next": "15.1.7",
     "jsdom": "^29.0.2",
     "postcss": "^8.4.35",
     "prisma": "^5.10.0",

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { saveFile } from "@/lib/services/upload"
+import path from "path"
 
 export async function POST(req: Request) {
   try {
@@ -36,12 +37,9 @@ export async function POST(req: Request) {
     const result = await saveFile(file, tenantId || undefined, subDir || undefined)
 
     // Konversi path absolut filesystem ke URL publik via /api/files/...
-    // result.path bisa berupa path absolut (Windows/Linux) atau relative
-    // Kita ambil bagian setelah UPLOAD_DIR, lalu jadikan URL
-    const nodePath = require("path")
-    const uploadDirResolved = nodePath.resolve(process.env.UPLOAD_DIR || "./uploads")
-    const fileResolved = nodePath.resolve(result.path)
-    // Ambil relative path dari UPLOAD_DIR, normalize separator ke forward slash
+    const uploadDirResolved = path.resolve(process.env.UPLOAD_DIR || "./uploads")
+    const fileResolved = path.resolve(result.path)
+    
     const relativeToUpload = fileResolved
       .replace(uploadDirResolved, "")
       .replace(/\\/g, "/")

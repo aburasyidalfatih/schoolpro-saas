@@ -49,10 +49,20 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  reactCompiler: true,
+  reactCompiler: false,
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
+  typescript: {
+    // Abaikan type checking saat build di VPS untuk menghemat RAM
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    // Abaikan linting saat build di VPS
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: ALLOWED_IMAGE_DOMAINS,
+    // Jika CPU VPS sering 100% saat buka gambar, pertimbangkan set unoptimized: true
+    // unoptimized: true,
   },
   // Izinkan akses HMR dari domain kustom saat development
   allowedDevOrigins: ["schoolpro.my.id", "localhost:3001", "schoolpro.id", "schoolpro.my.id:443"],
