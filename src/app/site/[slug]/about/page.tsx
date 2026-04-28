@@ -1,13 +1,10 @@
-import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
 import { CheckCircle, Target, Eye, Heart } from "lucide-react"
+import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 
 export default async function AboutPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const tenant = await db.tenant.findUnique({
-    where: { slug },
-    select: { name: true, about: true, description: true, address: true },
-  })
+  const tenant = await getPublicTenantBySlug(slug)
   if (!tenant) notFound()
 
   return (

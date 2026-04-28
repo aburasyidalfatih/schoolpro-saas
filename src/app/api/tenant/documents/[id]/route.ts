@@ -1,0 +1,36 @@
+import { NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import { db } from "@/lib/db"
+
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const session = await auth()
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const url = new URL(req.url)
+  const tenantId = url.searchParams.get("tenantId")
+  if (!tenantId) return NextResponse.json({ error: "tenantId harus diisi" }, { status: 400 })
+
+  const isSuperAdmin = session.user.isSuperAdmin
+  if (!isSuperAdmin) {
+    const tu = await db.tenantUser.findUnique({
+      where: { tenantId_userId: { tenantId, userId: session.user.id } },
+    })
+    const allowedRoles = ["owner", "admin", "operator"]
+    if (!tu || !allowedRoles.includes(tu.role)) {
+      return NextResponse.json({ error: "Tidak punya izin untuk menghapus dokumen" }, { status: 403 })
+    }
+  }
+
+  try {
+    await db.document.deleteMany({
+      where: {
+        id: params.id,
+        tenantId,
+      }
+    })
+    return NextResponse.json({ message: "Dokumen berhasil dihapus" })
+  } catch (error: any) {
+    return NextResponse.json({ error: "Gagal menghapus dokumen", details: error.message }, { status: 500 })
+  }
+}

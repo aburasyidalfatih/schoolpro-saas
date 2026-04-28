@@ -1,11 +1,11 @@
-import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
 import { MapPin, Phone, Mail, MessageCircle } from "lucide-react"
 import { ContactForm } from "./contact-form"
+import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const tenant = await db.tenant.findUnique({ where: { slug }, select: { name: true, seoTitle: true, seoDesc: true, description: true } })
+  const tenant = await getPublicTenantBySlug(slug)
   if (!tenant) return {}
   return {
     title: `Kontak | ${tenant.seoTitle || tenant.name}`,
@@ -15,10 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ContactPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const tenant = await db.tenant.findUnique({
-    where: { slug },
-    select: { name: true, address: true, phone: true, email: true, whatsapp: true, instagram: true, facebook: true, youtube: true },
-  })
+  const tenant = await getPublicTenantBySlug(slug)
   if (!tenant) notFound()
 
   const hasContact = tenant.address || tenant.phone || tenant.email || tenant.whatsapp

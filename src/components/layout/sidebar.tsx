@@ -38,6 +38,7 @@ import {
   MessageSquare,
   Calendar,
   FolderOpen,
+  Download,
   User,
   LayoutTemplate,
   Home,
@@ -86,6 +87,9 @@ function getTenantMenu(basePath: string): MenuSection[] {
           icon: LayoutTemplate,
           children: [
             { label: "Beranda", href: `${basePath}/website`, icon: Home },
+            { label: "Artikel & Pos", href: `${basePath}/website/posts`, icon: FileText },
+            { label: "Agenda & Acara", href: `${basePath}/website/events`, icon: Calendar },
+            { label: "Pusat Unduhan", href: `${basePath}/website/documents`, icon: Download },
             { label: "Profil & Tentang", href: `${basePath}/website/about`, icon: Info },
             { label: "Layanan", href: `${basePath}/website/services`, icon: Briefcase },
             { label: "Galeri", href: `${basePath}/website/gallery`, icon: Image },

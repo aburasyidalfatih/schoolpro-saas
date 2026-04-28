@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useTenantBranding } from "@/components/providers/tenant-branding-provider"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { postSchema } from "@/lib/validations/post"
@@ -21,10 +21,11 @@ type FormData = z.infer<typeof postSchema>
 export default function PostFormPage() {
   const router = useRouter()
   const params = useParams()
-  const { data: session } = useSession()
-  const [tenantId, setTenantId] = useState<string | null>(null)
+  const { branding, isLoadingTenant } = useTenantBranding()
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
+
+  const tenantId = branding.id
 
   const isNew = params.id === "new"
 
@@ -49,17 +50,10 @@ export default function PostFormPage() {
     }
   }, [titleValue, isNew, setValue])
 
-  useEffect(() => {
-    const id = session?.user?.tenants?.[0]?.id
-    if (id) { setTenantId(id); return }
-    const match = document.cookie.match(/impersonate-tenant=([^;]+)/)
-    const impSlug = match?.[1]
-    if (impSlug) {
-      fetch(`/api/tenant/by-slug?slug=${impSlug}`).then(r => r.json()).then(d => { if (d.id) setTenantId(d.id) })
-    }
-  }, [session?.user?.tenants])
+
 
   useEffect(() => {
+    if (isLoadingTenant) return
     if (!tenantId) return
     if (isNew) {
       setInitialLoading(false)

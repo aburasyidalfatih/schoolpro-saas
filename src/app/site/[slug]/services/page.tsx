@@ -1,7 +1,7 @@
-import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 
 const defaultServices = [
   { title: "Konsultasi", description: "Konsultasi profesional untuk membantu Anda menemukan solusi terbaik sesuai kebutuhan.", icon: "💡" },
@@ -14,10 +14,7 @@ const defaultServices = [
 
 export default async function ServicesPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const tenant = await db.tenant.findUnique({
-    where: { slug },
-    select: { name: true, slug: true, services: true },
-  })
+  const tenant = await getPublicTenantBySlug(slug)
   if (!tenant) notFound()
 
   const services: { title: string; description: string; icon: string }[] =

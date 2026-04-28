@@ -103,8 +103,8 @@
 
 
 @layer components {
-  .glass { background:var(--glass-bg); backdrop-filter:blur(var(--glass-blur)); -webkit-backdrop-filter:blur(var(--glass-blur)); border:1px solid var(--glass-border); box-shadow:var(--glass-shadow); }
-  .bg-mesh { background-image:var(--gradient-mesh); background-attachment:fixed; }
+  .glass { background:var(--glass-bg); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid var(--glass-border); box-shadow:var(--glass-shadow); }
+  .bg-mesh { background-image:var(--gradient-mesh); }
   .text-gradient { background:var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 
   /* btn-gradient — soft, tidak mencolok */

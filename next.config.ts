@@ -41,7 +41,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self'",
-      "connect-src 'self'",
+      "connect-src 'self' ws: wss:",
       "frame-ancestors 'none'",
     ].join("; "),
   },
@@ -54,6 +54,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: ALLOWED_IMAGE_DOMAINS,
   },
+  // Izinkan akses HMR dari domain kustom saat development
+  allowedDevOrigins: ["schoolpro.my.id", "localhost:3001", "schoolpro.id", "schoolpro.my.id:443"],
   async headers() {
     return [
       {

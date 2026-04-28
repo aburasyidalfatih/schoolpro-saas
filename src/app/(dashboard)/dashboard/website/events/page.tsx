@@ -6,34 +6,32 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { toast } from "@/hooks/use-toast"
-import { Plus, Edit2, Trash2, FileText, Globe } from "lucide-react"
+import { Plus, Edit2, Trash2, Calendar, MapPin } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
 
-interface Post {
+interface Event {
   id: string
   title: string
-  slug: string
-  type: string
-  status: string
-  createdAt: string
-  author: { name: string }
+  location?: string
+  startDate: string
+  endDate: string
 }
 
-export default function PostsPage() {
+export default function EventsPage() {
   const { branding, isLoadingTenant } = useTenantBranding()
   const [loading, setLoading] = useState(true)
-  const [posts, setPosts] = useState<Post[]>([])
+  const [events, setEvents] = useState<Event[]>([])
 
   const tenantId = branding.id
 
-  const loadPosts = () => {
+  const loadEvents = () => {
     if (!tenantId) return
     setLoading(true)
-    fetch(`/api/tenant/posts?tenantId=${tenantId}`)
+    fetch(`/api/tenant/events?tenantId=${tenantId}`)
       .then(r => r.json())
       .then(d => {
-        setPosts(Array.isArray(d) ? d : [])
+        setEvents(Array.isArray(d) ? d : [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -41,17 +39,17 @@ export default function PostsPage() {
 
   useEffect(() => {
     if (!isLoadingTenant && tenantId) {
-      loadPosts()
+      loadEvents()
     }
   }, [tenantId, isLoadingTenant])
 
-  const deletePost = async (id: string) => {
+  const deleteEvent = async (id: string) => {
     if (!tenantId) return
     try {
-      const res = await fetch(`/api/tenant/posts/${id}?tenantId=${tenantId}`, { method: "DELETE" })
+      const res = await fetch(`/api/tenant/events/${id}?tenantId=${tenantId}`, { method: "DELETE" })
       if (res.ok) {
-        toast({ title: "Artikel dihapus" })
-        loadPosts()
+        toast({ title: "Acara dihapus" })
+        loadEvents()
       } else {
         const d = await res.json()
         toast({ title: "Gagal", description: d.error, variant: "destructive" })
@@ -68,29 +66,29 @@ export default function PostsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Artikel & Pos</h1>
-          <p className="text-muted-foreground mt-1">Kelola pos editorial, blog guru, dan pengumuman.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Agenda & Acara</h1>
+          <p className="text-muted-foreground mt-1">Kelola kalender acara dan kegiatan sekolah.</p>
         </div>
         <Button asChild className="gap-2 btn-gradient text-white border-0 rounded-xl">
-          <Link href="/dashboard/website/posts/new">
-            <Plus className="h-4 w-4" /> Tulis Pos Baru
+          <Link href="/dashboard/website/events/new">
+            <Plus className="h-4 w-4" /> Buat Acara Baru
           </Link>
         </Button>
       </div>
 
       <Card className="glass border-0">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Daftar Artikel</CardTitle>
-          <CardDescription className="text-xs">Daftar semua tulisan yang ada di website sekolah.</CardDescription>
+          <CardTitle className="text-base">Daftar Acara</CardTitle>
+          <CardDescription className="text-xs">Agenda kegiatan yang akan atau telah berlangsung.</CardDescription>
         </CardHeader>
         <CardContent>
-          {posts.length === 0 ? (
+          {events.length === 0 ? (
             <div className="py-12 text-center">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-              <p className="font-semibold mb-1">Belum ada artikel</p>
-              <p className="text-sm text-muted-foreground mb-4">Mulai tulis artikel pertama Anda untuk website.</p>
+              <Calendar className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+              <p className="font-semibold mb-1">Belum ada acara</p>
+              <p className="text-sm text-muted-foreground mb-4">Tambahkan acara baru ke dalam kalender sekolah.</p>
               <Button asChild variant="outline" className="rounded-xl">
-                <Link href="/dashboard/website/posts/new">Tulis Sekarang</Link>
+                <Link href="/dashboard/website/events/new">Tambah Sekarang</Link>
               </Button>
             </div>
           ) : (
@@ -98,43 +96,35 @@ export default function PostsPage() {
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-muted-foreground bg-muted/30 border-b">
                   <tr>
-                    <th className="px-4 py-3 font-medium rounded-tl-lg">Judul Artikel</th>
-                    <th className="px-4 py-3 font-medium">Tipe</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Penulis</th>
+                    <th className="px-4 py-3 font-medium rounded-tl-lg">Judul Acara</th>
                     <th className="px-4 py-3 font-medium">Tanggal</th>
+                    <th className="px-4 py-3 font-medium">Lokasi</th>
                     <th className="px-4 py-3 font-medium text-right rounded-tr-lg">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {posts.map(post => (
-                    <tr key={post.id} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
+                  {events.map(event => (
+                    <tr key={event.id} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="font-medium text-foreground">{post.title}</div>
-                        <div className="text-[11px] text-muted-foreground font-mono mt-0.5">/{post.slug}</div>
+                        <div className="font-medium text-foreground">{event.title}</div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">
-                          {post.type.replace('_', ' ')}
-                        </span>
+                        <div className="text-xs">
+                          {format(new Date(event.startDate), 'dd MMM yyyy HH:mm')} - 
+                          <br/>{format(new Date(event.endDate), 'dd MMM yyyy HH:mm')}
+                        </div>
                       </td>
-                      <td className="px-4 py-3">
-                        {post.status === "PUBLISHED" ? (
-                          <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                            <Globe className="h-3 w-3" /> Publik
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-amber-600">
-                            <FileText className="h-3 w-3" /> Draft
-                          </span>
-                        )}
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {event.location ? (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" /> {event.location}
+                          </div>
+                        ) : "-"}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{post.author?.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{format(new Date(post.createdAt), 'dd MMM yyyy')}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10 hover:text-primary">
-                            <Link href={`/dashboard/website/posts/${post.id}`}>
+                            <Link href={`/dashboard/website/events/${event.id}`}>
                               <Edit2 className="h-4 w-4" />
                             </Link>
                           </Button>
@@ -144,10 +134,10 @@ export default function PostsPage() {
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             }
-                            title="Hapus artikel ini?"
+                            title="Hapus acara ini?"
                             description="Tindakan ini tidak dapat dibatalkan."
                             confirmText="Ya, hapus"
-                            onConfirm={() => deletePost(post.id)}
+                            onConfirm={() => deleteEvent(event.id)}
                           />
                         </div>
                       </td>

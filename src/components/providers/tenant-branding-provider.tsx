@@ -14,6 +14,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 
 interface TenantBranding {
+  id: string | null
   name: string
   logo: string | null
 }
@@ -21,38 +22,70 @@ interface TenantBranding {
 interface TenantBrandingContextValue {
   branding: TenantBranding
   updateBranding: (data: Partial<TenantBranding>) => void
+  isLoadingTenant: boolean
 }
 
 const TenantBrandingContext = createContext<TenantBrandingContextValue>({
-  branding: { name: "SaasMasterPro", logo: null },
+  branding: { id: null, name: "SaasMasterPro", logo: null },
   updateBranding: () => {},
+  isLoadingTenant: true,
 })
 
 export function TenantBrandingProvider({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
   const [branding, setBranding] = useState<TenantBranding>({
+    id: null,
     name: "SaasMasterPro",
     logo: null,
   })
+  
+  const [isLoadingTenant, setIsLoadingTenant] = useState(true)
 
-  // Inisialisasi dari session saat pertama load
   useEffect(() => {
-    const tenant = session?.user?.tenants?.[0]
-    if (tenant) {
-      setBranding({
-        name: tenant.name || "SaasMasterPro",
-        logo: (tenant as any).logo || null,
-      })
+    if (status === "loading") return
+    
+    const resolveTenant = async () => {
+      // Cek apakah ada cookie impersonate
+      const match = typeof document !== "undefined" ? document.cookie.match(/impersonate-tenant=([^;]+)/) : null
+      const impSlug = match?.[1]
+
+      if (impSlug) {
+        try {
+          const res = await fetch(`/api/tenant/by-slug?slug=${impSlug}`)
+          const data = await res.json()
+          if (data && data.id) {
+            setBranding({
+              id: data.id,
+              name: data.name || "SaasMasterPro",
+              logo: data.logo || null,
+            })
+          }
+        } catch (e) {
+          console.error("Gagal resolve impersonate tenant", e)
+        }
+      } else {
+        const tenant = session?.user?.tenants?.[0]
+        if (tenant) {
+          setBranding({
+            id: tenant.id,
+            name: tenant.name || "SaasMasterPro",
+            logo: (tenant as any).logo || null,
+          })
+        }
+      }
+      setIsLoadingTenant(false)
     }
-  }, [session?.user?.tenants])
+
+    resolveTenant()
+  }, [session?.user?.tenants, status])
 
   const updateBranding = (data: Partial<TenantBranding>) => {
     setBranding((prev) => ({ ...prev, ...data }))
   }
 
   return (
-    <TenantBrandingContext.Provider value={{ branding, updateBranding }}>
+    <TenantBrandingContext.Provider value={{ branding, updateBranding, isLoadingTenant }}>
       {children}
     </TenantBrandingContext.Provider>
   )

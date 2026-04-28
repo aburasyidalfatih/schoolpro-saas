@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import {
   Globe, ExternalLink, Users, FileText, Image, Phone,
   Briefcase, Info, LayoutTemplate, ArrowRight, Eye,
-  CheckCircle, AlertCircle, ShieldCheck, ShieldOff,
+  CheckCircle, AlertCircle, ShieldCheck, ShieldOff, Download,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -126,6 +126,13 @@ export default function WebsiteOverviewPage() {
       icon: <Image className="h-5 w-5" />,
       status: Array.isArray(data?.gallery) && data.gallery.length > 0 ? "ok" : "warn",
       href: `${base}/gallery`,
+    },
+    {
+      label: "Pusat Unduhan",
+      value: "Kelola Dokumen",
+      icon: <Download className="h-5 w-5" />,
+      status: "ok",
+      href: `${base}/documents`,
     },
     {
       label: "Kontak",

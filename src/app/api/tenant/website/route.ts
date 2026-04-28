@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { parseBody } from "@/lib/api-utils"
+import { invalidatePublicTenantCache } from "@/lib/services/tenant-public"
 
 const websiteSchema = z.object({
   tenantId: z.string().min(1),
@@ -81,6 +82,9 @@ export async function PUT(req: Request) {
     where: { id: tenantId },
     data,
   })
+
+  // Invalidate Redis cache so public site reflects changes immediately
+  await invalidatePublicTenantCache(updated.slug)
 
   return NextResponse.json({ message: "Website berhasil diperbarui", tenant: updated })
 }

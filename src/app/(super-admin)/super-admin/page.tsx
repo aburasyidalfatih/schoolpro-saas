@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Building2, Users, CreditCard, Activity, TrendingUp } from "lucide-react"
 import Link from "next/link"
+import { SystemHealth } from "./_components/SystemHealth"
 
 interface Stats {
   tenantCount: number
@@ -43,7 +44,7 @@ export default function SuperAdminDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {cards.map((stat) => (
           <Link key={stat.label} href={stat.href}>
-            <Card className="glass border-0 hover-lift cursor-pointer">
+            <Card className="glass border-0 hover-lift cursor-pointer h-full">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${stat.gradient}`}>
@@ -58,6 +59,8 @@ export default function SuperAdminDashboard() {
           </Link>
         ))}
       </div>
+
+      <SystemHealth />
     </div>
   )
 }

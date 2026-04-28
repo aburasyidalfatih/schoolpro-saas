@@ -3,13 +3,11 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowRight, MapPin, Phone, Mail, MessageCircle } from "lucide-react"
 import { HeroSlider } from "./components/hero-slider"
+import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const tenant = await db.tenant.findUnique({
-    where: { slug },
-    select: { name: true, seoTitle: true, seoDesc: true, description: true, tagline: true },
-  })
+  const tenant = await getPublicTenantBySlug(slug)
   if (!tenant) return {}
   return {
     title: tenant.seoTitle || tenant.name,
@@ -20,15 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function SitePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
-  const tenant = await db.tenant.findUnique({
-    where: { slug },
-    select: {
-      name: true, slug: true, tagline: true, description: true, about: true,
-      services: true, heroImage: true, gallery: true,
-      phone: true, whatsapp: true, address: true, email: true,
-      logo: true,
-    },
-  })
+  const tenant = await getPublicTenantBySlug(slug)
 
   if (!tenant) notFound()
 

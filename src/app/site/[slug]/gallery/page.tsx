@@ -1,10 +1,10 @@
-import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
 import { GalleryGrid } from "./gallery-grid"
+import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const tenant = await db.tenant.findUnique({ where: { slug }, select: { name: true, seoTitle: true, seoDesc: true } })
+  const tenant = await getPublicTenantBySlug(slug)
   if (!tenant) return {}
   return {
     title: `Galeri | ${tenant.seoTitle || tenant.name}`,
@@ -14,10 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function GalleryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const tenant = await db.tenant.findUnique({
-    where: { slug },
-    select: { name: true, gallery: true },
-  })
+  const tenant = await getPublicTenantBySlug(slug)
   if (!tenant) notFound()
 
   // Support both old format (string[]) and new format ({url, caption}[])

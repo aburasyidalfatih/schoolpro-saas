@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 import { notFound } from "next/navigation"
 import { WebsiteNavbar } from "./components/navbar"
 import { WebsiteFooter } from "./components/footer"
@@ -13,14 +14,7 @@ export default async function WebsiteLayout({
 }) {
   const { slug } = await params
 
-  const tenant = await db.tenant.findUnique({
-    where: { slug },
-    select: {
-      name: true, slug: true, logo: true, tagline: true,
-      phone: true, email: true, whatsapp: true, theme: true, isActive: true,
-      address: true, instagram: true, facebook: true, youtube: true,
-    },
-  })
+  const tenant = await getPublicTenantBySlug(slug)
 
   if (!tenant || !tenant.isActive) notFound()
 
