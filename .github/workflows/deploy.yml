@@ -21,10 +21,12 @@ jobs:
         run: npm ci
 
       - name: Build Application
-        run: npm run build
+        run: |
+          npx prisma generate
+          npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          # NEXT_PUBLIC_ variables can be set here based on branch
+          PRISMA_SKIP_DATABASE_CHECK: true
           NEXT_PUBLIC_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://schoolpro.id/api' || 'https://schoolpro.my.id/api' }}
 
       - name: Prepare Deployment Package
