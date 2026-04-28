@@ -41,14 +41,15 @@ jobs:
 
       - name: Prepare Deployment Package
         run: |
-          mkdir deploy
-          # Standalone mode output
-          cp -r .next/standalone/* deploy/
-          # Static files need to be manually copied in standalone mode
-          mkdir -p deploy/.next/static
-          cp -r .next/static/* deploy/.next/static/
-          cp -r public deploy/
-          # Copy prisma schema if you need to run migrations on VPS
+          mkdir -p deploy/.next
+          # Copy the entire standalone folder to preserve structure
+          cp -r .next/standalone deploy/.next/
+          # Copy static files to the correct standalone subfolder
+          mkdir -p deploy/.next/standalone/.next/static
+          cp -r .next/static/* deploy/.next/standalone/.next/static/
+          # Copy public folder to standalone
+          cp -r public deploy/.next/standalone/
+          # Copy prisma for potential migrations on VPS
           cp -r prisma deploy/ || true
 
       - name: Deploy to VPS
