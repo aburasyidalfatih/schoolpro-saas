@@ -22,6 +22,7 @@ export async function GET() {
     {
       status: allHealthy ? "healthy" : "degraded",
       timestamp: new Date().toISOString(),
+      optimization: "Next.js 15 Standalone",
       uptime: process.uptime(),
       latency: Date.now() - start,
       checks,

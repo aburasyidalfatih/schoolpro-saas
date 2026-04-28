@@ -35,4 +35,11 @@ Jangan pernah mengekspos kredensial, API key, password database, atau isi dari f
 Gunakan hanya ekosistem library yang sudah terpasang di `package.json`. Dilarang menginstal library pihak ketiga berukuran besar (seperti Redux, jQuery, Material-UI) kecuali user secara spesifik memintanya.
 
 ---
-*Dengan mengikuti dokumen ini, Anda membantu user menghemat token, mencegah error berantai, dan menjaga kualitas kode agar tetap konsisten.*
+
+## 🚀 Optimasi Resource VPS (WAJIB)
+VPS memiliki resource terbatas (RAM 4GB). AI Wajib mematuhi aturan ini:
+1. **Dilarang Build di VPS:** Selalu gunakan GitHub Actions untuk build. Jika terpaksa build di VPS, gunakan flag `NODE_OPTIONS='--max-old-space-size=2048'` dan pastikan project lain di-stop sementara.
+2. **Next.js Standalone Mode:** Pastikan `next.config.ts` selalu memiliki `output: 'standalone'`.
+3. **Skip Validation:** Saat build di VPS, tambahkan `ignoreBuildErrors: true` dan `ignoreDuringBuilds: true` di `next.config.ts` untuk menghemat RAM.
+4. **PM2 Config:** Selalu gunakan `ecosystem.config.js` di root home directory yang mengarah ke `.next/standalone/server.js`.
+

@@ -5,7 +5,7 @@ Dokumen ini menjelaskan workflow deployment untuk memastikan stabilitas VPS dan 
 ## 1. Arsitektur Deployment
 - **Build Server:** GitHub Actions (Proses kompilasi dilakukan di sini untuk menghemat RAM VPS).
 - **Runtime Server:** VPS (Hanya menjalankan hasil build yang sudah jadi/standalone).
-- **Proses Manager:** PM2 dengan konfigurasi terpusat di `/home/ubuntu/ecosystem.config.js`.
+- **Proses Manager:** PM2 dengan konfigurasi terpusat di `/home/ubuntu/ecosystem.config.js` (Menggunakan mode Standalone).
 
 ## 2. Strategi Branching & Target
 | Branch | Lingkungan | Domain | Folder VPS | Port | PM2 Name |
@@ -28,19 +28,14 @@ Deployment ke production dilakukan dengan menggabungkan perubahan yang sudah sta
 2. `git merge develop`
 3. `git push origin main`
 
-## 4. Konfigurasi VPS (Satu Kali Saja)
-- **GitHub Secrets:** Pastikan `SSH_PRIVATE_KEY`, `REMOTE_HOST`, `REMOTE_USER`, dan `DATABASE_URL` sudah ada di GitHub Repo Settings.
-- **Environment Variables:** File `.env` dikelola secara manual langsung di VPS di folder root masing-masing project.
-- **PM2 Control:**
-  - Start All: `pm2 start /home/ubuntu/ecosystem.config.js`
-  - Status: `pm2 status`
-  - Restart Manual: `pm2 restart schoolpro-prod` atau `pm2 restart schoolpro-dev`
+## 4. Konfigurasi Standalone (Penting)
+Aplikasi dijalankan menggunakan file `.next/standalone/server.js`. Pastikan file `ecosystem.config.js` mengarah ke path tersebut. Folder `static` dan `public` harus ada di dalam folder standalone sesuai script build.
 
 ## 5. Troubleshooting RAM Terbatas
-Jika VPS hang atau lambat:
-1. Jangan jalankan `npm run build` di VPS (Gunakan GitHub Actions).
-2. Gunakan `pm2 logs --lines 50` untuk cek error tanpa membebani CPU.
-3. Batasi memori Node.js di PM2 (sudah diatur di `ecosystem.config.js` dengan `--max-old-space-size`).
+1. **Jangan build di VPS.** Gunakan GitHub Actions.
+2. Jika terpaksa build di VPS, matikan project lain dulu dengan `pm2 stop all`.
+3. Batasi memori Node.js di PM2 (sudah diatur di `ecosystem.config.js`).
+
 
 ---
 *Dibuat oleh Gemini CLI - April 2026*
