@@ -107,6 +107,13 @@ export default function WebsiteOverviewPage() {
       href: `${base}/about`,
     },
     {
+      label: "Artikel & Pos",
+      value: "Kelola Konten",
+      icon: <FileText className="h-5 w-5" />,
+      status: "ok",
+      href: `${base}/posts`,
+    },
+    {
       label: "Layanan",
       value: Array.isArray(data?.services) ? `${data.services.length} layanan` : "Belum diisi",
       icon: <Briefcase className="h-5 w-5" />,
