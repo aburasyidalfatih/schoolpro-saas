@@ -22,8 +22,8 @@ jobs:
 
       - name: Build Application
         run: |
-          # Menggunakan path binari lokal agar pasti terbaca oleh shell
-          ./node_modules/.bin/prisma generate
+          # Menggunakan script npm agar path binari diselesaikan otomatis
+          npm run db:generate
           npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db' }}
