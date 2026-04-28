@@ -240,15 +240,31 @@ export default function TenantsPage() {
 
                     {/* Domain */}
                     <td className="px-4 py-4 hidden lg:table-cell">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5 text-xs text-primary font-medium hover:underline cursor-pointer">
-                          <Globe className="h-3 w-3" />
-                          <span>{t.slug}.{rootDomain}</span>
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2 group/link">
+                          <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                            <Globe className="h-3.5 w-3.5" />
+                          </div>
+                          <a 
+                            href={`http://${t.slug}.${rootDomain}`} 
+                            target="_blank" 
+                            className="text-xs font-semibold text-primary hover:underline"
+                          >
+                            {t.slug}.{rootDomain}
+                          </a>
                         </div>
                         {t.domain && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 font-bold">
-                            <ShieldCheck className="h-3 w-3" />
-                            <span>{t.domain}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="h-6 w-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                            </div>
+                            <a 
+                              href={`https://${t.domain}`} 
+                              target="_blank" 
+                              className="text-[11px] font-bold text-emerald-600 hover:underline"
+                            >
+                              {t.domain}
+                            </a>
                           </div>
                         )}
                       </div>

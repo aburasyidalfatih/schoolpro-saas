@@ -61,14 +61,17 @@ export async function proxy(request: NextRequest) {
   const isMainDomain =
     hostname === rootDomain ||
     hostname === `www.${rootDomain}` ||
-    hostname === "localhost:3000"
+    hostname.startsWith("localhost:") ||
+    hostname === "127.0.0.1"
 
-  const subdomain = hostname.replace(`.${rootDomain}`, "")
+  const subdomain = hostname.endsWith(`.${rootDomain}`)
+    ? hostname.replace(`.${rootDomain}`, "")
+    : ""
+
   const isSubdomain =
     !isMainDomain &&
-    subdomain !== hostname &&
-    subdomain !== "www" &&
-    subdomain !== ""
+    subdomain !== "" &&
+    subdomain !== "www"
 
   const isCustomDomain = !isMainDomain && !isSubdomain
 

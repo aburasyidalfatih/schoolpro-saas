@@ -252,28 +252,27 @@ export default function DomainSettingsPage() {
           {/* Subdomain default */}
           <div className="flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                <Globe className="h-4 w-4 text-primary" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
+                <Globe className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Subdomain Default</p>
-                <div className="flex items-center gap-1.5 text-sm text-primary font-medium">
-                  <Globe className="h-3.5 w-3.5" />
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Domain Utama</p>
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
                   <span>{subdomain || "—"}</span>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs bg-emerald-500/10 text-emerald-600 rounded-full px-2.5 py-1 font-medium flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Aktif
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-full px-2.5 py-1 font-bold flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                AKTIF
               </span>
               {subdomain && (
                 <a
                   href={`http://${subdomain}`}
                   target="_blank"
                   rel="noopener"
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors p-2 hover:bg-white rounded-lg"
                 >
                   <ExternalLink className="h-4 w-4" />
                 </a>
@@ -286,47 +285,45 @@ export default function DomainSettingsPage() {
             <div
               className={cn(
                 "flex items-center justify-between rounded-xl border px-4 py-3",
-                isVerified ? "border-emerald-500/30 bg-emerald-500/5" : "border-amber-500/30 bg-amber-500/5"
+                isVerified ? "border-emerald-500/30 bg-emerald-500/5 shadow-inner" : "border-amber-500/30 bg-amber-500/5"
               )}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-lg",
-                    isVerified ? "bg-emerald-500/10" : "bg-amber-500/10"
+                    "flex h-10 w-10 items-center justify-center rounded-2xl shadow-sm",
+                    isVerified ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"
                   )}
                 >
                   {isVerified ? (
-                    <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                    <ShieldCheck className="h-6 w-6" />
                   ) : (
-                    <ShieldOff className="h-4 w-4 text-amber-500" />
+                    <ShieldOff className="h-6 w-6" />
                   )}
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Custom Domain</p>
-                  <div className="flex items-center gap-1.5 text-sm font-medium">
-                    {isVerified ? <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> : <ShieldOff className="h-3.5 w-3.5 text-amber-600" />}
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Custom Domain</p>
+                  <div className="flex items-center gap-1.5 text-sm font-semibold">
                     <span>{customDomain.domain}</span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <StatusBadge status={customDomain.status} />
+                <div className="flex flex-col items-end gap-1">
+                  <StatusBadge status={customDomain.status} />
+                  {isVerified && (
+                    <span className="text-[9px] bg-emerald-500/10 text-emerald-600 font-bold px-1.5 py-0.5 rounded uppercase">Aktif</span>
+                  )}
+                </div>
                 {isVerified && (
-                  <>
-                    <span className="text-xs bg-emerald-500/10 text-emerald-600 rounded-full px-2.5 py-1 font-medium flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      Aktif
-                    </span>
-                    <a
-                      href={`https://${customDomain.domain}`}
-                      target="_blank"
-                      rel="noopener"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </>
+                  <a
+                    href={`https://${customDomain.domain}`}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-muted-foreground hover:text-primary transition-colors p-2 hover:bg-white rounded-lg"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
                 )}
               </div>
             </div>
