@@ -22,15 +22,14 @@ jobs:
 
       - name: Build Application
         run: |
-          # Menggunakan script npm agar path binari diselesaikan otomatis
-          npm run db:generate
+          # Menggunakan npx prisma generate (akan otomatis pakai versi lokal 5.10.0)
+          npx prisma generate
           npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db' }}
           PRISMA_SKIP_DATABASE_CHECK: true
           NEXT_PUBLIC_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://schoolpro.id/api' || 'https://schoolpro.my.id/api' }}
           NEXT_TELEMETRY_DISABLED: 1
-          NODE_ENV: production
 
       - name: Show build error log
         if: failure()
