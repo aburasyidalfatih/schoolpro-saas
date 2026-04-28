@@ -22,8 +22,8 @@ jobs:
 
       - name: Build Application
         run: |
-          # Paksa gunakan prisma v5 agar tidak kena breaking changes v7
-          npx prisma@5.10.0 generate
+          # Menggunakan path binari lokal agar pasti terbaca oleh shell
+          ./node_modules/.bin/prisma generate
           npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db' }}
