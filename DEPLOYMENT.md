@@ -1,41 +1,46 @@
-# Panduan Deployment SchoolPro
+# Panduan Deployment SchoolPro (Optimized v2)
 
-Dokumen ini menjelaskan workflow deployment untuk memastikan stabilitas VPS dan efisiensi resource.
+Dokumen ini menjelaskan workflow deployment terbaru menggunakan **Next.js 15 Standalone Mode** untuk efisiensi RAM di VPS 4GB.
 
-## 1. Arsitektur Deployment
-- **Build Server:** GitHub Actions (Proses kompilasi dilakukan di sini untuk menghemat RAM VPS).
-- **Runtime Server:** VPS (Hanya menjalankan hasil build yang sudah jadi/standalone).
-- **Proses Manager:** PM2 dengan konfigurasi terpusat di `/home/ubuntu/ecosystem.config.js` (Menggunakan mode Standalone).
+## 1. Arsitektur & Lingkungan
+| Project | URL | Port | Mode | PM2 Name |
+| :--- | :--- | :--- | :--- | :--- |
+| **Development** | `schoolpro.my.id` | 3001 | Standalone | `schoolpro-dev` |
+| **Production** | `schoolpro.id` | 3000 | Standalone | `schoolpro-prod` |
 
-## 2. Strategi Branching & Target
-| Branch | Lingkungan | Domain | Folder VPS | Port | PM2 Name |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `develop` | Development | `schoolpro.my.id` | `/home/ubuntu/schoolpro-dev` | 3001 | `schoolpro-dev` |
-| `main` | Production | `schoolpro.id` | `/home/ubuntu/schoolpro` | 3000 | `schoolpro-prod` |
+## 2. Opsi Workflow Deployment
 
-## 3. Workflow Operasional (Instruksi untuk AI/Developer)
+### OPSI A: Otomatis via GitHub Actions (Rekomendasi Utama)
+Gunakan opsi ini untuk update rutin agar VPS tidak terbebani proses build.
+1.  Kerja di branch `develop`.
+2.  `git add .` -> `git commit` -> `git push origin develop`.
+3.  GitHub Actions akan mem-build di server mereka dan mengirim file jadi ke VPS.
+4.  Aplikasi di VPS akan restart otomatis dalam ~1 detik.
 
-### A. Deploy ke Development
-Setiap `git push` ke branch `develop` akan memicu build otomatis di GitHub dan dikirim ke VPS.
-**Langkah:**
-1. Kerja di branch `develop`.
-2. `git add .` -> `git commit -m "pesan"` -> `git push origin develop`.
+### OPSI B: Manual Build di VPS (Khusus Masa Development)
+Gunakan opsi ini jika ingin mengetes fitur baru secara cepat langsung di VPS.
+**⚠️ WAJIB: Matikan project lain agar RAM (4GB) fokus ke proses build.**
+1.  `pm2 stop schoolpro-prod` (Bebaskan RAM).
+2.  `cd /home/ubuntu/schoolpro-dev`.
+3.  `npm run build` (Script sudah dioptimasi dengan limit RAM 2GB).
+4.  `pm2 restart schoolpro-dev`.
+5.  Setelah selesai, jangan lupa `git push` agar kode di VPS dan GitHub tetap sinkron.
 
-### B. Deploy ke Production (PENTING)
-Deployment ke production dilakukan dengan menggabungkan perubahan yang sudah stabil dari `develop`.
-**Langkah:**
-1. `git checkout main`
-2. `git merge develop`
-3. `git push origin main`
+## 3. Perintah Operasional PM2
+Gunakan konfigurasi terpusat di `/home/ubuntu/ecosystem.config.js`:
+- **Restart Semua:** `pm2 delete all && pm2 start /home/ubuntu/ecosystem.config.js`
+- **Cek Status:** `pm2 status`
+- **Lihat Log:** `pm2 logs schoolpro-dev --lines 50`
 
-## 4. Konfigurasi Standalone (Penting)
-Aplikasi dijalankan menggunakan file `.next/standalone/server.js`. Pastikan file `ecosystem.config.js` mengarah ke path tersebut. Folder `static` dan `public` harus ada di dalam folder standalone sesuai script build.
+## 4. Konfigurasi Standalone
+Aplikasi kini berjalan menggunakan `.next/standalone/server.js`. 
+- Jangan hapus folder `.next/static` dan `public` karena sudah disinkronkan ke dalam folder standalone.
+- Jika ada penambahan environment variables, update file `.env` di root masing-masing folder project.
 
-## 5. Troubleshooting RAM Terbatas
-1. **Jangan build di VPS.** Gunakan GitHub Actions.
-2. Jika terpaksa build di VPS, matikan project lain dulu dengan `pm2 stop all`.
-3. Batasi memori Node.js di PM2 (sudah diatur di `ecosystem.config.js`).
-
+## 5. Aturan Emas VPS 4GB
+1. **Dilarang build dua project bersamaan di VPS.**
+2. **Dilarang menjalankan `next dev` di VPS** (Gunakan build production agar ringan).
+3. Selalu pastikan Swap Memory aktif jika penggunaan RAM fisik mendekati 90%.
 
 ---
 *Dibuat oleh Gemini CLI - April 2026*
