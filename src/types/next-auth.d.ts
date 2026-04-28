@@ -7,6 +7,8 @@ interface TenantInfo {
   slug: string
   role: string
   theme: string
+  logo?: string | null
+  plan?: string
 }
 
 declare module "next-auth" {

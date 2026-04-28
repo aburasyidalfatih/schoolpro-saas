@@ -220,8 +220,9 @@ export default function DomainSettingsPage() {
   const customDomain = data?.customDomain
   const isVerified = customDomain?.status === "verified"
   const hasCustomDomain = !!data?.domain
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.id"
   const subdomain = data?.slug
-    ? `${data.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000"}`
+    ? `${data.slug}.${rootDomain}`
     : null
 
   return (
@@ -256,11 +257,15 @@ export default function DomainSettingsPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Subdomain Default</p>
-                <p className="text-sm font-mono font-medium">{subdomain || "—"}</p>
+                <div className="flex items-center gap-1.5 text-sm text-primary font-medium">
+                  <Globe className="h-3.5 w-3.5" />
+                  <span>{subdomain || "—"}</span>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs bg-primary/10 text-primary rounded-full px-2.5 py-1 font-medium">
+              <span className="text-xs bg-emerald-500/10 text-emerald-600 rounded-full px-2.5 py-1 font-medium flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Aktif
               </span>
               {subdomain && (
@@ -299,20 +304,29 @@ export default function DomainSettingsPage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Custom Domain</p>
-                  <p className="text-sm font-mono font-medium">{customDomain.domain}</p>
+                  <div className="flex items-center gap-1.5 text-sm font-medium">
+                    {isVerified ? <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> : <ShieldOff className="h-3.5 w-3.5 text-amber-600" />}
+                    <span>{customDomain.domain}</span>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <StatusBadge status={customDomain.status} />
                 {isVerified && (
-                  <a
-                    href={`https://${customDomain.domain}`}
-                    target="_blank"
-                    rel="noopener"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
+                  <>
+                    <span className="text-xs bg-emerald-500/10 text-emerald-600 rounded-full px-2.5 py-1 font-medium flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Aktif
+                    </span>
+                    <a
+                      href={`https://${customDomain.domain}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </>
                 )}
               </div>
             </div>
@@ -430,12 +444,12 @@ export default function DomainSettingsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <code className="text-xs font-mono">
-                            {process.env.NEXT_PUBLIC_ROOT_DOMAIN || "saasmasterpro.com"}
+                            {process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.id"}
                           </code>
                           <button
                             onClick={() =>
                               copyToClipboard(
-                                process.env.NEXT_PUBLIC_ROOT_DOMAIN || "saasmasterpro.com",
+                                process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.id",
                                 "CNAME value"
                               )
                             }

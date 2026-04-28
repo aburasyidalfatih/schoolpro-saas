@@ -142,10 +142,44 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string
         session.user.isSuperAdmin = token.isSuperAdmin as boolean
         session.user.twoFactorEnabled = token.twoFactorEnabled as boolean
-        session.user.tenants = token.tenants as any[]
+        session.user.tenants = token.tenants as any[] || []
         // Sinkronisasi name dan image dari token (di-refresh saat trigger=update)
         if (token.name) session.user.name = token.name as string
         if (token.picture !== undefined) session.user.image = token.picture as string | null
+
+        // Handle Impersonation for Super Admin
+        if (session.user.isSuperAdmin) {
+          try {
+            const { cookies } = await import("next/headers")
+            const cookieStore = await cookies()
+            const impersonatedSlug = cookieStore.get("impersonate-tenant")?.value
+            
+            if (impersonatedSlug) {
+              const tenant = await db.tenant.findUnique({
+                where: { slug: impersonatedSlug },
+                select: { id: true, name: true, slug: true, theme: true, logo: true, plan: true }
+              })
+              
+              if (tenant) {
+                // Prepend impersonated tenant to the list with 'owner' role
+                session.user.tenants = [
+                  {
+                    id: tenant.id,
+                    name: tenant.name,
+                    slug: tenant.slug,
+                    role: "owner",
+                    theme: tenant.theme || "aurora",
+                    logo: tenant.logo || null,
+                    plan: tenant.plan || "free",
+                  },
+                  ...session.user.tenants.filter(t => t.slug !== impersonatedSlug)
+                ]
+              }
+            }
+          } catch (e) {
+            // Ignore cookie read errors in certain edge cases
+          }
+        }
       }
       return session
     },
