@@ -18,20 +18,18 @@ jobs:
           # cache: 'npm' # Disable cache temporarily to fix dependency conflict
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps --force
+        run: npm install --legacy-peer-deps
 
       - name: Build Application
         run: |
           npx prisma generate
           npm run build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db' }}
           PRISMA_SKIP_DATABASE_CHECK: true
           NEXT_PUBLIC_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://schoolpro.id/api' || 'https://schoolpro.my.id/api' }}
-          NEXT_DEBUG: 1
-          NEXT_LINT_IGNORE: true # Menambahkan flag untuk mengabaikan lint jika diperlukan
-          # Jika npm run build memicu lint secara otomatis, kita bisa melewatinya dengan:
           NEXT_TELEMETRY_DISABLED: 1
+          NODE_ENV: production
 
       - name: Show build error log
         if: failure()
