@@ -46,6 +46,7 @@ import {
   Briefcase,
   Phone,
   Info,
+  Award,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -94,6 +95,10 @@ function getTenantMenu(basePath: string): MenuSection[] {
             { label: "Layanan", href: `${basePath}/website/services`, icon: Briefcase },
             { label: "Galeri", href: `${basePath}/website/gallery`, icon: Image },
             { label: "Kontak", href: `${basePath}/website/contact`, icon: Phone },
+            { label: "Fasilitas", href: `${basePath}/website/facilities`, icon: Building2 },
+            { label: "Prestasi", href: `${basePath}/website/achievements`, icon: Award },
+            { label: "Ekstrakurikuler", href: `${basePath}/website/extracurriculars`, icon: Activity },
+            { label: "Program & Jurusan", href: `${basePath}/website/programs`, icon: BookOpen },
           ],
         },
       ],

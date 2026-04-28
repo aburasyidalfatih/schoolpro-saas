@@ -1,0 +1,56 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Application
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # NEXT_PUBLIC_ variables can be set here based on branch
+          NEXT_PUBLIC_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://schoolpro.id/api' || 'https://schoolpro.my.id/api' }}
+
+      - name: Prepare Deployment Package
+        run: |
+          mkdir deploy
+          # Standalone mode output
+          cp -r .next/standalone/* deploy/
+          # Static files need to be manually copied in standalone mode
+          mkdir -p deploy/.next/static
+          cp -r .next/static/* deploy/.next/static/
+          cp -r public deploy/
+          # Copy prisma schema if you need to run migrations on VPS
+          cp -r prisma deploy/ || true
+
+      - name: Deploy to VPS
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ARGS: "-rlgoDzvc -i --delete"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          SOURCE: "deploy/"
+          # Target directory based on branch
+          TARGET: ${{ github.ref == 'refs/heads/main' && '/home/ubuntu/schoolpro' || '/home/ubuntu/schoolpro-dev' }}
+          SCRIPT_AFTER: |
+            cd ${{ github.ref == 'refs/heads/main' && '/home/ubuntu/schoolpro' || '/home/ubuntu/schoolpro-dev' }}
+            # Re-generate Prisma client to match VPS environment
+            npx prisma generate
+            # Restart only the specific app in PM2
+            pm2 restart /home/ubuntu/ecosystem.config.js --only ${{ github.ref == 'refs/heads/main' && 'schoolpro-prod' || 'schoolpro-dev' }}

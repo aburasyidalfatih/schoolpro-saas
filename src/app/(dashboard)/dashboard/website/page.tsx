@@ -8,6 +8,7 @@ import {
   Globe, ExternalLink, Users, FileText, Image, Phone,
   Briefcase, Info, LayoutTemplate, ArrowRight, Eye,
   CheckCircle, AlertCircle, ShieldCheck, ShieldOff, Download,
+  Building2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -140,6 +141,20 @@ export default function WebsiteOverviewPage() {
       icon: <Phone className="h-5 w-5" />,
       status: data?.phone || data?.email ? "ok" : "warn",
       href: `${base}/contact`,
+    },
+    {
+      label: "Fasilitas",
+      value: "Kelola Fasilitas",
+      icon: <Building2 className="h-5 w-5" />,
+      status: "ok",
+      href: `${base}/facilities`,
+    },
+    {
+      label: "Prestasi",
+      value: "Kelola Prestasi",
+      icon: <FileText className="h-5 w-5" />, // Or Award
+      status: "ok",
+      href: `${base}/achievements`,
     },
   ]
 
