@@ -22,7 +22,8 @@ jobs:
 
       - name: Build Application
         run: |
-          npx prisma generate
+          # Menggunakan prisma dari node_modules lokal agar versinya konsisten (v5)
+          ./node_modules/.bin/prisma generate
           npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db' }}
