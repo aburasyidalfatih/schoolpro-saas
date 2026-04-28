@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { getPricingConfig } from "@/lib/services/billing"
 
 export async function GET() {
-  const session = await auth()
+  const session = await auth() as any
   if (!session?.tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const [tenant, pricing] = await Promise.all([

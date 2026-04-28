@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth"
 import { createUpgradeInvoice } from "@/lib/services/billing"
 
 export async function POST(req: Request) {
-  const session = await auth()
+  const session = await auth() as any
   if (!session?.tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   try {
