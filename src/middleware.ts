@@ -1,5 +1,160 @@
-import { proxy } from "./proxy"
+/**
+ * Next.js Multi-Tenant Middleware
+ * Menangani routing untuk:
+ * 1. Main domain (schoolpro.id / schoolpro.my.id)
+ * 2. Subdomain (tenant.schoolpro.id)
+ * 3. Custom domain (sekolahanda.com)
+ */
 
-export default proxy
+import NextAuth from "next-auth"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { authConfig } from "@/lib/auth.config"
 
-export { config } from "./proxy"
+const { auth } = NextAuth(authConfig)
+
+const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET || "dev-internal-secret"
+
+/**
+ * Resolve custom domain via internal API
+ */
+async function resolveCustomDomain(domain: string, requestUrl: string): Promise<string | null> {
+  try {
+    const base = new URL(requestUrl).origin
+    const res = await fetch(
+      `${base}/api/internal/domain-lookup?domain=${encodeURIComponent(domain)}`,
+      {
+        headers: { "x-internal-secret": INTERNAL_SECRET },
+        next: { revalidate: 300 },
+      }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.slug ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Keamanan Headers & CSP
+ */
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set("X-Frame-Options", "DENY")
+  response.headers.set("X-Content-Type-Options", "nosniff")
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+  response.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ws: wss: https://cloudflareinsights.com; frame-ancestors 'none'"
+  )
+  return response
+}
+
+export default async function middleware(request: NextRequest) {
+  const hostname = request.headers.get("host") || ""
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.id"
+  const { pathname } = request.nextUrl
+
+  // 1. Lewati aset statis secara manual (Security Layer 2)
+  if (
+    pathname.startsWith("/_next") || 
+    pathname.startsWith("/static") || 
+    pathname.startsWith("/api") ||
+    pathname.includes(".")
+  ) {
+    return addSecurityHeaders(NextResponse.next())
+  }
+
+  // Validasi Session
+  const session = await auth()
+
+  // KLASIFIKASI HOST
+  const isMainDomain =
+    hostname === rootDomain ||
+    hostname === `www.${rootDomain}` ||
+    hostname.startsWith("localhost:") ||
+    hostname === "127.0.0.1"
+
+  const subdomain = hostname.endsWith(`.${rootDomain}`)
+    ? hostname.replace(`.${rootDomain}`, "")
+    : ""
+
+  const isSubdomain = !isMainDomain && subdomain !== "" && subdomain !== "www"
+  const isCustomDomain = !isMainDomain && !isSubdomain
+
+  // ============================================================
+  // A. MAIN DOMAIN
+  // ============================================================
+  if (isMainDomain) {
+    const isProtected = pathname.startsWith("/dashboard") || pathname.startsWith("/super-admin")
+    const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register")
+
+    if (isProtected && !session) {
+      return addSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)))
+    }
+
+    if (pathname.startsWith("/super-admin") && session && !session.user?.isSuperAdmin) {
+      return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard", request.url)))
+    }
+
+    if (isAuthPage && session) {
+      return addSecurityHeaders(NextResponse.redirect(new URL(session.user?.isSuperAdmin ? "/super-admin" : "/dashboard", request.url)))
+    }
+
+    return addSecurityHeaders(NextResponse.next())
+  }
+
+  // ============================================================
+  // B. SUBDOMAIN
+  // ============================================================
+  if (isSubdomain) {
+    // Jangan rewrite rute Dashboard/Login di subdomain
+    if (
+      pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/register")
+    ) {
+      const response = NextResponse.next()
+      response.headers.set("x-tenant-slug", subdomain)
+      return addSecurityHeaders(response)
+    }
+
+    // Rewrite ke website sekolah
+    const url = request.nextUrl.clone()
+    url.pathname = `/site/${subdomain}${pathname}`
+    const response = NextResponse.rewrite(url)
+    response.headers.set("x-tenant-slug", subdomain)
+    return addSecurityHeaders(response)
+  }
+
+  // ============================================================
+  // C. CUSTOM DOMAIN
+  // ============================================================
+  if (isCustomDomain) {
+    const slug = await resolveCustomDomain(hostname, request.url)
+    if (!slug) return addSecurityHeaders(NextResponse.rewrite(new URL("/not-found", request.url)))
+
+    const url = request.nextUrl.clone()
+    url.pathname = `/site/${slug}${pathname}`
+    const response = NextResponse.rewrite(url)
+    response.headers.set("x-tenant-slug", slug)
+    response.headers.set("x-custom-domain", hostname)
+    return addSecurityHeaders(response)
+  }
+
+  return addSecurityHeaders(NextResponse.next())
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all paths except:
+     * 1. /api (API routes)
+     * 2. /_next (Next.js internals)
+     * 3. /static (inside /public)
+     * 4. all root files (favicon.ico, sitemap.xml, robots.txt, etc.)
+     */
+    "/((?!api|_next|static|[\\w-]+\\.\\w+).*)",
+  ],
+}
