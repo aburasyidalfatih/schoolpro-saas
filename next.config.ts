@@ -52,6 +52,8 @@ const nextConfig: NextConfig = {
     // Membatasi penggunaan memori saat kompilasi
     cpus: 1, 
     workerThreads: false,
+    reactCompiler: false,
+    optimizePackageImports: ["lucide-react", "recharts", "date-fns", "@radix-ui/react-icons"],
   },
   async headers() {
     return [

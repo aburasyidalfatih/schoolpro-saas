@@ -10,6 +10,7 @@ import { Plus, Trash2, Edit, Award, Image as ImageIcon } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
 import Image from "next/image"
+import { getAchievements, deleteAchievement } from "@/lib/actions/achievements"
 
 interface Achievement {
   id: string
@@ -28,16 +29,17 @@ export default function AchievementsPage() {
 
   const tenantId = branding.id
 
-  const loadAchievements = () => {
+  const loadAchievements = async () => {
     if (!tenantId) return
     setLoading(true)
-    fetch(`/api/tenant/achievements?tenantId=${tenantId}`)
-      .then(r => r.json())
-      .then(d => {
-        setAchievements(Array.isArray(d) ? d : [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    try {
+      const d = await getAchievements(tenantId)
+      setAchievements(Array.isArray(d) ? d : [])
+    } catch (err: any) {
+      toast({ title: "Gagal memuat data", description: err.message, variant: "destructive" })
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -46,19 +48,14 @@ export default function AchievementsPage() {
     }
   }, [tenantId, isLoadingTenant])
 
-  const deleteAchievement = async (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!tenantId) return
     try {
-      const res = await fetch(`/api/tenant/achievements/${id}?tenantId=${tenantId}`, { method: "DELETE" })
-      if (res.ok) {
-        toast({ title: "Prestasi dihapus" })
-        loadAchievements()
-      } else {
-        const d = await res.json()
-        toast({ title: "Gagal", description: d.error, variant: "destructive" })
-      }
-    } catch {
-      toast({ title: "Gagal menghapus", variant: "destructive" })
+      await deleteAchievement(id, tenantId)
+      toast({ title: "Prestasi dihapus" })
+      loadAchievements()
+    } catch (err: any) {
+      toast({ title: "Gagal", description: err.message, variant: "destructive" })
     }
   }
 
@@ -127,7 +124,7 @@ export default function AchievementsPage() {
                         title="Hapus prestasi ini?"
                         description="Data prestasi akan dihapus secara permanen."
                         confirmText="Ya, hapus"
-                        onConfirm={() => deleteAchievement(achievement.id)}
+                        onConfirm={() => handleDelete(achievement.id)}
                       />
                     </div>
                   </div>

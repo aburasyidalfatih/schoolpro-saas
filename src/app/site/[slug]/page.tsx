@@ -2,7 +2,7 @@ import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowRight, MapPin, Phone, Mail, MessageCircle } from "lucide-react"
-import { HeroSlider } from "./components/hero-slider"
+import { HeroSlider } from "./_components/hero-slider"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

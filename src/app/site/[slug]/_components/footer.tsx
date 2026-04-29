@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react"
+import { useRouting } from "@/components/providers/routing-provider"
 
 interface FooterProps {
   tenant: {
@@ -17,7 +20,7 @@ interface FooterProps {
 }
 
 export function WebsiteFooter({ tenant }: FooterProps) {
-  const base = `/site/${tenant.slug}`
+  const { resolveHref } = useRouting()
   const year = new Date().getFullYear()
 
   return (
@@ -87,7 +90,7 @@ export function WebsiteFooter({ tenant }: FooterProps) {
                 ].map((link) => (
                   <li key={link.label}>
                     <Link
-                      href={`${base}${link.href}`}
+                      href={resolveHref(link.href)}
                       className="text-xs transition-colors hover:text-white flex items-center gap-1.5"
                       style={{ color: "rgba(255,255,255,0.45)" }}
                     >
@@ -113,7 +116,7 @@ export function WebsiteFooter({ tenant }: FooterProps) {
                 ].map((item) => (
                   <li key={item}>
                     <Link
-                      href={`${base}/services`}
+                      href={resolveHref("/services")}
                       className="text-xs transition-colors hover:text-white flex items-center gap-1.5"
                       style={{ color: "rgba(255,255,255,0.45)" }}
                     >
@@ -197,11 +200,11 @@ export function WebsiteFooter({ tenant }: FooterProps) {
               &copy; {year} {tenant.name}. All rights reserved.
             </p>
             <div className="flex gap-4">
-              <Link href={`${base}/contact`} className="text-[11px] transition-colors hover:text-white/60" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <Link href={resolveHref("/contact")} className="text-[11px] transition-colors hover:text-white/60" style={{ color: "rgba(255,255,255,0.3)" }}>
                 Kebijakan Privasi
               </Link>
               <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
-              <Link href={`${base}/contact`} className="text-[11px] transition-colors hover:text-white/60" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <Link href={resolveHref("/contact")} className="text-[11px] transition-colors hover:text-white/60" style={{ color: "rgba(255,255,255,0.3)" }}>
                 Syarat & Ketentuan
               </Link>
             </div>

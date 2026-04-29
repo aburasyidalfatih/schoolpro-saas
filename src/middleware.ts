@@ -125,6 +125,8 @@ export default async function middleware(request: NextRequest) {
     url.pathname = `/site/${subdomain}${pathname}`
     const response = NextResponse.rewrite(url)
     response.headers.set("x-tenant-slug", subdomain)
+    response.headers.set("x-hostname", hostname)
+    response.headers.set("x-root-domain", rootDomain)
     return addSecurityHeaders(response)
   }
 
@@ -140,10 +142,15 @@ export default async function middleware(request: NextRequest) {
     const response = NextResponse.rewrite(url)
     response.headers.set("x-tenant-slug", slug)
     response.headers.set("x-custom-domain", hostname)
+    response.headers.set("x-hostname", hostname)
+    response.headers.set("x-root-domain", rootDomain)
     return addSecurityHeaders(response)
   }
 
-  return addSecurityHeaders(NextResponse.next())
+  const response = NextResponse.next()
+  response.headers.set("x-hostname", hostname)
+  response.headers.set("x-root-domain", rootDomain)
+  return addSecurityHeaders(response)
 }
 
 export const config = {

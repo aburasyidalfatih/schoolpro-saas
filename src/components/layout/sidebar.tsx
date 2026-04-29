@@ -18,8 +18,6 @@ import {
   ShieldCheck,
   Receipt,
   Wallet,
-  BellRing,
-  BellOff,
   PieChart,
   TrendingUp,
   ClipboardList,
@@ -29,11 +27,9 @@ import {
   Globe,
   Server,
   Activity,
-  Database,
   Mail,
   Megaphone,
   Tag,
-  HelpCircle,
   BookOpen,
   MessageSquare,
   Calendar,
@@ -47,6 +43,7 @@ import {
   Phone,
   Info,
   Award,
+  GraduationCap,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -82,25 +79,50 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
       ],
     },
     {
-      title: "Website",
+      title: "Konten Website",
       items: [
         {
-          label: "Kelola Website",
+          label: "Beranda & Slider",
           href: `${basePath}/website`,
-          icon: LayoutTemplate,
+          icon: Home,
           children: [
-            { label: "Beranda", href: `${basePath}/website`, icon: Home },
+            { label: "Overview Website", href: `${basePath}/website`, icon: Home },
+            { label: "Slider Beranda", href: `${basePath}/website/sliders`, icon: LayoutTemplate },
+            { label: "Popup Pengumuman", href: `${basePath}/website/popups`, icon: Megaphone },
+          ],
+        },
+        {
+          label: "Informasi & Berita",
+          href: `${basePath}/website/posts`,
+          icon: FileText,
+          children: [
             { label: "Artikel & Pos", href: `${basePath}/website/posts`, icon: FileText },
             { label: "Agenda & Acara", href: `${basePath}/website/events`, icon: Calendar },
             { label: "Pusat Unduhan", href: `${basePath}/website/documents`, icon: Download },
+          ],
+        },
+        {
+          label: "Profil & GTK",
+          href: `${basePath}/website/about`,
+          icon: Building2,
+          children: [
             { label: "Profil & Tentang", href: `${basePath}/website/about`, icon: Info },
-            { label: "Layanan", href: `${basePath}/website/services`, icon: Briefcase },
-            { label: "Galeri", href: `${basePath}/website/gallery`, icon: Image },
-            { label: "Kontak", href: `${basePath}/website/contact`, icon: Phone },
-            { label: "Fasilitas", href: `${basePath}/website/facilities`, icon: Building2 },
-            { label: "Prestasi", href: `${basePath}/website/achievements`, icon: Award },
-            { label: "Ekstrakurikuler", href: `${basePath}/website/extracurriculars`, icon: Activity },
+            { label: "Guru & Staf (GTK)", href: `${basePath}/website/gtk`, icon: Users },
+            { label: "Fasilitas Sekolah", href: `${basePath}/website/facilities`, icon: Building2 },
             { label: "Program & Jurusan", href: `${basePath}/website/programs`, icon: BookOpen },
+            { label: "Ekskul", href: `${basePath}/website/extracurriculars`, icon: Activity },
+          ],
+        },
+        {
+          label: "Galeri & Alumni",
+          href: `${basePath}/website/gallery`,
+          icon: Image,
+          children: [
+            { label: "Galeri Foto", href: `${basePath}/website/gallery`, icon: Image },
+            { label: "Prestasi Siswa", href: `${basePath}/website/achievements`, icon: Award },
+            { label: "Alumni Success", href: `${basePath}/website/alumni`, icon: GraduationCap },
+            { label: "Layanan Sekolah", href: `${basePath}/website/services`, icon: Briefcase },
+            { label: "Kontak", href: `${basePath}/website/contact`, icon: Phone },
           ],
         },
       ],
@@ -128,32 +150,14 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
             { label: "Peran & Izin", href: `${basePath}/users/roles`, icon: ShieldCheck },
           ],
         },
-        {
-          label: "Keuangan",
-          href: `${basePath}/billing`,
-          icon: CreditCard,
-          children: [
-            { label: "Langganan", href: `${basePath}/billing`, icon: Wallet },
-            { label: "Riwayat Pembayaran", href: `${basePath}/billing/history`, icon: Receipt },
-            ...(isPro ? [{ label: "Pembayaran SPP", href: `${basePath}/billing/spp`, icon: Receipt }] : []),
-          ],
-        },
       ],
     },
     {
-      title: "Analitik",
+      title: "Aktivitas & Pesan",
       items: [
-        {
-          label: "Laporan",
-          href: isPro ? `${basePath}/reports` : `${basePath}/billing`,
-          icon: isPro ? BarChart3 : Lock,
-          children: isPro ? [
-            { label: "Analitik", href: `${basePath}/reports`, icon: PieChart },
-            { label: "Tren", href: `${basePath}/reports/trends`, icon: TrendingUp },
-            { label: "Export Data", href: `${basePath}/reports/export`, icon: ClipboardList },
-          ] : undefined,
-        },
-        { label: "Audit Log", href: `${basePath}/audit`, icon: FileText },
+        { label: "Notifikasi", href: `${basePath}/notifications`, icon: Bell },
+        { label: "Pesan", href: `${basePath}/my-messages`, icon: Mail },
+        { label: "Dokumen Saya", href: `${basePath}/my-documents`, icon: FolderOpen },
       ],
     },
     {
@@ -170,7 +174,16 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
             { label: "Email (SMTP)", href: `${basePath}/settings/email`, icon: Mail },
             { label: "WhatsApp Gateway", href: `${basePath}/settings/whatsapp`, icon: Megaphone },
             { label: "Payment Gateway", href: `${basePath}/settings/payment`, icon: CreditCard },
-            { label: "Keamanan", href: `${basePath}/settings/security`, icon: Lock },
+          ],
+        },
+        { label: "Audit Log", href: `${basePath}/audit`, icon: FileText },
+        {
+          label: "Keuangan",
+          href: `${basePath}/billing`,
+          icon: CreditCard,
+          children: [
+            { label: "Langganan", href: `${basePath}/billing`, icon: Wallet },
+            { label: "Riwayat Pembayaran", href: `${basePath}/billing/history`, icon: Receipt },
           ],
         },
       ],
@@ -385,7 +398,7 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                 }
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="font-bold text-sm tracking-tight leading-tight truncate max-w-[140px]">{brandName}</span>
+                <span className="font-bold text-sm tracking-tight leading-tight truncate max-w-[140px]">{brandName} v1.1</span>
                 <span className={cn(
                   "text-[10px] font-medium leading-tight",
                   isSuperAdminPath ? "text-red-500" : "text-muted-foreground"
@@ -443,28 +456,37 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                 return (
                   <div key={item.label}>
                     {hasChildren ? (
-                      <button
-                        onClick={() => { if (!collapsed) toggleMenu(item.label) }}
-                        className={cn(
-                          "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                          isActive || isChildActive
-                            ? "bg-gradient-to-r from-primary/15 to-primary/5 text-primary shadow-sm"
-                            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-                        )}
-                      >
-                        <div className={cn(
-                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
-                          isActive || isChildActive ? "bg-primary/10 text-primary" : "text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
-                        )}>
-                          <item.icon className="h-[18px] w-[18px]" />
-                        </div>
+                      <div className="relative group">
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                            isActive || isChildActive
+                              ? "bg-gradient-to-r from-primary/15 to-primary/5 text-primary shadow-sm"
+                              : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                          )}
+                        >
+                          <div className={cn(
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
+                            isActive || isChildActive ? "bg-primary/10 text-primary" : "text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
+                          )}>
+                            <item.icon className="h-[18px] w-[18px]" />
+                          </div>
+                          {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
+                        </Link>
                         {!collapsed && (
-                          <>
-                            <span className="flex-1 text-left">{item.label}</span>
-                            <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
-                          </>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              toggleMenu(item.label)
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground transition-colors"
+                          >
+                            <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")} />
+                          </button>
                         )}
-                      </button>
+                      </div>
                     ) : (
                       <Link
                         href={item.href}

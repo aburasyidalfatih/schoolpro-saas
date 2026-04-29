@@ -8,7 +8,7 @@ import {
   Globe, ExternalLink, Users, FileText, Image, Phone,
   Briefcase, Info, LayoutTemplate, ArrowRight, Eye,
   CheckCircle, AlertCircle, ShieldCheck, ShieldOff, Download,
-  Building2,
+  Building2, Award, GraduationCap, Activity, Megaphone, BookOpen,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -150,11 +150,46 @@ export default function WebsiteOverviewPage() {
       href: `${base}/facilities`,
     },
     {
-      label: "Prestasi",
+      label: "Guru & Staf (GTK)",
+      value: "Profil Pendidik",
+      icon: <Users className="h-5 w-5" />,
+      status: "ok",
+      href: `${base}/gtk`,
+    },
+    {
+      label: "Prestasi Siswa",
       value: "Kelola Prestasi",
-      icon: <FileText className="h-5 w-5" />, // Or Award
+      icon: <Award className="h-5 w-5" />,
       status: "ok",
       href: `${base}/achievements`,
+    },
+    {
+      label: "Alumni Success",
+      value: "Database Alumni",
+      icon: <GraduationCap className="h-5 w-5" />,
+      status: "ok",
+      href: `${base}/alumni`,
+    },
+    {
+      label: "Ekstrakurikuler",
+      value: "Kegiatan Siswa",
+      icon: <Activity className="h-5 w-5" />,
+      status: "ok",
+      href: `${base}/extracurriculars`,
+    },
+    {
+      label: "Program & Jurusan",
+      value: "Profil Pendidikan",
+      icon: <BookOpen className="h-5 w-5" />,
+      status: "ok",
+      href: `${base}/programs`,
+    },
+    {
+      label: "Popup Pengumuman",
+      value: "Modal Banner",
+      icon: <Megaphone className="h-5 w-5" />,
+      status: "ok",
+      href: `${base}/popups`,
     },
   ]
 

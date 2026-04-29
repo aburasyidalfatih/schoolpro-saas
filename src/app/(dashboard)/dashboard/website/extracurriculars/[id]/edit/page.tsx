@@ -8,12 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-import { ArrowLeft, Save, ImageIcon } from "lucide-react"
+import { ArrowLeft, Save, Trophy } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useParams } from "next/navigation"
-import { getAchievementById, updateAchievement } from "@/lib/actions/achievements"
+import { getExtracurricularById, updateExtracurricular } from "@/lib/actions/extracurricular"
 
-export default function EditAchievementPage() {
+export default function EditExtracurricularPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
@@ -28,10 +28,9 @@ export default function EditAchievementPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   
   const [formData, setFormData] = useState({
-    title: "",
+    name: "",
     description: "",
-    date: "",
-    level: "LOKAL",
+    schedule: "",
     imageUrl: ""
   })
 
@@ -39,17 +38,16 @@ export default function EditAchievementPage() {
 
   useEffect(() => {
     if (!isLoadingTenant && tenantId) {
-      getAchievementById(id, tenantId)
+      getExtracurricularById(id, tenantId)
         .then(d => {
           if (!d) {
-            toast({ title: "Gagal", description: "Prestasi tidak ditemukan", variant: "destructive" })
-            router.push("/dashboard/website/achievements")
+            toast({ title: "Gagal", description: "Ekstrakurikuler tidak ditemukan", variant: "destructive" })
+            router.push("/dashboard/website/extracurriculars")
           } else {
             setFormData({
-              title: d.title || "",
+              name: d.name || "",
               description: d.description || "",
-              date: d.date ? new Date(d.date).toISOString().split('T')[0] : "",
-              level: d.level || "LOKAL",
+              schedule: d.schedule || "",
               imageUrl: d.imageUrl || ""
             })
             if (d.imageUrl) setPreviewUrl(d.imageUrl)
@@ -77,8 +75,8 @@ export default function EditAchievementPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!tenantId || !formData.title || !formData.date) {
-      toast({ title: "Isi data yang wajib", variant: "destructive" })
+    if (!tenantId || !formData.name) {
+      toast({ title: "Nama ekskul harus diisi", variant: "destructive" })
       return
     }
 
@@ -92,7 +90,7 @@ export default function EditAchievementPage() {
         const fd = new FormData()
         fd.append("file", file)
         fd.append("tenantId", tenantId)
-        fd.append("subDir", "achievements")
+        fd.append("subDir", "extracurricular")
         
         const uploadRes = await fetch("/api/upload", { method: "POST", body: fd })
         const uploadData = await uploadRes.json()
@@ -105,16 +103,15 @@ export default function EditAchievementPage() {
         setUploading(false)
       }
       
-      await updateAchievement(id, tenantId, {
-        title: formData.title,
+      await updateExtracurricular(id, tenantId, {
+        name: formData.name,
         description: formData.description,
-        date: new Date(formData.date).toISOString(),
-        level: formData.level,
+        schedule: formData.schedule,
         imageUrl: finalImageUrl,
       })
 
-      toast({ title: "Prestasi berhasil diperbarui!" })
-      router.push("/dashboard/website/achievements")
+      toast({ title: "Ekstrakurikuler berhasil diperbarui!" })
+      router.push("/dashboard/website/extracurriculars")
     } catch (error: any) {
       toast({ title: "Gagal", description: error.message, variant: "destructive" })
       setUploading(false)
@@ -128,26 +125,26 @@ export default function EditAchievementPage() {
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center gap-4">
         <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-          <Link href="/dashboard/website/achievements">
+          <Link href="/dashboard/website/extracurriculars">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Edit Prestasi</h1>
-          <p className="text-muted-foreground mt-1">Perbarui data pencapaian siswa dan sekolah.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Ekstrakurikuler</h1>
+          <p className="text-muted-foreground mt-1">Perbarui informasi kegiatan ekskul.</p>
         </div>
       </div>
 
       <Card className="glass border-0">
         <form onSubmit={handleSubmit}>
           <CardHeader>
-            <CardTitle className="text-base">Informasi Prestasi</CardTitle>
-            <CardDescription className="text-xs">Lengkapi detail prestasi beserta dokumentasinya.</CardDescription>
+            <CardTitle className="text-base">Detail Kegiatan</CardTitle>
+            <CardDescription className="text-xs">Perbarui informasi mengenai kegiatan ekskul.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             
             <div className="space-y-2">
-              <Label>Foto Dokumentasi/Piala</Label>
+              <Label>Foto/Logo Ekskul</Label>
               <div 
                 onClick={() => fileInputRef.current?.click()}
                 className={`cursor-pointer flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 transition-colors overflow-hidden relative ${file || previewUrl ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-primary/5'}`}
@@ -164,14 +161,14 @@ export default function EditAchievementPage() {
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden flex items-center justify-center bg-black/5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={previewUrl} alt="Preview" className="object-cover w-full h-full" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-center">
                       <p className="text-white text-sm font-medium">Klik untuk mengubah foto</p>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-6">
-                    <ImageIcon className="h-10 w-10 mx-auto mb-3 text-muted-foreground/50" />
-                    <p className="text-sm font-medium">Klik untuk memilih foto</p>
+                    <Trophy className="h-10 w-10 mx-auto mb-3 text-muted-foreground/50" />
+                    <p className="text-sm font-medium">Klik untuk memilih foto/logo</p>
                     <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP (Max 5MB)</p>
                   </div>
                 )}
@@ -180,51 +177,36 @@ export default function EditAchievementPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="title">Nama Prestasi/Penghargaan <span className="text-destructive">*</span></Label>
+                <Label htmlFor="name">Nama Ekstrakurikuler <span className="text-destructive">*</span></Label>
                 <Input 
-                  id="title" 
+                  id="name" 
                   required 
-                  value={formData.title} 
-                  onChange={e => setFormData({...formData, title: e.target.value})} 
-                  placeholder="Misal: Juara 1 Olimpiade Matematika" 
+                  value={formData.name} 
+                  onChange={e => setFormData({...formData, name: e.target.value})} 
+                  placeholder="Misal: Pramuka, OSIS, Futsal, dsb." 
                   className="rounded-xl"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="date">Tanggal Perolehan <span className="text-destructive">*</span></Label>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="schedule">Jadwal Latihan / Pertemuan</Label>
                 <Input 
-                  id="date" 
-                  type="date"
-                  required 
-                  value={formData.date} 
-                  onChange={e => setFormData({...formData, date: e.target.value})} 
+                  id="schedule" 
+                  value={formData.schedule} 
+                  onChange={e => setFormData({...formData, schedule: e.target.value})} 
+                  placeholder="Contoh: Setiap Sabtu, 08.00 - 10.00 WIB" 
                   className="rounded-xl"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="level">Tingkat Prestasi</Label>
-                <select 
-                  id="level"
-                  value={formData.level}
-                  onChange={e => setFormData({...formData, level: e.target.value})}
-                  className="flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="LOKAL">Tingkat Lokal / Sekolah / Kabupaten</option>
-                  <option value="NASIONAL">Tingkat Nasional</option>
-                  <option value="INTERNASIONAL">Tingkat Internasional</option>
-                </select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Deskripsi Singkat</Label>
+              <Label htmlFor="description">Deskripsi Kegiatan</Label>
               <Textarea 
                 id="description" 
                 value={formData.description} 
                 onChange={e => setFormData({...formData, description: e.target.value})} 
-                placeholder="Penjelasan detail tentang kompetisi atau penghargaan tersebut..."
+                placeholder="Penjelasan detail mengenai visi, misi, atau materi ekskul..."
                 className="rounded-xl resize-none h-24"
               />
             </div>
@@ -233,11 +215,11 @@ export default function EditAchievementPage() {
             <Button type="button" variant="ghost" className="rounded-xl" onClick={() => router.back()} disabled={saving}>
               Batal
             </Button>
-            <Button type="submit" className="gap-2 btn-gradient text-white border-0 rounded-xl" disabled={saving || !formData.title || !formData.date}>
+            <Button type="submit" className="gap-2 btn-gradient text-white border-0 rounded-xl" disabled={saving || !formData.name}>
               {saving ? (
                 <>
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  {uploading ? "Mengunggah Foto..." : "Menyimpan..."}
+                  {uploading ? "Mengunggah..." : "Menyimpan..."}
                 </>
               ) : (
                 <><Save className="h-4 w-4" /> Simpan Perubahan</>

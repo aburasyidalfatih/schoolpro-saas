@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X, Search, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useRouting } from "@/components/providers/routing-provider"
 
 interface NavbarProps {
   tenant: {
@@ -16,42 +17,48 @@ interface NavbarProps {
   }
 }
 
-const navLinks = [
-  { label: "Beranda", href: "" },
-  {
-    label: "Profil", href: "/about",
-    children: [
-      { label: "Tentang Kami", href: "/about" },
-      { label: "Visi & Misi", href: "/about" },
-      { label: "Struktur Organisasi", href: "/about" },
-    ],
-  },
-  {
-    label: "Akademik", href: "/services",
-    children: [
-      { label: "Program Unggulan", href: "/services" },
-      { label: "Kurikulum", href: "/services" },
-      { label: "Kegiatan", href: "/services" },
-    ],
-  },
-  {
-    label: "Informasi", href: "/informasi",
-    children: [
-      { label: "Berita & Artikel", href: "/informasi" },
-      { label: "Pengumuman", href: "/informasi" },
-      { label: "Agenda Kegiatan", href: "/informasi" },
-    ],
-  },
-  { label: "Galeri", href: "/gallery" },
-  { label: "Kontak", href: "/contact" },
-]
-
 export function WebsiteNavbar({ tenant }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const pathname = usePathname()
-  const base = `/site/${tenant.slug}`
+  const { resolveHref } = useRouting()
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Simplified navLinks to always show all menus as requested
+  const navLinks = [
+    { label: "Beranda", href: "" },
+    {
+      label: "Profil Sekolah",
+      href: "/profil",
+      children: [
+        { label: "Profil & Tentang", href: "/profil" },
+        { label: "Guru & Staf (GTK)", href: "/profil#gtk" },
+        { label: "Fasilitas Sekolah", href: "/profil#facilities" },
+        { label: "Program & Jurusan", href: "/profil#programs" },
+        { label: "Ekstrakurikuler", href: "/profil#extracurriculars" },
+      ],
+    },
+    {
+      label: "Informasi",
+      href: "/berita",
+      children: [
+        { label: "Berita & Artikel", href: "/berita" },
+        { label: "Agenda & Acara", href: "/agenda" },
+        { label: "Pusat Unduhan", href: "/unduhan" },
+      ],
+    },
+    {
+      label: "Galeri & Alumni",
+      href: "/gallery",
+      children: [
+        { label: "Galeri Foto", href: "/gallery" },
+        { label: "Prestasi Siswa", href: "/profil#achievements" },
+        { label: "Alumni Success", href: "/profil#alumni" },
+      ],
+    },
+    { label: "Layanan", href: "/services" },
+    { label: "Kontak", href: "/contact" },
+  ]
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -72,7 +79,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
           <div className="flex h-[68px] items-center justify-between gap-4">
 
             {/* Logo */}
-            <Link href={base} className="flex items-center gap-3 shrink-0">
+            <Link href={resolveHref("/")} className="flex items-center gap-3 shrink-0">
               {tenant.logo ? (
                 <img src={tenant.logo} alt={tenant.name} className="h-11 w-11 rounded-full object-cover border-2 border-white/30" />
               ) : (
@@ -95,15 +102,22 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
             {/* Desktop nav */}
             <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
               {navLinks.map((link) => {
-                const href = `${base}${link.href}`
-                const isActive = link.href === "" ? pathname === base : pathname.startsWith(href)
+                const href = resolveHref(link.href)
+                const isActive = link.href === "" 
+                  ? (pathname === resolveHref("/") || pathname === `/site/${tenant.slug}`) 
+                  : pathname.startsWith(href)
                 const isOpen = openDropdown === link.label
 
                 return (
-                  <div key={link.label} className="relative">
+                  <div 
+                    key={link.label} 
+                    className="relative"
+                    onMouseEnter={() => setOpenDropdown(link.label)}
+                    onMouseLeave={() => setOpenDropdown(null)}
+                  >
                     {link.children ? (
-                      <button
-                        onClick={() => setOpenDropdown(isOpen ? null : link.label)}
+                      <Link
+                        href={href}
                         className={cn(
                           "flex items-center gap-1 px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors",
                           isActive || isOpen
@@ -113,7 +127,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
                       >
                         {link.label}
                         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
-                      </button>
+                      </Link>
                     ) : (
                       <Link
                         href={href}
@@ -130,17 +144,19 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
 
                     {/* Dropdown */}
                     {link.children && isOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-xl border overflow-hidden z-50">
-                        {link.children.map((child) => (
-                          <Link
-                            key={child.label}
-                            href={`${base}${child.href}`}
-                            onClick={() => setOpenDropdown(null)}
-                            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors border-b last:border-0"
-                          >
-                            {child.label}
-                          </Link>
-                        ))}
+                      <div className="absolute top-full left-0 pt-1 w-52 z-50">
+                        <div className="bg-white rounded-xl shadow-xl border overflow-hidden">
+                          {link.children.map((child) => (
+                            <Link
+                              key={child.label}
+                              href={resolveHref(child.href)}
+                              onClick={() => setOpenDropdown(null)}
+                              className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors border-b last:border-0"
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -155,7 +171,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
               </button>
               {/* PPDB Online button — yellow/accent */}
               <Link
-                href={`${base}/contact`}
+                href={resolveHref("/contact")}
                 className="px-5 py-2 text-sm font-bold rounded-lg transition-all hover:opacity-90 shadow-sm"
                 style={{ background: "hsl(45 95% 55%)", color: "hsl(var(--foreground))" }}
               >
@@ -179,24 +195,42 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
         <div className="lg:hidden border-t" style={{ background: "hsl(var(--primary))" }}>
           <div className="px-4 py-3 space-y-1">
             {navLinks.map((link) => {
-              const href = `${base}${link.href}`
-              const isActive = link.href === "" ? pathname === base : pathname.startsWith(href)
+              const href = resolveHref(link.href)
+              const isActive = link.href === "" 
+                ? (pathname === resolveHref("/") || pathname === `/site/${tenant.slug}`) 
+                : pathname.startsWith(href)
+              
               return (
-                <Link
-                  key={link.label}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "block px-3 py-2.5 text-sm font-semibold rounded-lg transition-colors",
-                    isActive ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
+                <div key={link.label} className="space-y-1">
+                  <Link
+                    href={href}
+                    onClick={() => { if (!link.children) setMobileOpen(false) }}
+                    className={cn(
+                      "block px-3 py-2.5 text-sm font-semibold rounded-lg transition-colors",
+                      isActive ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                  {link.children && (
+                    <div className="pl-6 space-y-1">
+                      {link.children.map((child) => (
+                        <Link
+                          key={child.label}
+                          href={resolveHref(child.href)}
+                          onClick={() => setMobileOpen(false)}
+                          className="block px-3 py-2 text-xs font-medium text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
                   )}
-                >
-                  {link.label}
-                </Link>
+                </div>
               )
             })}
             <Link
-              href={`${base}/contact`}
+              href={resolveHref("/contact")}
               onClick={() => setMobileOpen(false)}
               className="block mt-2 px-4 py-3 text-sm font-bold text-center rounded-lg"
               style={{ background: "hsl(45 95% 55%)", color: "hsl(var(--foreground))" }}

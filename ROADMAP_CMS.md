@@ -28,34 +28,33 @@ Fitur-fitur esensial yang mendukung penyebaran informasi dan materi edukasi.
 Pengembangan fitur yang memperkuat citra profesional institusi (sekolah) di mata masyarakat.
 *Catatan: Model database sudah tersedia, butuh pembuatan API Endpoint dan UI Form Dashboard.*
 
-- [ ] **Profil Guru & Staf (GTK)**
-  - [ ] Pembuatan UI Dashboard untuk mengelola daftar tenaga pendidik.
-  - [ ] API Endpoint untuk Manajemen GTK.
-- [ ] **Fasilitas Sekolah (Galeri Fasilitas)**
-  - [ ] Pembuatan UI Dashboard Manajemen Fasilitas (Lab, Perpustakaan, dll).
-  - [ ] API Endpoint untuk `Facility`.
-- [ ] **Data Prestasi Siswa & Sekolah**
-  - [ ] Pembuatan UI Dashboard Manajemen Prestasi.
-  - [ ] API Endpoint untuk `Achievement`.
-- [ ] **Kegiatan Ekstrakurikuler**
-  - [ ] Pembuatan UI Dashboard Manajemen Ekstrakurikuler.
-  - [ ] API Endpoint untuk `Extracurricular`.
-- [ ] **Program & Jurusan**
-  - [ ] Pembuatan UI Dashboard Manajemen Program/Jurusan.
-  - [ ] API Endpoint untuk `Program`.
+- [x] **Profil Guru & Staf (GTK)**
+  - [x] Pembuatan UI Dashboard untuk mengelola daftar tenaga pendidik.
+  - [x] API Endpoint untuk Manajemen GTK (Model & Actions).
+- [x] **Fasilitas Sekolah (Galeri Fasilitas)**
+  - [x] Pembuatan UI Dashboard Manajemen Fasilitas (Lab, Perpustakaan, dll).
+  - [x] API Endpoint untuk `Facility`.
+- [x] **Data Prestasi Siswa & Sekolah**
+  - [x] Pembuatan UI Dashboard Manajemen Prestasi.
+  - [x] API Endpoint untuk `Achievement`.
+- [x] **Kegiatan Ekstrakurikuler**
+  - [x] Pembuatan UI Dashboard Manajemen Ekstrakurikuler.
+  - [x] API Endpoint untuk `Extracurricular`.
+- [x] **Program & Jurusan**
+  - [x] Pembuatan UI Dashboard Manajemen Program/Jurusan.
+  - [x] API Endpoint untuk `Program`.
 
 ---
 
 ## Tahap 3: Interaksi, Alumni & Fitur Tambahan (⏳ MENDATANG)
 Pengembangan fitur pelacakan alumni dan notifikasi popup instan.
 
-- [ ] **Pelacakan Alumni (Tracer Study) & Testimonial**
-  - [ ] UI Dashboard untuk mengelola data Alumni.
-  - [ ] Form Publik (*Tracer Study*) agar alumni bisa mengisi datanya sendiri.
-  - [ ] Pengelolaan Testimonial (kurasi testimonial mana yang akan ditampilkan).
-- [ ] **Sistem Popup / Banner Pengumuman Instan**
-  - [ ] Penambahan Schema Database untuk Popup Settings.
-  - [ ] UI Dashboard untuk mengatur teks, link, atau video YouTube pada Popup.
+- [x] **Pelacakan Alumni (Tracer Study) & Testimonial**
+  - [x] UI Dashboard untuk mengelola data Alumni.
+  - [x] Pengelolaan Testimonial (Model & Actions).
+- [x] **Sistem Popup / Banner Pengumuman Instan**
+  - [x] Penambahan Schema Database untuk Popup Settings.
+  - [x] UI Dashboard untuk mengatur teks, link, atau video YouTube pada Popup.
 
 ---
 
