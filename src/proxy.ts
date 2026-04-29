@@ -113,16 +113,21 @@ export async function proxy(request: NextRequest) {
   if (isSubdomain) {
     const url = request.nextUrl.clone()
 
+    // JANGAN rewrite aset statis, rute API, atau Dashboard
     if (
+      pathname.startsWith("/_next") ||
+      pathname.startsWith("/api") ||
       pathname.startsWith("/dashboard") ||
       pathname.startsWith("/login") ||
-      pathname.startsWith("/register")
+      pathname.startsWith("/register") ||
+      pathname.includes(".") // Mengecualikan file dengan ekstensi (favicon.ico, manifest.json, dll)
     ) {
-      const response = NextResponse.rewrite(url)
+      const response = NextResponse.next()
       response.headers.set("x-tenant-slug", subdomain)
       return addSecurityHeaders(response)
     }
 
+    // Rewrite rute publik ke /site/[slug]/...
     url.pathname = `/site/${subdomain}${pathname}`
     const response = NextResponse.rewrite(url)
     response.headers.set("x-tenant-slug", subdomain)
@@ -170,6 +175,10 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()"
+  )
+  response.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ws: wss: https://cloudflareinsights.com; frame-ancestors 'none'"
   )
   return response
 }
