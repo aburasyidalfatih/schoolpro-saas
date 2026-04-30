@@ -1,68 +1,41 @@
-# Workflow for automated deployment to VPS
-name: Build and Deploy
+name: Deploy to VPS (Docker)
 
 on:
   push:
     branches: [main, develop]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Execute Deployment via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          node-version: '20'
-          # cache: 'npm' # Disable cache temporarily to fix dependency conflict
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Tentukan direktori berdasarkan branch (main untuk prod, develop untuk dev)
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              APP_DIR="/home/${{ secrets.REMOTE_USER }}/schoolpro-prod"
+            else
+              APP_DIR="/home/${{ secrets.REMOTE_USER }}/schoolpro-dev"
+            fi
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+            echo "Deploying to $APP_DIR"
+            
+            # Pindah ke direktori aplikasi
+            cd $APP_DIR
 
-      - name: Build Application
-        run: |
-          # Menggunakan npx prisma generate (akan otomatis pakai versi lokal 5.10.0)
-          npx prisma generate
-          npm run build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db' }}
-          PRISMA_SKIP_DATABASE_CHECK: true
-          NEXT_PUBLIC_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://schoolpro.id/api' || 'https://schoolpro.my.id/api' }}
-          NEXT_TELEMETRY_DISABLED: 1
-
-      - name: Show build error log
-        if: failure()
-        run: |
-          # Menampilkan log terakhir jika folder .next ada
-          [ -d .next ] && ls -R .next/ || echo "Folder .next not found"
-
-      - name: Prepare Deployment Package
-        run: |
-          mkdir -p deploy/.next
-          # Copy the entire standalone folder to preserve structure
-          cp -r .next/standalone deploy/.next/
-          # Copy static files to the correct standalone subfolder
-          mkdir -p deploy/.next/standalone/.next/static
-          cp -r .next/static/* deploy/.next/standalone/.next/static/
-          # Copy public folder to standalone
-          cp -r public deploy/.next/standalone/
-          # Copy prisma for potential migrations on VPS
-          cp -r prisma deploy/ || true
-
-      - name: Deploy to VPS
-        uses: easingthemes/ssh-deploy@main
-        with:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          ARGS: "-rlgoDzvc -i --delete"
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          SOURCE: "deploy/"
-          # Target directory based on branch
-          TARGET: ${{ github.ref == 'refs/heads/main' && '/home/ubuntu/schoolpro' || '/home/ubuntu/schoolpro-dev' }}
-          SCRIPT_AFTER: |
-            cd ${{ github.ref == 'refs/heads/main' && '/home/ubuntu/schoolpro' || '/home/ubuntu/schoolpro-dev' }}
-            # Re-generate Prisma client to match VPS environment
-            npx prisma generate
-            # Restart only the specific app in PM2
-            pm2 restart /home/ubuntu/ecosystem.config.js --only ${{ github.ref == 'refs/heads/main' && 'schoolpro-prod' || 'schoolpro-dev' }}
+            # Ambil perubahan terbaru dari GitHub
+            git fetch --all
+            git reset --hard origin/${{ github.ref_name }}
+            
+            # Rebuild image Docker (tanpa cache agar mendapat update terbaru)
+            docker compose build --no-cache app
+            
+            # Restart container dengan image baru
+            docker compose up -d
+            
+            # Bersihkan image/container lama yang tidak terpakai agar SSD tidak penuh
+            docker image prune -f
