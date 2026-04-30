@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, MessageCircle, Instagram, Facebook, Youtube, Twitter } from "lucide-react"
 import { useRouting } from "@/components/providers/routing-provider"
 
 interface FooterProps {
@@ -9,6 +9,7 @@ interface FooterProps {
     name: string
     slug: string
     tagline?: string | null
+    description?: string | null
     phone: string | null
     email: string | null
     whatsapp: string | null
@@ -16,12 +17,26 @@ interface FooterProps {
     instagram?: string | null
     facebook?: string | null
     youtube?: string | null
+    services?: any[] | null
   }
 }
 
 export function WebsiteFooter({ tenant }: FooterProps) {
   const { resolveHref } = useRouting()
   const year = new Date().getFullYear()
+
+  // Build dynamic social links — only show icons that have data
+  const socialLinks = [
+    ...(tenant.instagram ? [{ icon: Instagram, href: `https://instagram.com/${tenant.instagram}`, label: "Instagram" }] : []),
+    ...(tenant.facebook ? [{ icon: Facebook, href: `https://facebook.com/${tenant.facebook}`, label: "Facebook" }] : []),
+    ...(tenant.youtube ? [{ icon: Youtube, href: `https://youtube.com/${tenant.youtube}`, label: "YouTube" }] : []),
+  ]
+
+  // Build dynamic program/service list from tenant data
+  const services = Array.isArray(tenant.services) ? tenant.services : []
+  const programItems = services.length > 0
+    ? services.slice(0, 6).map((svc: any) => svc.title || svc.name || "Layanan")
+    : ["Program Unggulan", "Kegiatan Belajar", "Pengembangan Siswa", "Ekstrakurikuler", "Bimbingan Konseling", "Layanan Informasi"]
 
   return (
     <footer>
@@ -52,28 +67,26 @@ export function WebsiteFooter({ tenant }: FooterProps) {
                 </div>
               </div>
               <p className="text-xs leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.45)" }}>
-                Membentuk generasi Islami yang berilmu, beriman, dan berakhlak mulia. Bersama kami, wujudkan pendidikan Islam yang unggul dan berkembang bersama.
+                {tenant.description || tenant.tagline || `${tenant.name} berkomitmen memberikan layanan terbaik dan profesional untuk memenuhi kebutuhan Anda.`}
               </p>
-              {/* Social icons */}
-              <div className="flex gap-2">
-                {[
-                  { icon: "📷", href: tenant.instagram ? `https://instagram.com/${tenant.instagram}` : "#" },
-                  { icon: "📘", href: tenant.facebook ? `https://facebook.com/${tenant.facebook}` : "#" },
-                  { icon: "▶️", href: tenant.youtube ? `https://youtube.com/${tenant.youtube}` : "#" },
-                  { icon: "🐦", href: "#" },
-                ].map((s, i) => (
-                  <a
-                    key={i}
-                    href={s.href}
-                    target="_blank"
-                    rel="noopener"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors hover:opacity-80"
-                    style={{ background: "rgba(255,255,255,0.08)" }}
-                  >
-                    {s.icon}
-                  </a>
-                ))}
-              </div>
+              {/* Social icons — proper SVG icons */}
+              {socialLinks.length > 0 && (
+                <div className="flex gap-2">
+                  {socialLinks.map((s, i) => (
+                    <a
+                      key={i}
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener"
+                      aria-label={s.label}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-white/60 transition-colors hover:text-white hover:bg-white/15"
+                      style={{ background: "rgba(255,255,255,0.08)" }}
+                    >
+                      <s.icon className="h-4 w-4" />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Col 2 — Link Cepat */}
@@ -83,8 +96,8 @@ export function WebsiteFooter({ tenant }: FooterProps) {
                 {[
                   { label: "Beranda", href: "" },
                   { label: "Tentang Kami", href: "/about" },
-                  { label: "Program Kami", href: "/services" },
-                  { label: "Guru & Staf", href: "/about" },
+                  { label: "Layanan", href: "/services" },
+                  { label: "Guru & Staf", href: "/gtk" },
                   { label: "PPDB", href: "/contact" },
                   { label: "Berita & Artikel", href: "/berita" },
                 ].map((link) => (
@@ -102,18 +115,11 @@ export function WebsiteFooter({ tenant }: FooterProps) {
               </ul>
             </div>
 
-            {/* Col 3 — Program Kami */}
+            {/* Col 3 — Program Kami (Dynamic) */}
             <div>
               <h3 className="font-bold text-white text-sm mb-4">Program Kami</h3>
               <ul className="space-y-2.5">
-                {[
-                  "Tahfidz Al-Qur'an",
-                  "Program Unggulan",
-                  "Pembinaan Akhlak",
-                  "Kegiatan Ekstrakurikuler",
-                  "Program Bahasa Arab & Inggris",
-                  "Program Pengembangan",
-                ].map((item) => (
+                {programItems.map((item) => (
                   <li key={item}>
                     <Link
                       href={resolveHref("/services")}

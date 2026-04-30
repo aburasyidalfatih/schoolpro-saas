@@ -3,6 +3,7 @@ import { Building2, Info, MapPin } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 export default async function FasilitasPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -11,6 +12,7 @@ export default async function FasilitasPage({ params }: { params: Promise<{ slug
   if (!tenant) notFound()
 
   const facilities = tenant.facilities || []
+  const base = `/site/${slug}`
 
   return (
     <div className="bg-background min-h-screen">
@@ -92,18 +94,18 @@ export default async function FasilitasPage({ params }: { params: Promise<{ slug
             Kami mengundang Anda untuk berkunjung dan melihat langsung sarana pendidikan yang kami miliki. Jadwalkan kunjungan Anda sekarang.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a 
-              href={`/site/${slug}/contact`} 
+            <Link 
+              href={`${base}/contact`} 
               className="px-8 py-3 bg-primary text-white rounded-full font-bold hover:shadow-lg transition-all"
             >
               Hubungi Kami
-            </a>
-            <a 
-              href={`/site/${slug}`} 
+            </Link>
+            <Link 
+              href={base} 
               className="px-8 py-3 bg-background border border-border rounded-full font-bold hover:bg-muted transition-all"
             >
               Kembali ke Beranda
-            </a>
+            </Link>
           </div>
         </div>
       </section>

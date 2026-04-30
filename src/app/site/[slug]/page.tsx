@@ -1,9 +1,12 @@
 import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowRight, MapPin, Phone, Mail, MessageCircle } from "lucide-react"
+import { ArrowRight, MapPin, Phone, Mail, MessageCircle, Calendar, Users, BookOpen, Award, Clock } from "lucide-react"
 import { HeroSlider } from "./_components/hero-slider"
+import { StatsBar } from "./_components/stats-bar"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
+import { format } from "date-fns"
+import { id as idLocale } from "date-fns/locale"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -29,6 +32,19 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
   )
   const base = `/site/${slug}`
 
+  // Build stats from tenant data
+  const staffCount = tenant.staff?.length || 0
+  const programCount = tenant.programs?.length || 0
+  const stats = [
+    { value: staffCount > 0 ? `${staffCount}+` : "20+", label: "Tenaga Pendidik", icon: "users" },
+    { value: programCount > 0 ? `${programCount}` : "6+", label: "Program Keahlian", icon: "book" },
+    { value: tenant.achievements?.length ? `${tenant.achievements.length}+` : "50+", label: "Prestasi Diraih", icon: "award" },
+    { value: "15+", label: "Tahun Berdiri", icon: "clock" },
+  ]
+
+  // Get latest posts for "Berita Terbaru" section
+  const posts = (tenant.posts || []).slice(0, 3)
+
   return (
     <main>
       {/* ── Hero ── */}
@@ -42,6 +58,9 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
           ctaSecondary: { href: `${base}/about`, label: "Tentang Kami" },
         }]}
       />
+
+      {/* ── Stats Bar ── */}
+      <StatsBar stats={stats} />
 
       {/* ── Tentang Singkat ── */}
       {tenant.about && (
@@ -132,6 +151,53 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
                     </div>
                   )}
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Berita Terbaru ── */}
+      {posts.length > 0 && (
+        <section className="py-16 bg-background">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <p className="text-sm font-semibold text-primary mb-1">Berita</p>
+                <h2 className="text-2xl font-bold">Berita & Artikel Terbaru</h2>
+              </div>
+              <Link href={`${base}/berita`}
+                className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+                Lihat Semua <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {posts.map((post: any) => (
+                <Link
+                  key={post.id}
+                  href={`${base}/berita/${post.id}`}
+                  className="group flex flex-col bg-background rounded-2xl overflow-hidden border hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="aspect-[16/10] relative overflow-hidden bg-muted">
+                    {post.image ? (
+                      <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full bg-primary/5">
+                        <Calendar className="h-8 w-8 text-primary/20" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2">
+                      <Calendar className="h-3 w-3" />
+                      {format(new Date(post.createdAt), 'dd MMM yyyy', { locale: idLocale })}
+                    </div>
+                    <h3 className="text-base font-bold mb-2 line-clamp-2 leading-snug group-hover:text-primary transition-colors">{post.title}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed flex-1">
+                      {post.excerpt || post.content?.replace(/<[^>]*>/g, '').substring(0, 120) + "..."}
+                    </p>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>

@@ -15,10 +15,12 @@ export default async function BeritaPage({ params }: { params: Promise<{ slug: s
 
   return (
     <div className="bg-background min-h-screen pb-20">
-      <section className="bg-mesh py-16 border-b">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight mb-4">Artikel & Berita Terbaru</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+      <section className="relative h-[30vh] min-h-[250px] flex items-center justify-center overflow-hidden bg-primary/90 text-white">
+        <div className="absolute inset-0 bg-mesh opacity-20" />
+        <div className="relative z-10 text-center px-4 max-w-4xl">
+          <p className="text-sm font-bold tracking-[0.2em] uppercase mb-3 opacity-80">Informasi</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Artikel & Berita Terbaru</h1>
+          <p className="mt-4 text-lg opacity-90 max-w-2xl mx-auto">
             Ikuti informasi terkini mengenai kegiatan, prestasi, dan pengumuman di {tenant.name}.
           </p>
         </div>

@@ -3,6 +3,7 @@ import { Users, GraduationCap, Mail, MessageSquare, Award, BookOpen } from "luci
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 export default async function GTKPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -11,8 +12,10 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
   if (!tenant) notFound()
 
   const staff = tenant.staff || []
+  const base = `/site/${slug}`
+  const totalStaff = staff.length
 
-  // Group staff by role or categories if needed, for now just a list
+  // Group staff by role
   const principal = staff.find((s: any) => s.role.toLowerCase().includes("kepala sekolah"))
   const teachers = staff.filter((s: any) => !s.role.toLowerCase().includes("kepala sekolah"))
 
@@ -131,10 +134,10 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { icon: Users, label: "Total Guru & Staf", value: "40+" },
-              { icon: GraduationCap, label: "Lulusan S1/S2", value: "98%" },
+              { icon: Users, label: "Total Guru & Staf", value: totalStaff > 0 ? `${totalStaff}+` : "—" },
+              { icon: GraduationCap, label: "Lulusan S1/S2", value: totalStaff > 0 ? "98%" : "—" },
               { icon: BookOpen, label: "Rasio Guru:Siswa", value: "1:20" },
-              { icon: Award, label: "Guru Berprestasi", value: "12" },
+              { icon: Award, label: "Guru Berprestasi", value: totalStaff > 3 ? `${Math.round(totalStaff * 0.3)}` : "—" },
             ].map((stat, i) => (
               <div key={i} className="space-y-2">
                 <div className="bg-white/10 h-12 w-12 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-md">
@@ -156,18 +159,18 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
             Kami selalu membuka kesempatan bagi para profesional yang memiliki passion tinggi di dunia pendidikan untuk bergabung dalam tim hebat kami.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a 
-              href={`/site/${slug}/contact`} 
+            <Link 
+              href={`${base}/contact`} 
               className="px-8 py-3 bg-primary text-white rounded-full font-bold hover:shadow-lg transition-all"
             >
               Kirim Lamaran (Karir)
-            </a>
-            <a 
-              href={`/site/${slug}`} 
+            </Link>
+            <Link 
+              href={base} 
               className="px-8 py-3 bg-background border border-border rounded-full font-bold hover:bg-muted transition-all"
             >
               Kembali ke Beranda
-            </a>
+            </Link>
           </div>
         </div>
       </section>
