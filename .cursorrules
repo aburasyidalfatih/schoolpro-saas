@@ -35,4 +35,13 @@ Jangan pernah mengekspos kredensial, API key, password database, atau isi dari f
 Gunakan hanya ekosistem library yang sudah terpasang di `package.json`. Dilarang menginstal library pihak ketiga berukuran besar (seperti Redux, jQuery, Material-UI) kecuali user secara spesifik memintanya.
 
 ---
+---
+## 🚀 Deployment & Infrastruktur (WAJIB DIBACA)
+Proyek ini sekarang SEPENUHNYA menggunakan arsitektur **Docker Multi-stage Build** dan Nginx Reverse Proxy. AI Wajib mematuhi aturan arsitektur ini:
+1. **Dilarang Menyarankan PM2:** Sistem tidak lagi menggunakan PM2 atau eksekusi `node server.js` secara manual di host. Semua berjalan di dalam container.
+2. **Cara Menjalankan Lokal:** Gunakan `docker compose up -d` untuk menjalankan database dan Nginx, namun untuk development aplikasi tetap gunakan `npm run dev` di host agar Hot Reloading berfungsi.
+3. **Konfigurasi Lingkungan:** Selalu arahkan koneksi antar service menggunakan internal Docker network (contoh: `DATABASE_URL` menggunakan host `db` di `docker-compose.yml`, bukan `localhost`).
+4. **CI/CD Pipeline:** Deployment dilakukan secara otomatis melalui GitHub Actions yang akan melakukan SSH ke VPS dan mengeksekusi `docker compose build app` lalu `docker compose up -d`. Jangan menyarankan script deployment manual.
+
+---
 *Dengan mengikuti dokumen ini, Anda membantu user menghemat token, mencegah error berantai, dan menjaga kualitas kode agar tetap konsisten.*

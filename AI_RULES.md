@@ -36,10 +36,9 @@ Gunakan hanya ekosistem library yang sudah terpasang di `package.json`. Dilarang
 
 ---
 
-## 🚀 Optimasi Resource VPS (WAJIB)
-VPS memiliki resource terbatas (RAM 4GB). AI Wajib mematuhi aturan ini:
-1. **Dilarang Build di VPS:** Selalu gunakan GitHub Actions untuk build. Jika terpaksa build di VPS, gunakan flag `NODE_OPTIONS='--max-old-space-size=2048'` dan pastikan project lain di-stop sementara.
-2. **Next.js Standalone Mode:** Pastikan `next.config.ts` selalu memiliki `output: 'standalone'`.
-3. **Skip Validation:** Saat build di VPS, tambahkan `ignoreBuildErrors: true` dan `ignoreDuringBuilds: true` di `next.config.ts` untuk menghemat RAM.
-4. **PM2 Config:** Selalu gunakan `ecosystem.config.js` di root home directory yang mengarah ke `.next/standalone/server.js`.
-
+## 🚀 Deployment & Infrastruktur (WAJIB DIBACA)
+Proyek ini sekarang SEPENUHNYA menggunakan arsitektur **Docker Multi-stage Build** dan Nginx Reverse Proxy. AI Wajib mematuhi aturan arsitektur ini:
+1. **Dilarang Menyarankan PM2:** Sistem tidak lagi menggunakan PM2 atau eksekusi `node server.js` secara manual di host. Semua berjalan di dalam container.
+2. **Cara Menjalankan Lokal:** Gunakan `docker compose up -d` untuk menjalankan database dan Nginx, namun untuk development aplikasi tetap gunakan `npm run dev` di host agar Hot Reloading berfungsi.
+3. **Konfigurasi Lingkungan:** Selalu arahkan koneksi antar service menggunakan internal Docker network (contoh: `DATABASE_URL` menggunakan host `db` di `docker-compose.yml`, bukan `localhost`).
+4. **CI/CD Pipeline:** Deployment dilakukan secara otomatis melalui GitHub Actions yang akan melakukan SSH ke VPS dan mengeksekusi `docker compose build app` lalu `docker compose up -d`. Jangan menyarankan script deployment manual.
