@@ -61,7 +61,7 @@ Pengembangan fitur pelacakan alumni dan notifikasi popup instan.
 ## Tahap 4: Integrasi Frontend Website Publik (🌐 FINALISASI TAMPILAN)
 Menghubungkan seluruh data CMS yang sudah dikelola oleh Admin/Tenant agar tampil secara dinamis dan modern pada website publik (*Front-End*).
 
-- [ ] **Implementasi Halaman Daftar GTK & Detail Guru**
+- [x] **Implementasi Halaman Daftar GTK & Detail Guru**
 - [x] **Implementasi Halaman Fasilitas & Prestasi**
 - [ ] **Implementasi Halaman Program Studi & Ekstrakurikuler**
 - [ ] **Implementasi Halaman Alumni & Testimonial**

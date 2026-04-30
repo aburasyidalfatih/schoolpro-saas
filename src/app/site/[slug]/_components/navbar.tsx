@@ -32,7 +32,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
       href: "/profil",
       children: [
         { label: "Profil & Tentang", href: "/profil" },
-        { label: "Guru & Staf (GTK)", href: "/profil#gtk" },
+        { label: "Guru & Staf (GTK)", href: "/gtk" },
         { label: "Fasilitas Sekolah", href: "/fasilitas" },
         { label: "Program & Jurusan", href: "/profil#programs" },
         { label: "Ekstrakurikuler", href: "/profil#extracurriculars" },
