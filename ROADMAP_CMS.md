@@ -63,7 +63,7 @@ Menghubungkan seluruh data CMS yang sudah dikelola oleh Admin/Tenant agar tampil
 
 - [x] **Implementasi Halaman Daftar GTK & Detail Guru**
 - [x] **Implementasi Halaman Fasilitas & Prestasi**
-- [ ] **Implementasi Halaman Program Studi & Ekstrakurikuler**
+- [x] **Implementasi Halaman Program Studi & Ekstrakurikuler**
 - [ ] **Implementasi Halaman Alumni & Testimonial**
 - [ ] **Penerapan Auto-WebP dan Optimasi "Auto ALT" pada seluruh gambar.**
 

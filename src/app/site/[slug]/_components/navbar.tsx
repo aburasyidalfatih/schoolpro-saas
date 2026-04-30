@@ -34,8 +34,8 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
         { label: "Profil & Tentang", href: "/profil" },
         { label: "Guru & Staf (GTK)", href: "/gtk" },
         { label: "Fasilitas Sekolah", href: "/fasilitas" },
-        { label: "Program & Jurusan", href: "/profil#programs" },
-        { label: "Ekstrakurikuler", href: "/profil#extracurriculars" },
+        { label: "Program & Jurusan", href: "/program#academic" },
+        { label: "Ekstrakurikuler", href: "/program#extracurriculars" },
       ],
     },
     {
