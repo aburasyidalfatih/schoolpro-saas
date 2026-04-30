@@ -11,6 +11,9 @@ COPY prisma ./prisma
 # Install dependencies menggunakan lockfile yang baru
 RUN npm ci --legacy-peer-deps
 
+# Install sharp for Linux (diperlukan untuk image processing)
+RUN npm install --os=linux --cpu=x64 sharp --legacy-peer-deps
+
 # Generate Prisma client
 RUN npx prisma generate
 
