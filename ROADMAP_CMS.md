@@ -62,7 +62,7 @@ Pengembangan fitur pelacakan alumni dan notifikasi popup instan.
 Menghubungkan seluruh data CMS yang sudah dikelola oleh Admin/Tenant agar tampil secara dinamis dan modern pada website publik (*Front-End*).
 
 - [ ] **Implementasi Halaman Daftar GTK & Detail Guru**
-- [ ] **Implementasi Halaman Fasilitas & Prestasi**
+- [x] **Implementasi Halaman Fasilitas & Prestasi**
 - [ ] **Implementasi Halaman Program Studi & Ekstrakurikuler**
 - [ ] **Implementasi Halaman Alumni & Testimonial**
 - [ ] **Penerapan Auto-WebP dan Optimasi "Auto ALT" pada seluruh gambar.**

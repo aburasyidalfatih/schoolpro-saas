@@ -33,7 +33,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
       children: [
         { label: "Profil & Tentang", href: "/profil" },
         { label: "Guru & Staf (GTK)", href: "/profil#gtk" },
-        { label: "Fasilitas Sekolah", href: "/profil#facilities" },
+        { label: "Fasilitas Sekolah", href: "/fasilitas" },
         { label: "Program & Jurusan", href: "/profil#programs" },
         { label: "Ekstrakurikuler", href: "/profil#extracurriculars" },
       ],
@@ -52,7 +52,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
       href: "/gallery",
       children: [
         { label: "Galeri Foto", href: "/gallery" },
-        { label: "Prestasi Siswa", href: "/profil#achievements" },
+        { label: "Prestasi Siswa", href: "/prestasi" },
         { label: "Alumni Success", href: "/profil#alumni" },
       ],
     },
