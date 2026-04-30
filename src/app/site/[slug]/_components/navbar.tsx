@@ -53,7 +53,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
       children: [
         { label: "Galeri Foto", href: "/gallery" },
         { label: "Prestasi Siswa", href: "/prestasi" },
-        { label: "Alumni Success", href: "/profil#alumni" },
+        { label: "Alumni Success", href: "/alumni" },
       ],
     },
     { label: "Layanan", href: "/services" },
