@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { X, ExternalLink } from "lucide-react"
-import Image from "next/image"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 
 interface PopupProps {
   popup: {
@@ -57,7 +57,7 @@ export function PopupRenderer({ popup }: PopupProps) {
 
           {popup.imageUrl && (
             <div className="relative aspect-video w-full">
-              <Image src={popup.imageUrl} alt={popup.title} fill className="object-cover" />
+              <OptimizedImage src={popup.imageUrl} alt={popup.title} fill className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             </div>
           )}

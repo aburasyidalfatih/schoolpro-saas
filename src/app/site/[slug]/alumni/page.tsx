@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { GraduationCap, Quote, MessageCircle, ExternalLink, Heart, Star, Award } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
-import Image from "next/image"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
 
 export default async function AlumniPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -79,7 +79,7 @@ export default async function AlumniPage({ params }: { params: Promise<{ slug: s
                     
                     <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
                       <div className="relative h-20 w-20 rounded-2xl overflow-hidden shadow-md shrink-0 border-2 border-primary/10">
-                        <Image 
+                        <OptimizedImage 
                           src={item.imageUrl || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=1974"} 
                           alt={item.name} 
                           fill 
@@ -169,7 +169,7 @@ export default async function AlumniPage({ params }: { params: Promise<{ slug: s
             </div>
 
             <div className="relative rounded-[2.5rem] overflow-hidden group">
-               <Image 
+               <OptimizedImage 
                  src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=2070" 
                  alt="Graduation" 
                  width={400} 

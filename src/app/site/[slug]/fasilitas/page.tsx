@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { Building2, Info, MapPin } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
-import Image from "next/image"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
 
 export default async function FasilitasPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -36,7 +36,7 @@ export default async function FasilitasPage({ params }: { params: Promise<{ slug
                 className="group relative bg-muted/30 rounded-3xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all duration-300 flex flex-col h-full shadow-sm hover:shadow-xl"
               >
                 <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image
+                  <OptimizedImage
                     src={facility.imageUrl || "https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=2070"}
                     alt={facility.name}
                     fill

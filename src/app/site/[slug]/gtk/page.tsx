@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { Users, GraduationCap, Mail, MessageSquare, Award, BookOpen } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
-import Image from "next/image"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
 
 export default async function GTKPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -38,7 +38,7 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-[3rem] p-8 md:p-12 shadow-xl border border-border flex flex-col md:flex-row gap-12 items-center">
               <div className="relative h-64 w-64 md:h-80 md:w-80 rounded-[2.5rem] overflow-hidden shadow-2xl shrink-0">
-                <Image 
+                <OptimizedImage 
                   src={principal.imageUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2076"} 
                   alt={principal.name} 
                   fill 
@@ -82,7 +82,7 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
             {teachers.map((s: any) => (
               <div key={s.id} className="group relative flex flex-col bg-white rounded-3xl overflow-hidden border border-border hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
                 <div className="relative aspect-[3/4] overflow-hidden">
-                  <Image 
+                  <OptimizedImage 
                     src={s.imageUrl || "https://images.unsplash.com/photo-1580894732230-285b963a9013?q=80&w=2070"} 
                     alt={s.name} 
                     fill 

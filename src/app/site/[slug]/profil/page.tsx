@@ -4,7 +4,7 @@ import {
   BookOpen, CheckCircle, Quote, MapPin, Phone, Mail 
 } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
-import Image from "next/image"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
 
 export default async function ProfilTerpaduPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -30,7 +30,7 @@ export default async function ProfilTerpaduPage({ params }: { params: Promise<{ 
       <section className="py-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl">
-             <Image 
+             <OptimizedImage 
                 src={tenant.heroImage || "https://images.unsplash.com/photo-1523050335102-c89b1811b127?q=80&w=2070"} 
                 alt="About" 
                 fill 
@@ -79,7 +79,7 @@ export default async function ProfilTerpaduPage({ params }: { params: Promise<{ 
             {tenant.staff.map((s: any) => (
               <div key={s.id} className="group text-center">
                 <div className="relative mx-auto h-40 w-40 rounded-2xl overflow-hidden mb-4 shadow-md group-hover:shadow-xl transition-all">
-                  <Image 
+                  <OptimizedImage 
                     src={s.imageUrl || "https://images.unsplash.com/photo-1580894732230-285b963a9013?q=80&w=2070"} 
                     alt={s.name} 
                     fill 
@@ -137,7 +137,7 @@ export default async function ProfilTerpaduPage({ params }: { params: Promise<{ 
           <div className="flex gap-6 px-4 overflow-x-auto pb-8 scrollbar-hide no-scrollbar mx-auto max-w-7xl">
             {tenant.facilities.map((f: any) => (
               <div key={f.id} className="min-w-[280px] md:min-w-[350px] group relative aspect-video rounded-3xl overflow-hidden shadow-lg">
-                <Image src={f.imageUrl || ""} alt={f.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                <OptimizedImage src={f.imageUrl || ""} alt={f.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-6 left-6 text-white">
                   <h4 className="font-bold text-lg">{f.name}</h4>
@@ -160,7 +160,7 @@ export default async function ProfilTerpaduPage({ params }: { params: Promise<{ 
               {tenant.extracurriculars.map((e: any) => (
                 <div key={e.id} className="relative group rounded-3xl overflow-hidden shadow-xl hover:-translate-y-2 transition-all duration-300">
                    <div className="aspect-video relative">
-                      <Image src={e.imageUrl || ""} alt={e.name} fill className="object-cover" />
+                      <OptimizedImage src={e.imageUrl || ""} alt={e.name} fill className="object-cover" />
                       <div className="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-colors" />
                    </div>
                    <div className="p-6">
@@ -199,7 +199,7 @@ export default async function ProfilTerpaduPage({ params }: { params: Promise<{ 
                 <div key={a.id} className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/10 flex flex-col h-full">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-white/20 relative">
-                       <Image src={a.imageUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1000"} alt={a.name} fill className="object-cover" />
+                       <OptimizedImage src={a.imageUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1000"} alt={a.name} fill className="object-cover" />
                     </div>
                     <div>
                       <h4 className="font-bold text-lg leading-tight">{a.name}</h4>
@@ -234,7 +234,7 @@ export default async function ProfilTerpaduPage({ params }: { params: Promise<{ 
            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
              {tenant.achievements.map((acc: any) => (
                 <div key={acc.id} className="group relative aspect-square rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-border/50">
-                   <Image src={acc.imageUrl || ""} alt={acc.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                   <OptimizedImage src={acc.imageUrl || ""} alt={acc.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity" />
                    <div className="absolute bottom-6 left-6 right-6 text-white">
                       <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">{acc.level}</p>

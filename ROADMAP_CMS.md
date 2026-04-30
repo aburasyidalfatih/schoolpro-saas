@@ -65,7 +65,7 @@ Menghubungkan seluruh data CMS yang sudah dikelola oleh Admin/Tenant agar tampil
 - [x] **Implementasi Halaman Fasilitas & Prestasi**
 - [x] **Implementasi Halaman Program Studi & Ekstrakurikuler**
 - [x] **Implementasi Halaman Alumni & Testimonial**
-- [ ] **Penerapan Auto-WebP dan Optimasi "Auto ALT" pada seluruh gambar.**
+- [x] **Penerapan Auto-WebP dan Optimasi "Auto ALT" pada seluruh gambar.**
 
 ---
 

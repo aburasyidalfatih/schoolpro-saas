@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { BookOpen, Target, ArrowRight, Star, CheckCircle2, Award } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
-import Image from "next/image"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
 
 export default async function ProgramPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -59,7 +59,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
                 )}
               >
                 <div className="relative h-64 md:h-auto md:w-2/5 shrink-0 overflow-hidden">
-                  <Image 
+                  <OptimizedImage 
                     src={prog.imageUrl || "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022"} 
                     alt={prog.name} 
                     fill 
@@ -105,7 +105,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
               {extracurriculars.map((ekskul: any) => (
                 <div key={ekskul.id} className="group bg-white rounded-3xl p-6 border border-border hover:shadow-xl transition-all duration-300">
                   <div className="relative aspect-video rounded-2xl overflow-hidden mb-6 shadow-md">
-                    <Image 
+                    <OptimizedImage 
                       src={ekskul.imageUrl || "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=2070"} 
                       alt={ekskul.name} 
                       fill 
@@ -148,7 +148,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
                <div className="absolute -top-10 -left-10 h-40 w-40 bg-primary/10 rounded-full blur-3xl" />
                <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-amber-400/10 rounded-full blur-3xl" />
                <div className="relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white">
-                  <Image 
+                  <OptimizedImage 
                     src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070" 
                     alt="Education Highlight" 
                     width={800} 

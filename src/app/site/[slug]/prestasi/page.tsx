@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { Trophy, Calendar, Medal, Award, Star } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
-import Image from "next/image"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -49,7 +49,7 @@ export default async function PrestasiPage({ params }: { params: Promise<{ slug:
               >
                 {/* Image & Badge */}
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
+                  <OptimizedImage
                     src={item.imageUrl || "https://images.unsplash.com/photo-1578574515318-de1f8553dae0?q=80&w=2070"}
                     alt={item.title}
                     fill
