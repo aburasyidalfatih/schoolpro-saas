@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import { Building2, Info, MapPin } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
@@ -17,16 +18,14 @@ export default async function FasilitasPage({ params }: { params: Promise<{ slug
   return (
     <div className="bg-background min-h-screen">
       {/* ── HERO SECTION ── */}
-      <section className="relative h-[30vh] min-h-[250px] flex items-center justify-center overflow-hidden bg-primary/90 text-white">
-        <div className="absolute inset-0 bg-mesh opacity-20" />
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <p className="text-sm font-bold tracking-[0.2em] uppercase mb-3 opacity-80">Lingkungan Belajar</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Fasilitas Sekolah</h1>
-          <p className="mt-4 text-lg opacity-90 max-w-2xl mx-auto">
-            Sarana dan prasarana pendukung pendidikan berkualitas untuk kenyamanan seluruh siswa.
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        title="Fasilitas Sekolah"
+        description="Sarana dan prasarana pendukung pendidikan berkualitas untuk kenyamanan seluruh siswa."
+        breadcrumbs={[
+          { label: "Profil Sekolah" },
+          { label: "Lingkungan Belajar" }
+        ]}
+      />
 
       {/* ── MAIN CONTENT ── */}
       <section className="py-16 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

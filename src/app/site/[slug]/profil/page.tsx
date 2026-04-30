@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import { 
   Users, GraduationCap, Trophy, Building2, Activity, 
@@ -15,16 +16,14 @@ export default async function ProfilTerpaduPage({ params }: { params: Promise<{ 
   return (
     <div className="bg-background">
       {/* ── HERO PROFIL ── */}
-      <section className="relative h-[40vh] min-h-[300px] flex items-center justify-center overflow-hidden bg-primary/90 text-white">
-        <div className="absolute inset-0 bg-mesh opacity-20" />
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <p className="text-sm font-bold tracking-[0.2em] uppercase mb-4 opacity-80">Profil Lengkap</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">{tenant.name}</h1>
-          <p className="text-lg opacity-90 leading-relaxed max-w-2xl mx-auto italic">
-            "{tenant.tagline || "Mewujudkan Masa Depan Gemilang Melalui Pendidikan Berkualitas"}"
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        title={<>{tenant.name}</>}
+        description={<>"{tenant.tagline || "Mewujudkan Masa Depan Gemilang Melalui Pendidikan Berkualitas"}"</>}
+        breadcrumbs={[
+          { label: "Profil Sekolah" },
+          { label: "Profil Lengkap" }
+        ]}
+      />
 
       {/* ── TENTANG KAMI ── */}
       <section className="py-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

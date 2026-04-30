@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import { MapPin, Phone, Mail, MessageCircle } from "lucide-react"
 import { ContactForm } from "./contact-form"
@@ -22,16 +23,14 @@ export default async function ContactPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <section className="relative h-[30vh] min-h-[250px] flex items-center justify-center overflow-hidden bg-primary/90 text-white">
-        <div className="absolute inset-0 bg-mesh opacity-20" />
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <p className="text-sm font-bold tracking-[0.2em] uppercase mb-3 opacity-80">Kontak</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Hubungi Kami</h1>
-          <p className="mt-4 text-lg opacity-90 max-w-2xl mx-auto">
-            Kami senang mendengar dari Anda. Silakan hubungi kami melalui salah satu cara di bawah ini.
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        title="Hubungi Kami"
+        description="Kami senang mendengar dari Anda. Silakan hubungi kami melalui salah satu cara di bawah ini."
+        breadcrumbs={[
+          { label: "Halaman" },
+          { label: "Kontak" }
+        ]}
+      />
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-2 gap-12">

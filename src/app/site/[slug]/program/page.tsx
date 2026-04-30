@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import { BookOpen, Target, ArrowRight, Star, CheckCircle2, Award } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
@@ -16,21 +17,17 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
   return (
     <div className="bg-background min-h-screen">
       {/* ── HERO SECTION ── */}
-      <section className="relative h-[40vh] min-h-[350px] flex items-center justify-center overflow-hidden bg-primary/90 text-white">
-        <div className="absolute inset-0 bg-mesh opacity-20" />
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold uppercase tracking-widest mb-8">
-            <Target className="h-4 w-4 text-amber-400" /> Kurikulum & Bakat Siswa
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">Program & Ekstrakurikuler</h1>
-          <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto leading-relaxed font-medium">
-            Membangun keunggulan akademik dan mengembangkan bakat non-akademik melalui program yang terintegrasi dan inovatif.
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        title="Program & Ekstrakurikuler"
+        description="Membangun keunggulan akademik dan mengembangkan bakat non-akademik melalui program yang terintegrasi dan inovatif."
+        breadcrumbs={[
+          { label: "Profil Sekolah" },
+          { label: "Program" }
+        ]}
+      />
 
       {/* ── ACADEMIC PROGRAMS ── */}
-      <section id="academic" className="py-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section id="academic" className="py-12 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <div className="max-w-2xl">
             <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Program Unggulan</h2>
@@ -91,7 +88,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
       </section>
 
       {/* ── EXTRACURRICULAR ACTIVITIES ── */}
-      <section id="extracurriculars" className="py-24 bg-muted/30">
+      <section id="extracurriculars" className="py-12 bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Pengembangan Bakat (Ekstrakurikuler)</h2>
@@ -142,7 +139,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
       </section>
 
       {/* ── HIGHLIGHT SECTION ── */}
-      <section className="py-24 bg-white relative overflow-hidden">
+      <section className="py-12 bg-white relative overflow-hidden">
          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-16 items-center">
             <div className="relative">
                <div className="absolute -top-10 -left-10 h-40 w-40 bg-primary/10 rounded-full blur-3xl" />

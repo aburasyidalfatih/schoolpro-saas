@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { Users, GraduationCap, Mail, MessageSquare, Award, BookOpen } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 import { OptimizedImage } from "@/components/ui/optimized-image"
@@ -22,18 +23,14 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
   return (
     <div className="bg-background min-h-screen">
       {/* ── HERO SECTION ── */}
-      <section className="relative h-[30vh] min-h-[280px] flex items-center justify-center overflow-hidden bg-primary/90 text-white">
-        <div className="absolute inset-0 bg-mesh opacity-20" />
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-bold uppercase tracking-widest mb-6">
-            <Users className="h-3 w-3" /> SDM Unggul
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Guru & Tenaga Kependidikan</h1>
-          <p className="text-lg opacity-90 max-w-2xl mx-auto leading-relaxed">
-            Mengenal lebih dekat para pendidik dan profesional yang membimbing putra-putri Anda menuju masa depan cemerlang.
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        title="Guru & Tenaga Kependidikan"
+        description="Mengenal lebih dekat para pendidik dan profesional yang membimbing putra-putri Anda menuju masa depan cemerlang."
+        breadcrumbs={[
+          { label: "Profil Sekolah" },
+          { label: "SDM Unggul" }
+        ]}
+      />
 
       {/* ── PRINCIPAL HIGHLIGHT (If exists) ── */}
       {principal && (
@@ -72,7 +69,7 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
       )}
 
       {/* ── TEACHERS GRID ── */}
-      <section className="py-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="py-12 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-extrabold mb-4">Tim Pendidik & Staf</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -152,7 +149,7 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
       </section>
 
        {/* ── CALL TO ACTION ── */}
-       <section className="py-24 bg-white">
+       <section className="py-12 bg-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">Ingin Menjadi Bagian dari Kami?</h2>
           <p className="text-muted-foreground mb-8 text-lg">

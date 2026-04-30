@@ -15,7 +15,6 @@ model Tenant {
   logo               String?
   description        String?
   plan               String              @default("free")
-  planId             String?
   theme              String              @default("aurora")
   isActive           Boolean             @default(true)
   settings           Json?
@@ -32,14 +31,13 @@ model Tenant {
   services           Json?
   heroImage          String?
   gallery            Json?
-  seoTitle           String?
-  seoDesc            String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   expiresAt          DateTime?
+  planId             String?
+  seoDesc            String?
+  seoTitle           String?
   studentQuota       Int                 @default(0)
-  subscriptionPlan   SubscriptionPlan?   @relation(fields: [planId], references: [id])
-  subscriptions      Subscription[]
   achievements       Achievement[]
   alumni             Alumni[]
   auditLogs          AuditLog[]
@@ -51,12 +49,14 @@ model Tenant {
   invitations        Invitation[]
   notifications      Notification[]
   payments           Payment[]
-  posts              Post[]
   popups             Popup[]
-  sliders            Slider[]
+  posts              Post[]
   programs           Program[]
+  sliders            Slider[]
   staff              Staff[]
+  subscriptions      Subscription[]
   users              TenantUser[]
+  subscriptionPlan   SubscriptionPlan?   @relation(fields: [planId], references: [id])
 
   @@index([isActive])
   @@index([plan])
@@ -185,7 +185,6 @@ model NotificationSetting {
 model Payment {
   id           String        @id @default(cuid())
   tenantId     String
-  planId       String?
   reference    String        @unique
   amount       Float
   method       String?
@@ -197,6 +196,7 @@ model Payment {
   metadata     Json?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  planId       String?
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   subscription Subscription?
 
@@ -431,93 +431,93 @@ model Alumni {
 }
 
 model Staff {
-  id          String   @id @default(cuid())
-  tenantId    String
-  name        String
-  role        String   // Jabatan (Guru, Kepala Sekolah, etc)
-  imageUrl    String?
-  bio         String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  role      String
+  imageUrl  String?
+  bio       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@map("staff")
 }
 
 model Popup {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   tenantId    String
   title       String
-  content     String?   @db.Text
+  content     String?
   imageUrl    String?
-  videoUrl    String?   // YouTube/Vimeo link
+  videoUrl    String?
   buttonText  String?
   buttonLink  String?
-  isActive    Boolean   @default(false)
-  displayOnce Boolean   @default(true) // Per user session
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  isActive    Boolean  @default(false)
+  displayOnce Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@map("popups")
 }
 
 model Slider {
-  id          String    @id @default(cuid())
-  tenantId    String
-  title       String?
-  subtitle    String?
-  imageUrl    String
-  buttonText  String?
-  buttonLink  String?
-  sortOrder   Int       @default(0)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  tenantId   String
+  title      String?
+  subtitle   String?
+  imageUrl   String
+  buttonText String?
+  buttonLink String?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@map("sliders")
 }
 
 model SubscriptionPlan {
-  id            String   @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String
-  slug          String   @unique
+  slug          String         @unique
   description   String?
-  price         Float    @default(0)
-  interval      String   @default("MONTHLY") // MONTHLY, YEARLY, ONETIME
+  price         Float          @default(0)
+  interval      String         @default("MONTHLY")
   features      Json?
-  maxStudents   Int      @default(0)
-  maxStorage    Int      @default(0) // MB
-  isActive      Boolean  @default(true)
-  isPopular     Boolean  @default(false)
-  sortOrder     Int      @default(0)
+  maxStudents   Int            @default(0)
+  maxStorage    Int            @default(0)
+  isActive      Boolean        @default(true)
+  isPopular     Boolean        @default(false)
+  sortOrder     Int            @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  tenants       Tenant[]
   subscriptions Subscription[]
+  tenants       Tenant[]
 
   @@map("subscription_plans")
 }
 
 model Subscription {
-  id           String           @id @default(cuid())
-  tenantId     String
-  planId       String
-  paymentId    String?          @unique
-  status       String           @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED, PENDING
-  startDate    DateTime         @default(now())
-  endDate      DateTime?
-  amount       Float            @default(0)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  plan         SubscriptionPlan @relation(fields: [planId], references: [id])
-  payment      Payment?         @relation(fields: [paymentId], references: [id])
+  id        String           @id @default(cuid())
+  tenantId  String
+  planId    String
+  paymentId String?          @unique
+  status    String           @default("ACTIVE")
+  startDate DateTime         @default(now())
+  endDate   DateTime?
+  amount    Float            @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  payment   Payment?         @relation(fields: [paymentId], references: [id])
+  plan      SubscriptionPlan @relation(fields: [planId], references: [id])
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([planId])

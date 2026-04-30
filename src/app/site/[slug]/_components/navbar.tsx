@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, Search, ChevronDown } from "lucide-react"
+import { Menu, X, Search, ChevronDown, CheckCircle2, Phone, Mail, MessageCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouting } from "@/components/providers/routing-provider"
 
@@ -14,17 +14,20 @@ interface NavbarProps {
     logo: string | null
     tagline: string | null
     phone: string | null
+    email: string | null
+    whatsapp: string | null
   }
 }
 
 export function WebsiteNavbar({ tenant }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const { resolveHref } = useRouting()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Simplified navLinks to always show all menus as requested
+  // Simplified navLinks
   const navLinks = [
     { label: "Beranda", href: "" },
     {
@@ -34,8 +37,8 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
         { label: "Profil & Tentang", href: "/profil" },
         { label: "Guru & Staf (GTK)", href: "/gtk" },
         { label: "Fasilitas Sekolah", href: "/fasilitas" },
-        { label: "Program & Jurusan", href: "/program#academic" },
-        { label: "Ekstrakurikuler", href: "/program#extracurriculars" },
+        { label: "Program & Jurusan", href: "/program" },
+        { label: "Ekstrakurikuler", href: "/ekstrakurikuler" },
       ],
     },
     {
@@ -48,7 +51,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
       ],
     },
     {
-      label: "Galeri & Alumni",
+      label: "Galeri",
       href: "/gallery",
       children: [
         { label: "Galeri Foto", href: "/gallery" },
@@ -67,40 +70,97 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
         setOpenDropdown(null)
       }
     }
+    
+    function handleScroll() {
+      setScrolled(window.scrollY > 20)
+    }
+
     document.addEventListener("mousedown", handleClick)
-    return () => document.removeEventListener("mousedown", handleClick)
+    window.addEventListener("scroll", handleScroll)
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClick)
+      window.removeEventListener("scroll", handleScroll)
+    }
   }, [])
 
   return (
-    <header className="sticky top-0 z-50 shadow-md" ref={dropdownRef}>
-      {/* Single navbar bar — dark background */}
-      <div style={{ background: "hsl(var(--primary))" }}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-[68px] items-center justify-between gap-4">
+    <>
+      {/* ── TOP BAR (INFO) - Static (Scrolls away) ── */}
+      <div className="hidden lg:block relative text-primary-foreground text-xs border-b border-primary-foreground/10">
+        {/* Background base */}
+        <div className="absolute inset-0 bg-primary"></div>
+        {/* Dark overlay for richer/pekat character */}
+        <div className="absolute inset-0 bg-black/50 mix-blend-multiply"></div>
+        
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-6 font-medium">
+            <div className="flex items-center gap-1.5 opacity-90">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Sekolah Terakreditasi A</span>
+            </div>
+            <div className="flex items-center gap-1.5 opacity-90">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Fasilitas Pendidikan Modern</span>
+            </div>
+            <div className="flex items-center gap-1.5 opacity-90">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>SDM Berkualitas & Profesional</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-6 font-semibold tracking-wide opacity-90">
+            {tenant.phone && (
+              <div className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer">
+                <Phone className="h-3.5 w-3.5" />
+                <span>{tenant.phone}</span>
+              </div>
+            )}
+            {tenant.email && (
+              <div className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer">
+                <Mail className="h-3.5 w-3.5" />
+                <span>{tenant.email}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
+      {/* ── MAIN NAVBAR - Sticky (Stays at top) ── */}
+      <header 
+        className={cn(
+          "sticky top-0 z-50 w-full transition-all duration-300 border-b border-border/40",
+          scrolled ? "bg-white/85 backdrop-blur-md shadow-md" : "bg-white shadow-sm"
+        )} 
+        ref={dropdownRef}
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-[76px] items-center justify-between gap-4 relative">
+            
             {/* Logo */}
-            <Link href={resolveHref("/")} className="flex items-center gap-3 shrink-0">
+            <Link href={resolveHref("/")} className="flex items-center gap-3 shrink-0 group">
               {tenant.logo ? (
-                <img src={tenant.logo} alt={tenant.name} className="h-11 w-11 rounded-full object-cover border-2 border-white/30" />
+                <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-border shadow-sm transition-transform duration-300 group-hover:scale-105">
+                  <img src={tenant.logo} alt={tenant.name} className="object-cover w-full h-full" />
+                </div>
               ) : (
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 border-2 border-white/30 text-white font-extrabold text-lg">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground font-extrabold text-xl shadow-sm transition-transform duration-300 group-hover:scale-105">
                   {tenant.name.charAt(0)}
                 </div>
               )}
-              <div>
-                {tenant.tagline && (
-                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/70 leading-none mb-0.5">
-                    {tenant.tagline}
-                  </p>
-                )}
-                <p className="font-extrabold text-sm text-white leading-tight tracking-wide">
+              <div className="hidden sm:block">
+                <span className="block font-extrabold text-base text-gray-900 leading-tight tracking-tight group-hover:text-primary transition-colors">
                   {tenant.name}
-                </p>
+                </span>
+                {tenant.tagline && (
+                  <span className="block text-[10px] font-semibold text-gray-500 leading-none mt-1">
+                    {tenant.tagline}
+                  </span>
+                )}
               </div>
             </Link>
 
             {/* Desktop nav */}
-            <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
+            <nav className="hidden xl:flex items-center gap-1 flex-1 justify-center">
               {navLinks.map((link) => {
                 const href = resolveHref(link.href)
                 const isActive = link.href === "" 
@@ -111,7 +171,7 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
                 return (
                   <div 
                     key={link.label} 
-                    className="relative"
+                    className="relative group"
                     onMouseEnter={() => setOpenDropdown(link.label)}
                     onMouseLeave={() => setOpenDropdown(null)}
                   >
@@ -119,23 +179,23 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
                       <Link
                         href={href}
                         className={cn(
-                          "flex items-center gap-1 px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors",
+                          "flex items-center gap-1 px-4 py-2.5 text-sm font-bold rounded-full transition-all duration-200",
                           isActive || isOpen
-                            ? "bg-white/20 text-white"
-                            : "text-white/80 hover:text-white hover:bg-white/10"
+                            ? "bg-primary/10 text-primary"
+                            : "text-gray-600 hover:text-primary hover:bg-primary/5"
                         )}
                       >
                         {link.label}
-                        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
+                        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-300", isOpen && "rotate-180")} />
                       </Link>
                     ) : (
                       <Link
                         href={href}
                         className={cn(
-                          "flex items-center px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors",
+                          "flex items-center px-4 py-2.5 text-sm font-bold rounded-full transition-all duration-200",
                           isActive
-                            ? "bg-white/20 text-white"
-                            : "text-white/80 hover:text-white hover:bg-white/10"
+                            ? "bg-primary/10 text-primary"
+                            : "text-gray-600 hover:text-primary hover:bg-primary/5"
                         )}
                       >
                         {link.label}
@@ -144,14 +204,14 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
 
                     {/* Dropdown */}
                     {link.children && isOpen && (
-                      <div className="absolute top-full left-0 pt-1 w-52 z-50">
-                        <div className="bg-white rounded-xl shadow-xl border overflow-hidden">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-56 z-50">
+                        <div className="bg-white rounded-2xl shadow-xl border border-border/50 overflow-hidden flex flex-col p-2 animate-in fade-in slide-in-from-top-4 duration-200">
                           {link.children.map((child) => (
                             <Link
                               key={child.label}
                               href={resolveHref(child.href)}
                               onClick={() => setOpenDropdown(null)}
-                              className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors border-b last:border-0"
+                              className="px-4 py-2.5 text-sm text-gray-600 font-semibold rounded-xl hover:bg-primary/10 hover:text-primary transition-colors"
                             >
                               {child.label}
                             </Link>
@@ -165,81 +225,100 @@ export function WebsiteNavbar({ tenant }: NavbarProps) {
             </nav>
 
             {/* Right: Search + CTA */}
-            <div className="hidden lg:flex items-center gap-2 shrink-0">
-              <button className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors">
-                <Search className="h-4 w-4" />
-              </button>
-              {/* PPDB Online button — yellow/accent */}
+            <div className="hidden lg:flex items-center gap-3 shrink-0">
+              {/* Secondary CTA: WhatsApp */}
+              <a
+                href={tenant.whatsapp ? `https://wa.me/${tenant.whatsapp}` : "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-primary bg-white border-2 border-primary hover:bg-primary/5 rounded-full transition-colors"
+              >
+                <MessageCircle className="h-4 w-4" />
+                WhatsApp
+              </a>
+              
+              {/* Primary CTA: Login / PPDB */}
               <Link
                 href={resolveHref("/contact")}
-                className="px-5 py-2 text-sm font-bold rounded-lg transition-all hover:opacity-90 shadow-sm"
-                style={{ background: "hsl(45 95% 55%)", color: "hsl(var(--foreground))" }}
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-primary-foreground bg-primary hover:opacity-90 rounded-full shadow-md hover:shadow-lg transition-all"
               >
                 PPDB Online
+                <ChevronDown className="h-4 w-4 -rotate-90 opacity-70" />
               </Link>
             </div>
 
             {/* Mobile toggle */}
             <button
-              className="lg:hidden p-2 rounded-lg text-white hover:bg-white/10"
+              className="xl:hidden p-2.5 rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Mobile nav */}
-      {mobileOpen && (
-        <div className="lg:hidden border-t" style={{ background: "hsl(var(--primary))" }}>
-          <div className="px-4 py-3 space-y-1">
-            {navLinks.map((link) => {
-              const href = resolveHref(link.href)
-              const isActive = link.href === "" 
-                ? (pathname === resolveHref("/") || pathname === `/site/${tenant.slug}`) 
-                : pathname.startsWith(href)
-              
-              return (
-                <div key={link.label} className="space-y-1">
-                  <Link
-                    href={href}
-                    onClick={() => { if (!link.children) setMobileOpen(false) }}
-                    className={cn(
-                      "block px-3 py-2.5 text-sm font-semibold rounded-lg transition-colors",
-                      isActive ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                  {link.children && (
-                    <div className="pl-6 space-y-1">
-                      {link.children.map((child) => (
+            {/* Mobile nav */}
+            {mobileOpen && (
+              <div className="absolute top-full left-0 w-full bg-white border-b border-border shadow-2xl overflow-hidden xl:hidden animate-in fade-in slide-in-from-top-4 duration-200">
+                <div className="px-4 py-4 max-h-[70vh] overflow-y-auto space-y-1">
+                  {navLinks.map((link) => {
+                    const href = resolveHref(link.href)
+                    const isActive = link.href === "" 
+                      ? (pathname === resolveHref("/") || pathname === `/site/${tenant.slug}`) 
+                      : pathname.startsWith(href)
+                    
+                    return (
+                      <div key={link.label} className="space-y-1">
                         <Link
-                          key={child.label}
-                          href={resolveHref(child.href)}
-                          onClick={() => setMobileOpen(false)}
-                          className="block px-3 py-2 text-xs font-medium text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                          href={href}
+                          onClick={() => { if (!link.children) setMobileOpen(false) }}
+                          className={cn(
+                            "block px-4 py-3 text-sm font-bold rounded-xl transition-colors",
+                            isActive ? "bg-primary/10 text-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50"
+                          )}
                         >
-                          {child.label}
+                          {link.label}
                         </Link>
-                      ))}
-                    </div>
-                  )}
+                        {link.children && (
+                          <div className="pl-4 border-l-2 border-gray-100 ml-4 space-y-1 mb-2">
+                            {link.children.map((child) => (
+                              <Link
+                                key={child.label}
+                                href={resolveHref(child.href)}
+                                onClick={() => setMobileOpen(false)}
+                                className="block px-4 py-2.5 text-sm font-semibold text-gray-500 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
+                              >
+                                {child.label}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                  <div className="pt-4 px-2 pb-2 flex flex-col gap-3">
+                    <a
+                      href={tenant.whatsapp ? `https://wa.me/${tenant.whatsapp}` : "#"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-bold text-primary bg-white border-2 border-primary rounded-xl transition-colors hover:bg-primary/5"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Hubungi via WhatsApp
+                    </a>
+                    <Link
+                      href={resolveHref("/contact")}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-bold text-primary-foreground bg-primary rounded-xl shadow-md hover:opacity-90 transition-opacity"
+                    >
+                      PPDB Online
+                      <ChevronDown className="h-4 w-4 -rotate-90 opacity-70" />
+                    </Link>
+                  </div>
                 </div>
-              )
-            })}
-            <Link
-              href={resolveHref("/contact")}
-              onClick={() => setMobileOpen(false)}
-              className="block mt-2 px-4 py-3 text-sm font-bold text-center rounded-lg"
-              style={{ background: "hsl(45 95% 55%)", color: "hsl(var(--foreground))" }}
-            >
-              PPDB Online
-            </Link>
+              </div>
+            )}
           </div>
         </div>
-      )}
-    </header>
+      </header>
+    </>
   )
 }

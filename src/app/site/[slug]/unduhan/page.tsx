@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
@@ -17,15 +18,16 @@ export default async function UnduhanPage({ params }: { params: Promise<{ slug: 
   }
 
   return (
-    <div className="bg-background min-h-screen pb-20">
-      <section className="bg-mesh py-16 border-b">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight mb-4">Pusat Unduhan</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Akses formulir pendaftaran, brosur sekolah, dan dokumen penting lainnya di satu tempat.
-          </p>
-        </div>
-      </section>
+    <div className="bg-background min-h-screen pb-12">
+      {/* ── HERO SECTION ── */}
+      <PageHeader
+        title="Pusat Unduhan"
+        description={<>Akses dokumen, formulir, dan materi digital penting dari {tenant.name}.</>}
+        breadcrumbs={[
+          { label: "Informasi" },
+          { label: "Informasi Publik" }
+        ]}
+      />
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         {documents.length === 0 ? (

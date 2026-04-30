@@ -68,7 +68,9 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <p className="text-sm font-semibold text-primary mb-2">Tentang Kami</p>
+                <span className="inline-block px-3 py-1 mb-4 rounded-full bg-secondary text-secondary-foreground text-xs font-bold tracking-wider uppercase">
+                  Tentang Kami
+                </span>
                 <h2 className="text-3xl font-bold mb-4">{tenant.name}</h2>
                 <p className="text-muted-foreground leading-relaxed line-clamp-6">{tenant.about}</p>
                 <Link href={`${base}/about`}
@@ -76,7 +78,7 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
                   Selengkapnya <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
-              <div className="rounded-2xl overflow-hidden aspect-video bg-primary/5 flex items-center justify-center">
+              <div className="rounded-2xl overflow-hidden aspect-video bg-secondary/30 flex items-center justify-center border border-border/50 shadow-sm">
                 {tenant.heroImage ? (
                   <img src={tenant.heroImage} alt={tenant.name} className="w-full h-full object-cover" />
                 ) : (
@@ -96,10 +98,12 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
 
       {/* ── Layanan ── */}
       {services.length > 0 && (
-        <section className="py-16 bg-muted/30">
+        <section className="py-16 bg-secondary/10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <p className="text-sm font-semibold text-primary mb-2">Layanan</p>
+              <span className="inline-block px-3 py-1 mb-4 rounded-full bg-accent text-accent-foreground text-xs font-bold tracking-wider uppercase">
+                Layanan
+              </span>
               <h2 className="text-3xl font-bold">Layanan Kami</h2>
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
                 Kami menyediakan berbagai layanan profesional untuk memenuhi kebutuhan Anda.
@@ -108,7 +112,9 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.slice(0, 6).map((svc: any, i: number) => (
                 <div key={i} className="group rounded-2xl border bg-background p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-                  <div className="text-4xl mb-4">{svc.icon || "⚡"}</div>
+                  <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 text-primary mb-5 shadow-sm">
+                    <span className="text-2xl">{svc.icon || "⚡"}</span>
+                  </div>
                   <h3 className="text-lg font-semibold mb-2">{svc.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{svc.description}</p>
                 </div>
@@ -132,7 +138,9 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-sm font-semibold text-primary mb-1">Galeri</p>
+                <span className="inline-block px-3 py-1 mb-3 rounded-full bg-secondary text-secondary-foreground text-xs font-bold tracking-wider uppercase">
+                  Galeri
+                </span>
                 <h2 className="text-2xl font-bold">Dokumentasi Kami</h2>
               </div>
               <Link href={`${base}/gallery`}
@@ -163,7 +171,9 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-sm font-semibold text-primary mb-1">Berita</p>
+                <span className="inline-block px-3 py-1 mb-3 rounded-full bg-accent text-accent-foreground text-xs font-bold tracking-wider uppercase">
+                  Berita
+                </span>
                 <h2 className="text-2xl font-bold">Berita & Artikel Terbaru</h2>
               </div>
               <Link href={`${base}/berita`}

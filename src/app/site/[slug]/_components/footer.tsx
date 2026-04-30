@@ -58,8 +58,13 @@ export function WebsiteFooter({ tenant }: FooterProps) {
   return (
     <footer>
       {/* ── Main footer — dark background ── */}
-      <div style={{ background: "hsl(220 25% 12%)" }}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative overflow-hidden">
+        {/* Base theme color */}
+        <div className="absolute inset-0 bg-primary"></div>
+        {/* Dark overlay for rich dark tint */}
+        <div className="absolute inset-0 bg-black/70 mix-blend-multiply"></div>
+        
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid gap-8 md:grid-cols-4">
 
             {/* Col 1 — Brand */}
@@ -216,8 +221,13 @@ export function WebsiteFooter({ tenant }: FooterProps) {
       </div>
 
       {/* ── Bottom bar ── */}
-      <div style={{ background: "hsl(220 25% 8%)" }}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
+      <div className="relative overflow-hidden">
+        {/* Base theme color */}
+        <div className="absolute inset-0 bg-primary"></div>
+        {/* Even darker overlay for contrast */}
+        <div className="absolute inset-0 bg-black/80 mix-blend-multiply"></div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
             <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.3)" }}>
               &copy; {year} {tenant.name}. All rights reserved.

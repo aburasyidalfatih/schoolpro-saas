@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import { CheckCircle, Target, Eye, Heart } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
@@ -10,15 +11,14 @@ export default async function AboutPage({ params }: { params: Promise<{ slug: st
   return (
     <>
       {/* Header */}
-      <section className="bg-mesh py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-sm font-semibold text-primary mb-2">Tentang Kami</p>
-          <h1 className="text-4xl font-bold tracking-tight">Mengenal {tenant.name}</h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-            {tenant.description || "Kami adalah perusahaan yang berkomitmen memberikan layanan terbaik untuk Anda."}
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        title={<>Mengenal {tenant.name}</>}
+        description={<>{tenant.description || "Kami adalah perusahaan yang berkomitmen memberikan layanan terbaik untuk Anda."}</>}
+        breadcrumbs={[
+          { label: "Halaman" },
+          { label: "Tentang Kami" }
+        ]}
+      />
 
       {/* Story */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">

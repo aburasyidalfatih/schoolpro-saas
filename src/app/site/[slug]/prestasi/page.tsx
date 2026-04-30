@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import { Trophy, Calendar, Medal, Award, Star } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
@@ -17,26 +18,14 @@ export default async function PrestasiPage({ params }: { params: Promise<{ slug:
   return (
     <div className="bg-background min-h-screen">
       {/* ── HERO SECTION ── */}
-      <section className="relative h-[35vh] min-h-[300px] flex items-center justify-center overflow-hidden bg-primary/90 text-white">
-        <div className="absolute inset-0 bg-mesh opacity-20" />
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <div className="bg-white/20 backdrop-blur-sm w-fit mx-auto px-4 py-1 rounded-full border border-white/30 mb-6">
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase">School Hall of Fame</p>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">Prestasi & Penghargaan</h1>
-          <p className="text-lg opacity-90 max-w-2xl mx-auto leading-relaxed">
-            Membanggakan dan Inspiratif. Catatan perjalanan siswa dan institusi dalam meraih keunggulan di berbagai bidang.
-          </p>
-        </div>
-        
-        {/* Floating Icons for Aesthetic */}
-        <div className="absolute top-10 left-10 opacity-20 hidden lg:block">
-            <Trophy className="h-20 w-20" />
-        </div>
-        <div className="absolute bottom-10 right-10 opacity-20 hidden lg:block">
-            <Medal className="h-20 w-20" />
-        </div>
-      </section>
+      <PageHeader
+        title="Prestasi & Penghargaan"
+        description="Membanggakan dan Inspiratif. Catatan perjalanan siswa dan institusi dalam meraih keunggulan di berbagai bidang."
+        breadcrumbs={[
+          { label: "Galeri & Alumni" },
+          { label: "School Hall of Fame" }
+        ]}
+      />
 
       {/* ── MAIN CONTENT ── */}
       <section className="py-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

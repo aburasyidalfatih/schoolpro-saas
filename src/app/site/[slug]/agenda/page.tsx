@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
@@ -13,15 +14,16 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
   const events = tenant.events || []
 
   return (
-    <div className="bg-background min-h-screen pb-20">
-      <section className="bg-mesh py-16 border-b">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight mb-4">Agenda & Acara Sekolah</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Jadwal kegiatan akademik, hari besar, dan acara menarik lainnya di {tenant.name}.
-          </p>
-        </div>
-      </section>
+    <div className="bg-background min-h-screen pb-12">
+      {/* ── HERO SECTION ── */}
+      <PageHeader
+        title="Agenda & Acara Sekolah"
+        description={<>Jadwal kegiatan akademik, hari besar, dan acara menarik lainnya di {tenant.name}.</>}
+        breadcrumbs={[
+          { label: "Informasi" },
+          { label: "Informasi Acara" }
+        ]}
+      />
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         {events.length === 0 ? (

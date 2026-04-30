@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import { GraduationCap, Quote, MessageCircle, ExternalLink, Heart, Star, Award } from "lucide-react"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
@@ -15,23 +16,14 @@ export default async function AlumniPage({ params }: { params: Promise<{ slug: s
   return (
     <div className="bg-background min-h-screen">
       {/* ── HERO SECTION ── */}
-      <section className="relative h-[35vh] min-h-[320px] flex items-center justify-center overflow-hidden bg-primary/90 text-white">
-        <div className="absolute inset-0 bg-mesh opacity-20" />
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <div className="bg-white/20 backdrop-blur-md w-fit mx-auto px-5 py-1.5 rounded-full border border-white/30 mb-8">
-            <p className="text-[10px] font-bold tracking-[0.4em] uppercase">Alumni Success Stories</p>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">Jejak Langkah Alumni</h1>
-          <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto leading-relaxed font-medium">
-            Melihat kontribusi dan kesuksesan para lulusan kami yang kini telah berkiprah di berbagai bidang dan institusi ternama.
-          </p>
-        </div>
-        
-        {/* Aesthetic decoration */}
-        <div className="absolute top-0 right-0 p-12 opacity-10">
-           <GraduationCap className="h-48 w-48" />
-        </div>
-      </section>
+      <PageHeader
+        title="Jejak Langkah Alumni"
+        description="Melihat kontribusi dan kesuksesan para lulusan kami yang kini telah berkiprah di berbagai bidang dan institusi ternama."
+        breadcrumbs={[
+          { label: "Galeri & Alumni" },
+          { label: "Alumni Success Stories" }
+        ]}
+      />
 
       {/* ── STATISTICS BAR ── */}
       <section className="py-12 bg-muted/40 border-b border-border/50">
@@ -51,7 +43,7 @@ export default async function AlumniPage({ params }: { params: Promise<{ slug: s
       </section>
 
       {/* ── ALUMNI GRID & TESTIMONIALS ── */}
-      <section className="py-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="py-12 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-3 gap-16">
           
           {/* Left Column: Testimonial Feed */}

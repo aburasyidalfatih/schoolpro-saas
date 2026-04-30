@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/site/[slug]/_components/page-header"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
@@ -18,20 +19,20 @@ export default async function ServicesPage({ params }: { params: Promise<{ slug:
   if (!tenant) notFound()
 
   const services: { title: string; description: string; icon: string }[] =
-    (tenant.services as any[]) || defaultServices
+    Array.isArray(tenant.services) ? tenant.services : defaultServices
   const base = `/site/${slug}`
 
   return (
     <>
-      <section className="bg-mesh py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-sm font-semibold text-primary mb-2">Layanan</p>
-          <h1 className="text-4xl font-bold tracking-tight">Layanan Kami</h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-            Kami menyediakan berbagai layanan profesional untuk memenuhi kebutuhan bisnis Anda.
-          </p>
-        </div>
-      </section>
+      {/* ── HERO SECTION ── */}
+      <PageHeader
+        title="Layanan Kami"
+        description="Menghadirkan layanan terpadu untuk menunjang kebutuhan pendidikan dan masyarakat."
+        breadcrumbs={[
+          { label: "Halaman" },
+          { label: "Layanan Utama" }
+        ]}
+      />
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
