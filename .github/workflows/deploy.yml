@@ -14,6 +14,7 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 30m
           script: |
             # Tentukan direktori berdasarkan branch (main untuk prod, develop untuk dev)
             if [ "${{ github.ref }}" = "refs/heads/main" ]; then
