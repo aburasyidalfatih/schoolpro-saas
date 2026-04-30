@@ -38,7 +38,7 @@ export const themes: ThemeConfig[] = [
   {
     id: "aurora",
     name: "Aurora",
-    description: "Default SaasMasterPro, gradasi violet-ungu yang lembut",
+    description: "Default SchoolPro, gradasi violet-ungu yang lembut",
     preview: "🔮",
     category: "modern",
   },

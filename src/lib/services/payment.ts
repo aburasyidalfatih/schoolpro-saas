@@ -32,6 +32,7 @@ async function getTripayConfig(tenantId: string) {
 interface CreateTransactionParams {
   tenantId: string
   plan: string
+  planId?: string
   amount: number
   method: string
   customerName: string
@@ -100,6 +101,7 @@ export async function createTransaction(params: CreateTransactionParams) {
         amount: params.amount,
         method: params.method,
         plan: params.plan,
+        planId: params.planId,
         tripayRef: result.data.reference,
         expiredAt: new Date(result.data.expired_time * 1000),
       },
@@ -165,11 +167,42 @@ export async function handleCallback(body: TripayCallbackBody) {
 
   // Step 4: Upgrade tenant plan jika pembayaran berhasil
   if (body.status === "PAID") {
+    const plan = await db.subscriptionPlan.findFirst({
+      where: payment.planId ? { id: payment.planId } : { slug: payment.plan },
+    })
+
     await retryAsync(
-      () => db.tenant.update({
-        where: { id: payment.tenantId },
-        data: { plan: payment.plan },
-      }),
+      async () => {
+        // Update tenant
+        await db.tenant.update({
+          where: { id: payment.tenantId },
+          data: {
+            plan: plan?.slug || payment.plan,
+            planId: plan?.id,
+            studentQuota: plan?.maxStudents || 0,
+          },
+        })
+
+        // Create subscription history
+        if (plan) {
+          await db.subscription.create({
+            data: {
+              tenantId: payment.tenantId,
+              planId: plan.id,
+              paymentId: payment.id,
+              status: "ACTIVE",
+              startDate: new Date(),
+              endDate:
+                plan.interval === "MONTHLY"
+                  ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                  : plan.interval === "YEARLY"
+                    ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+                    : null,
+              amount: payment.amount,
+            },
+          })
+        }
+      },
       "upgrade-plan"
     )
   }

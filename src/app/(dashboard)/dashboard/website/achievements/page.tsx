@@ -15,11 +15,11 @@ import { getAchievements, deleteAchievement } from "@/lib/actions/achievements"
 interface Achievement {
   id: string
   title: string
-  description?: string
-  date: string
+  description: string | null
+  date: Date
   level: string
-  imageUrl?: string
-  createdAt: string
+  imageUrl: string | null
+  createdAt: Date
 }
 
 export default function AchievementsPage() {

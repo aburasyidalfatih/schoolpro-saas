@@ -26,7 +26,7 @@ interface TenantBrandingContextValue {
 }
 
 const TenantBrandingContext = createContext<TenantBrandingContextValue>({
-  branding: { id: null, name: "SaasMasterPro", logo: null },
+  branding: { id: null, name: "SchoolPro", logo: null },
   updateBranding: () => {},
   isLoadingTenant: true,
 })
@@ -36,7 +36,7 @@ export function TenantBrandingProvider({ children }: { children: React.ReactNode
 
   const [branding, setBranding] = useState<TenantBranding>({
     id: null,
-    name: "SaasMasterPro",
+    name: "SchoolPro",
     logo: null,
   })
   
@@ -57,7 +57,7 @@ export function TenantBrandingProvider({ children }: { children: React.ReactNode
           if (data && data.id) {
             setBranding({
               id: data.id,
-              name: data.name || "SaasMasterPro",
+              name: data.name || "SchoolPro",
               logo: data.logo || null,
             })
           }
@@ -69,7 +69,7 @@ export function TenantBrandingProvider({ children }: { children: React.ReactNode
         if (tenant) {
           setBranding({
             id: tenant.id,
-            name: tenant.name || "SaasMasterPro",
+            name: tenant.name || "SchoolPro",
             logo: (tenant as any).logo || null,
           })
         }

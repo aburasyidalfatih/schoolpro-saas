@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
-import { Calendar, MapPin, Clock, ArrowRight } from "lucide-react"
+import { Calendar, MapPin, Clock, ArrowRight, Search } from "lucide-react"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
 
@@ -36,13 +37,13 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
               >
                 <div className="md:w-48 bg-primary text-white flex flex-col items-center justify-center p-6 text-center">
                    <p className="text-sm font-bold uppercase tracking-widest opacity-80 mb-1">
-                      {format(new Date(event.date), 'MMMM', { locale: id })}
+                      {format(new Date(event.startDate), 'MMMM', { locale: id })}
                    </p>
                    <p className="text-5xl font-black">
-                      {format(new Date(event.date), 'dd')}
+                      {format(new Date(event.startDate), 'dd')}
                    </p>
                    <p className="text-sm font-bold mt-1 opacity-80">
-                      {format(new Date(event.date), 'yyyy')}
+                      {format(new Date(event.startDate), 'yyyy')}
                    </p>
                 </div>
                 <div className="flex-1 p-8 flex flex-col justify-center">
@@ -68,6 +69,22 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
             ))}
           </div>
         )}
+      </section>
+
+      {/* Info tambahan */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
+         <div className="bg-primary/5 rounded-3xl p-8 border border-primary/10 flex flex-col md:flex-row items-center gap-6">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+               <Search className="h-6 w-6" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+               <h4 className="font-bold text-lg">Ada pertanyaan mengenai acara?</h4>
+               <p className="text-sm text-muted-foreground">Silakan hubungi bagian kesiswaan atau panitia terkait untuk informasi lebih lanjut.</p>
+            </div>
+            <Link href={`/site/${slug}/contact`} className="px-6 py-2.5 bg-white border border-primary/20 text-primary rounded-xl text-sm font-bold hover:bg-primary/5 transition-colors">
+               Hubungi Kami
+            </Link>
+         </div>
       </section>
     </div>
   )

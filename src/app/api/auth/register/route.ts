@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   try {
     const parsed = await parseBody(req, registerSchema)
     if (parsed.error) return parsed.error
-    const { name, email, password, tenantName } = parsed.data
+    const { name, email, password, tenantName, tenantSlug } = parsed.data
 
     const existingUser = await db.user.findUnique({ where: { email } })
     if (existingUser) {
@@ -17,11 +17,50 @@ export async function POST(req: Request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12)
+
+    // Jika tenantSlug ada, berarti user mendaftar di subdomain tenant (sebagai member)
+    if (tenantSlug) {
+      const existingTenant = await db.tenant.findUnique({ where: { slug: tenantSlug } })
+      if (!existingTenant) {
+        return NextResponse.json({ error: "Sekolah tidak ditemukan" }, { status: 404 })
+      }
+
+      const result = await db.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: { name, email, password: hashedPassword },
+        })
+
+        await tx.tenantUser.create({
+          data: { tenantId: existingTenant.id, userId: user.id, role: "member" },
+        })
+
+        await tx.notificationSetting.createMany({
+          data: [
+            { userId: user.id, channel: "inapp", enabled: true },
+            { userId: user.id, channel: "email", enabled: true },
+            { userId: user.id, channel: "whatsapp", enabled: false },
+          ],
+        })
+
+        return { user, tenant: existingTenant }
+      })
+
+      return NextResponse.json({
+        message: "Registrasi berhasil",
+        tenantSlug: result.tenant.slug,
+      })
+    }
+
+    // Jika tenantSlug tidak ada (Mendaftar di domain utama / buat organisasi baru)
+    if (!tenantName) {
+      return NextResponse.json({ error: "Nama organisasi harus diisi" }, { status: 400 })
+    }
+
     let slug = generateSlug(tenantName)
 
     // Pastikan slug unik
-    const existingTenant = await db.tenant.findUnique({ where: { slug } })
-    if (existingTenant) {
+    const existingTenantBySlug = await db.tenant.findUnique({ where: { slug } })
+    if (existingTenantBySlug) {
       slug = `${slug}-${Date.now().toString(36)}`
     }
 

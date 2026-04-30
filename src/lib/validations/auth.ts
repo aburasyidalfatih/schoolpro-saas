@@ -9,7 +9,8 @@ export const registerSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter").max(100),
   email: z.string().email("Email tidak valid"),
   password: z.string().min(8, "Password minimal 8 karakter"),
-  tenantName: z.string().min(2, "Nama organisasi minimal 2 karakter").max(100),
+  tenantName: z.string().max(100).optional(),
+  tenantSlug: z.string().optional(),
 })
 
 export const forgotPasswordSchema = z.object({

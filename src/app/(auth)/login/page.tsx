@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -17,6 +17,27 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [needs2FA, setNeeds2FA] = useState(false)
+  const [isMainDomain, setIsMainDomain] = useState(true) // Default true (hidden) to prevent SSR mismatch flash
+  const [tenantNameDisplay, setTenantNameDisplay] = useState<string | null>(null)
+
+  useEffect(() => {
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.my.id"
+    const host = window.location.hostname
+    const main = host === rootDomain || host === `www.${rootDomain}` || host === "localhost"
+    setIsMainDomain(main)
+    
+    if (!main) {
+      const slug = host.split('.')[0]
+      fetch(`/api/website/${slug}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.name) {
+            setTenantNameDisplay(data.name)
+          }
+        })
+        .catch(console.error)
+    }
+  }, [])
 
   const { register, handleSubmit, formState: { errors }, getValues } = useForm<LoginInput & { twoFactorCode?: string }>({
     resolver: zodResolver(loginSchema),
@@ -30,6 +51,7 @@ export default function LoginPage() {
       email: data.email,
       password: data.password,
       twoFactorCode: data.twoFactorCode || "",
+      hostname: window.location.hostname,
       redirect: false,
     })
 
@@ -60,12 +82,16 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-md">
         <div className="glass rounded-3xl p-8 md:p-10 shadow-2xl">
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-8 text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl btn-gradient text-white font-bold text-xl shadow-lg glow-primary mb-4">
-              S
+              {tenantNameDisplay ? tenantNameDisplay.charAt(0) : "S"}
             </div>
             <h1 className="text-2xl font-bold tracking-tight">Selamat datang</h1>
-            <p className="text-sm text-muted-foreground mt-1">Masuk ke akun SaasMasterPro Anda</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {isMainDomain 
+                ? "Masuk ke akun SchoolPro Anda" 
+                : `Masuk ke sistem informasi ${tenantNameDisplay || 'sekolah'}`}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -108,12 +134,14 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Belum punya akun?{" "}
-              <Link href="/register" className="text-primary font-semibold hover:underline">Daftar sekarang</Link>
-            </p>
-          </div>
+          {!isMainDomain && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Belum punya akun?{" "}
+                <Link href="/register" className="text-primary font-semibold hover:underline">Daftar sekarang</Link>
+              </p>
+            </div>
+          )}
 
           {/* OAuth */}
           <div className="mt-5">
@@ -132,7 +160,7 @@ export default function LoginPage() {
             </Button>
           </div>
         </div>
-        <p className="text-center text-xs text-muted-foreground mt-6">&copy; 2026 SaasMasterPro</p>
+        <p className="text-center text-xs text-muted-foreground mt-6">&copy; {new Date().getFullYear()} {tenantNameDisplay || (isMainDomain ? "SchoolPro" : "Sistem Informasi Sekolah")}</p>
       </div>
     </div>
   )

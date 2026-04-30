@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
     await sendEmail(
       email,
-      `Undangan bergabung ke ${tenant?.name} — SaasMasterPro`,
+      `Undangan bergabung ke ${tenant?.name} — SchoolPro`,
       `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
         <h2>Anda Diundang!</h2>
         <p>Anda diundang untuk bergabung ke <strong>${tenant?.name}</strong> sebagai <strong>${role}</strong>.</p>

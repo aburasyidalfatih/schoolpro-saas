@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     await sendEmail(
       user.email,
-      "Reset Password — SaasMasterPro",
+      "Reset Password — SchoolPro",
       `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
         <h2>Reset Password</h2>
         <p>Halo ${user.name},</p>

@@ -9,6 +9,7 @@ interface TenantInfo {
   theme: string
   logo?: string | null
   plan?: string
+  planId?: string | null
 }
 
 declare module "next-auth" {

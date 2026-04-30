@@ -4,7 +4,7 @@ import crypto from "crypto"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 
-const APP_NAME = "SaasMasterPro"
+const APP_NAME = "SchoolPro"
 
 /**
  * Generate a new TOTP secret for a user.

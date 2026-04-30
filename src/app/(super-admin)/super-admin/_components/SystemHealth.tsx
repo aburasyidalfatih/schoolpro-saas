@@ -1,8 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Cpu, HardDrive, Server, Activity, RefreshCw } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { 
+  Cpu, HardDrive, Server, Activity, RefreshCw, 
+  Trash2, Layers, CheckCircle2, AlertCircle, Clock 
+} from "lucide-react"
+import { toast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
+
+interface PM2Process {
+  name: string
+  status: string
+  cpu: number
+  memory: number
+  uptime: number
+}
 
 interface SystemMetrics {
   ram: {
@@ -22,12 +36,14 @@ interface SystemMetrics {
     release: string
     uptime: number
   }
+  pm2: PM2Process[]
   timestamp: number
 }
 
 export function SystemHealth() {
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null)
   const [loading, setLoading] = useState(true)
+  const [clearing, setClearing] = useState(false)
 
   const fetchMetrics = async () => {
     try {
@@ -41,9 +57,32 @@ export function SystemHealth() {
     }
   }
 
+  const handleClearCache = async () => {
+    if (!confirm("Hapus semua cache Redis? Ini akan memaksa sistem mengambil data segar dari database.")) return
+    
+    setClearing(true)
+    try {
+      const res = await fetch("/api/super-admin/system", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "clear-cache" }),
+      })
+      
+      if (res.ok) {
+        toast({ title: "Berhasil", description: "Cache Redis telah dibersihkan." })
+      } else {
+        throw new Error("Gagal membersihkan cache")
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    } finally {
+      setClearing(false)
+    }
+  }
+
   useEffect(() => {
     fetchMetrics()
-    const interval = setInterval(fetchMetrics, 15000) // Refresh every 15s
+    const interval = setInterval(fetchMetrics, 15000)
     return () => clearInterval(interval)
   }, [])
 
@@ -59,12 +98,16 @@ export function SystemHealth() {
     const d = Math.floor(seconds / (3600 * 24))
     const h = Math.floor((seconds % (3600 * 24)) / 3600)
     const m = Math.floor((seconds % 3600) / 60)
-    
     const parts = []
     if (d > 0) parts.push(`${d}d`)
     if (h > 0) parts.push(`${h}h`)
     if (m > 0) parts.push(`${m}m`)
     return parts.join(" ") || "< 1m"
+  }
+
+  const formatRelativeTime = (ms: number) => {
+    const seconds = Math.floor(ms / 1000)
+    return formatUptime(seconds)
   }
 
   if (loading && !metrics) {
@@ -80,94 +123,158 @@ export function SystemHealth() {
   if (!metrics) return null
 
   return (
-    <Card className="glass border-0 overflow-hidden relative group mt-6">
-      <div className="absolute top-4 right-4 z-10">
-        <button 
-          onClick={() => { setLoading(true); fetchMetrics(); }} 
-          className="text-muted-foreground hover:text-foreground transition-colors p-1"
-          title="Refresh Data"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Server className="h-5 w-5 text-blue-500" />
-          Kesehatan Sistem (VPS Host)
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4">
-          {/* RAM Usage */}
-          <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <HardDrive className="h-4 w-4 text-emerald-500" />
-                Memori (RAM)
+    <div className="space-y-6">
+      <Card className="glass border-0 overflow-hidden relative">
+        <div className="absolute top-4 right-4 z-10 flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 rounded-xl bg-white/50 border-orange-200 text-orange-600 hover:bg-orange-50 gap-2"
+            onClick={handleClearCache}
+            disabled={clearing}
+          >
+            {clearing ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+            Clear Redis Cache
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 rounded-xl"
+            onClick={() => { setLoading(true); fetchMetrics(); }} 
+          >
+            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+          </Button>
+        </div>
+        
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Server className="h-5 w-5 text-blue-500" />
+            Kesehatan Sistem (VPS Host)
+          </CardTitle>
+          <CardDescription>Pemantauan sumber daya server secara real-time.</CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4">
+            {/* RAM Usage */}
+            <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <HardDrive className="h-4 w-4 text-emerald-500" />
+                  Memori (RAM)
+                </div>
+                <span className="text-sm font-semibold">{metrics.ram.usagePercentage.toFixed(1)}%</span>
               </div>
-              <span className="text-sm font-semibold">
-                {metrics.ram.usagePercentage.toFixed(1)}%
-              </span>
-            </div>
-            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-              <div 
-                className={`h-full transition-all duration-500 ${metrics.ram.usagePercentage > 85 ? 'bg-red-500' : metrics.ram.usagePercentage > 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                style={{ width: `${metrics.ram.usagePercentage}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Terpakai: {formatBytes(metrics.ram.used)}</span>
-              <span>Total: {formatBytes(metrics.ram.total)}</span>
-            </div>
-          </div>
-
-          {/* CPU Usage */}
-          <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Cpu className="h-4 w-4 text-blue-500" />
-                CPU ({metrics.cpu.cores} Cores)
+              <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full transition-all duration-500",
+                    metrics.ram.usagePercentage > 85 ? "bg-red-500" : metrics.ram.usagePercentage > 70 ? "bg-amber-500" : "bg-emerald-500"
+                  )}
+                  style={{ width: `${metrics.ram.usagePercentage}%` }}
+                />
               </div>
-              <span className="text-sm font-semibold">
-                ~{metrics.cpu.usagePercentage.toFixed(1)}%
-              </span>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Terpakai: {formatBytes(metrics.ram.used)}</span>
+                <span>Total: {formatBytes(metrics.ram.total)}</span>
+              </div>
             </div>
-            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-              <div 
-                className={`h-full transition-all duration-500 ${metrics.cpu.usagePercentage > 85 ? 'bg-red-500' : metrics.cpu.usagePercentage > 70 ? 'bg-amber-500' : 'bg-blue-500'}`}
-                style={{ width: `${metrics.cpu.usagePercentage}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span className="truncate max-w-[150px]" title={metrics.cpu.model}>{metrics.cpu.model}</span>
-              <span>Load Avg: {metrics.cpu.loadAverage[0].toFixed(2)}</span>
-            </div>
-          </div>
 
-          {/* System Info */}
-          <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
-             <div className="flex items-center gap-2 text-sm font-medium mb-2">
+            {/* CPU Usage */}
+            <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Cpu className="h-4 w-4 text-blue-500" />
+                  CPU ({metrics.cpu.cores} Cores)
+                </div>
+                <span className="text-sm font-semibold">~{metrics.cpu.usagePercentage.toFixed(1)}%</span>
+              </div>
+              <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full transition-all duration-500",
+                    metrics.cpu.usagePercentage > 85 ? "bg-red-500" : metrics.cpu.usagePercentage > 70 ? "bg-amber-500" : "bg-blue-500"
+                  )}
+                  style={{ width: `${metrics.cpu.usagePercentage}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span className="truncate max-w-[150px]" title={metrics.cpu.model}>{metrics.cpu.model}</span>
+                <span>Load: {metrics.cpu.loadAverage[0].toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Status Host */}
+            <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
+              <div className="flex items-center gap-2 text-sm font-medium mb-1">
                 <Activity className="h-4 w-4 text-violet-500" />
                 Status Host
               </div>
-             <div className="space-y-2 text-sm">
-                <div className="flex justify-between border-b border-border/50 pb-1">
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
                   <span className="text-muted-foreground">Uptime</span>
                   <span className="font-medium">{formatUptime(metrics.os.uptime)}</span>
                 </div>
-                <div className="flex justify-between border-b border-border/50 pb-1">
-                  <span className="text-muted-foreground">OS Platform</span>
-                  <span className="font-medium">{metrics.os.platform} ({metrics.os.release})</span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Platform</span>
+                  <span className="font-medium">{metrics.os.platform}</span>
                 </div>
-                <div className="flex justify-between pb-1">
-                  <span className="text-muted-foreground">Pembaruan Terakhir</span>
-                  <span className="font-medium text-xs pt-0.5">{new Date(metrics.timestamp).toLocaleTimeString('id-ID')}</span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Last Check</span>
+                  <span className="font-medium">{new Date(metrics.timestamp).toLocaleTimeString('id-ID')}</span>
                 </div>
-             </div>
+              </div>
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-        </div>
-      </CardContent>
-    </Card>
+      {/* PM2 Processes */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {metrics.pm2.map((proc) => (
+          <Card key={proc.name} className="glass border-0 overflow-hidden">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "flex h-12 w-12 items-center justify-center rounded-2xl",
+                  proc.status === "online" ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
+                )}>
+                  <Layers className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm">{proc.name}</h3>
+                    {proc.status === "online" ? (
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3 text-red-500" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                    <span className="flex items-center gap-1"><Cpu className="h-3 w-3" /> {proc.cpu}%</span>
+                    <span className="flex items-center gap-1"><HardDrive className="h-3 w-3" /> {formatBytes(proc.memory)}</span>
+                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {formatRelativeTime(proc.uptime)}</span>
+                  </div>
+                </div>
+              </div>
+              <Badge variant="outline" className={cn(
+                "rounded-lg text-[10px] px-2 py-0.5",
+                proc.status === "online" ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/5" : "border-red-500/30 text-red-600 bg-red-500/5"
+              )}>
+                {proc.status.toUpperCase()}
+              </Badge>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Badge({ children, className, variant }: { children: React.ReactNode, className?: string, variant?: string }) {
+  return (
+    <div className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", className)}>
+      {children}
+    </div>
   )
 }

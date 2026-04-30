@@ -83,7 +83,7 @@ export default function LandingPage() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl btn-gradient text-white font-bold text-sm shadow-lg glow-primary">
               S
             </div>
-            <span className="font-bold text-lg tracking-tight">SaasMasterPro</span>
+            <span className="font-bold text-lg tracking-tight">SchoolPro</span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="#fitur" className="hover:text-foreground transition-colors">Fitur</Link>
@@ -91,7 +91,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login"><Button variant="ghost" className="rounded-xl">Masuk</Button></Link>
-            <Link href="/register">
+            <Link href="/daftarkan-sekolah">
               <Button className="rounded-xl btn-gradient text-white shadow-lg glow-primary border-0">Daftar Gratis</Button>
             </Link>
           </div>
@@ -118,12 +118,12 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              SaasMasterPro menyediakan fondasi lengkap untuk membangun sistem informasi sekolah,
+              SchoolPro menyediakan fondasi lengkap untuk membangun sistem informasi sekolah,
               manajemen agen umroh, dan berbagai aplikasi SaaS lainnya.
             </p>
 
             <div className="flex items-center justify-center gap-4 pt-2">
-              <Link href="/register">
+              <Link href="/daftarkan-sekolah">
                 <Button size="lg" className="gap-2 rounded-xl btn-gradient text-white shadow-xl glow-primary h-12 px-8 text-base border-0">
                   Mulai Sekarang <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -202,7 +202,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/register" className="block">
+                <Link href="/daftarkan-sekolah" className="block">
                   <Button className={`w-full rounded-xl h-11 ${plan.popular ? "btn-gradient text-white shadow-lg border-0" : ""}`} variant={plan.popular ? "default" : "outline"}>
                     Pilih Paket
                   </Button>
@@ -223,7 +223,7 @@ export default function LandingPage() {
               Siap memulai perjalanan <span className="text-gradient">SaaS Anda?</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">Daftar gratis dan mulai bangun aplikasi bisnis Anda dalam hitungan menit.</p>
-            <Link href="/register">
+            <Link href="/daftarkan-sekolah">
               <Button size="lg" className="rounded-xl btn-gradient text-white shadow-xl glow-primary h-12 px-8 text-base gap-2 mt-2 border-0">
                 Daftar Gratis Sekarang <ArrowRight className="h-4 w-4" />
               </Button>
@@ -234,7 +234,7 @@ export default function LandingPage() {
 
       <footer className="border-t glass">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2026 SaasMasterPro. Hak cipta dilindungi.</p>
+          <p>&copy; {new Date().getFullYear()} SchoolPro. Hak cipta dilindungi.</p>
         </div>
       </footer>
     </div>

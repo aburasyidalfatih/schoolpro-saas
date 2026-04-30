@@ -6,6 +6,51 @@ const prisma = new PrismaClient()
 async function main() {
   console.log("🌱 Seeding database...")
 
+  // ==================== SUBSCRIPTION PLANS ====================
+  const freePlan = await prisma.subscriptionPlan.upsert({
+    where: { slug: "free" },
+    update: {},
+    create: {
+      name: "Paket Dasar (Gratis)",
+      slug: "free",
+      description: "Fitur dasar untuk website sekolah. Cocok untuk mulai go digital.",
+      price: 0,
+      interval: "MONTHLY",
+      maxStudents: 0, // Tak terbatas secara UI tapi fitur siswa terkunci
+      maxStorage: 100, // 100MB
+      isActive: true,
+      features: JSON.stringify([
+        "Website Company Profile Dasar",
+        "Modul Berita & Pengumuman",
+        "Galeri Foto & Fasilitas",
+        "Pusat Unduhan (Max 100MB)",
+      ]),
+    },
+  })
+
+  const proPlan = await prisma.subscriptionPlan.upsert({
+    where: { slug: "pro" },
+    update: {},
+    create: {
+      name: "Paket Profesional",
+      slug: "pro",
+      description: "Fitur lengkap termasuk sistem manajemen akademik siswa.",
+      price: 150000,
+      interval: "MONTHLY",
+      maxStudents: 500,
+      maxStorage: 1024, // 1GB
+      isPopular: true,
+      isActive: true,
+      features: JSON.stringify([
+        "Semua fitur Paket Dasar",
+        "Manajemen Data Siswa (Max 500)",
+        "Sistem Absensi Online",
+        "E-Rapor Akademik",
+        "Custom Domain Terpisah",
+      ]),
+    },
+  })
+
   const hashedPassword = await bcrypt.hash("admin123", 12)
 
   // ==================== SUPER ADMIN ====================
@@ -50,6 +95,9 @@ async function main() {
       email: "info@demo-organisasi.com",
       whatsapp: "6281234567890",
       instagram: "demo.organisasi",
+      plan: proPlan.slug,
+      planId: proPlan.id,
+      studentQuota: proPlan.maxStudents,
       services: JSON.stringify([
         { title: "Pengembangan Web", description: "Pembuatan website profesional dengan teknologi terkini untuk meningkatkan kehadiran digital bisnis Anda.", icon: "🌐" },
         { title: "Aplikasi Mobile", description: "Pengembangan aplikasi mobile native dan cross-platform untuk Android dan iOS.", icon: "📱" },
@@ -58,6 +106,21 @@ async function main() {
         { title: "Keamanan Siber", description: "Audit keamanan, penetration testing, dan implementasi sistem keamanan.", icon: "🔒" },
         { title: "Data Analytics", description: "Analisis data dan business intelligence untuk pengambilan keputusan berbasis data.", icon: "📊" },
       ]),
+    },
+  })
+
+  // ==================== INITIAL SUBSCRIPTION ====================
+  await prisma.subscription.upsert({
+    where: { id: "demo-subscription" },
+    update: {},
+    create: {
+      id: "demo-subscription",
+      tenantId: demoTenant.id,
+      planId: proPlan.id,
+      status: "ACTIVE",
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      amount: proPlan.price,
     },
   })
 

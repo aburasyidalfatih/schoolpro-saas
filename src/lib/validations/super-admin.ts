@@ -19,5 +19,19 @@ export const exportSchema = z.object({
   filename: z.string().max(100).optional(),
 })
 
-export type PlatformSettingInput = z.infer<typeof platformSettingSchema>
-export type ExportInput = z.infer<typeof exportSchema>
+export const subscriptionPlanSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Nama paket harus diisi"),
+  slug: z.string().min(1, "Slug harus diisi"),
+  description: z.string().optional(),
+  price: z.number().min(0),
+  interval: z.enum(["MONTHLY", "YEARLY", "ONETIME"]),
+  features: z.string().optional(), // Store as JSON string from UI
+  maxStudents: z.number().min(0),
+  maxStorage: z.number().min(0),
+  isActive: z.boolean().default(true),
+  isPopular: z.boolean().default(false),
+  sortOrder: z.number().default(0),
+})
+
+export type SubscriptionPlanInput = z.infer<typeof subscriptionPlanSchema>

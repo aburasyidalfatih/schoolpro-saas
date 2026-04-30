@@ -2,6 +2,7 @@ import fs from "fs"
 import path from "path"
 import crypto from "crypto"
 import { db } from "@/lib/db"
+import sharp from "sharp"
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads"
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024 // 5MB
@@ -91,8 +92,27 @@ export async function saveFile(
     )
   }
 
-  // === Derive safe extension from MIME type (NOT from user-provided filename) ===
-  const ext = MIME_TO_EXT[file.type] || ""
+  // === Prepare file info ===
+  let buffer = Buffer.from(await file.arrayBuffer())
+  let mimeType = file.type
+  let ext = MIME_TO_EXT[file.type] || ""
+
+  // === Image processing: Convert to WebP (except SVG) ===
+  const isImage = mimeType.startsWith("image/")
+  const isSvg = mimeType === "image/svg+xml"
+  
+  if (isImage && !isSvg) {
+    try {
+      buffer = await sharp(buffer)
+        .webp({ quality: 80 }) // High quality WebP
+        .toBuffer() as any
+      mimeType = "image/webp"
+      ext = ".webp"
+    } catch (error) {
+      console.error("Image processing error:", error)
+      // Fallback to original buffer if sharp fails
+    }
+  }
 
   // === Generate cryptographically random filename ===
   const randomName = crypto.randomBytes(16).toString("hex")
@@ -110,7 +130,6 @@ export async function saveFile(
   }
 
   // === Write file ===
-  const buffer = Buffer.from(await file.arrayBuffer())
   fs.writeFileSync(filePath, buffer)
 
   // === Record in database ===
@@ -119,16 +138,16 @@ export async function saveFile(
       tenantId,
       name: file.name,
       path: filePath,
-      mimeType: file.type,
-      size: file.size,
+      mimeType: mimeType,
+      size: buffer.length,
     },
   })
 
   return {
     path: filePath,
     name: file.name,
-    size: file.size,
-    mimeType: file.type,
+    size: buffer.length,
+    mimeType: mimeType,
   }
 }
 

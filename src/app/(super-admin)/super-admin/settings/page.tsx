@@ -7,59 +7,133 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
   Server, Shield, Eye, EyeOff, Mail, MessageSquare, 
-  CreditCard, Globe, Settings2, Save, ExternalLink 
+  CreditCard, Globe, Settings2, Save, ExternalLink,
+  Send, Smartphone, ShieldCheck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
-import Link from "next/link"
-
-interface Settings {
-  platform_name: string
-  platform_tagline: string
-  allow_impersonate_user: string
-  contact_email: string
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function SuperAdminSettingsPage() {
-  const [settings, setSettings] = useState<Settings>({
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
+  
+  // States for visibility
+  const [showPass, setShowPass] = useState(false)
+  const [showWAToken, setShowWAToken] = useState(false)
+  const [showTripayKey, setShowTripayKey] = useState(false)
+  
+  // Form State
+  const [form, setForm] = useState({
+    // General
     platform_name: "SchoolPro",
     platform_tagline: "Solusi Manajemen Sekolah Digital",
     allow_impersonate_user: "true",
-    contact_email: "support@schoolpro.id"
+    contact_email: "support@schoolpro.id",
+    PRICE_PER_STUDENT: "30000",
+    MIN_STUDENTS: "50",
+    
+    // Email
+    SMTP_HOST: "",
+    SMTP_PORT: "587",
+    SMTP_USER: "",
+    SMTP_PASS: "",
+    SMTP_FROM: "",
+    
+    // WhatsApp
+    STARSENDER_API_KEY: "",
+    STARSENDER_DEVICE_ID: "",
+    
+    // Payment
+    TRIPAY_API_KEY: "",
+    TRIPAY_PRIVATE_KEY: "",
+    TRIPAY_MERCHANT_CODE: "",
+    TRIPAY_MODE: "sandbox",
   })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+
+  const [testEmail, setTestEmail] = useState("")
+  const [testWANumber, setTestWANumber] = useState("")
 
   useEffect(() => {
     fetch("/api/super-admin/settings")
       .then((r) => r.json())
       .then((data) => {
-        setSettings((prev) => ({ ...prev, ...data }))
+        setForm((prev) => ({ ...prev, ...data }))
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [])
 
-  const handleSave = async (data: Partial<Settings>) => {
+  const handleSaveBatch = async (fields: string[]) => {
     setSaving(true)
+    const dataToSave: Record<string, string> = {}
+    fields.forEach(f => {
+      dataToSave[f] = String((form as any)[f])
+    })
+
     const res = await fetch("/api/super-admin/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(dataToSave),
     })
 
     if (res.ok) {
-      setSettings((prev) => ({ ...prev, ...data }))
-      toast({ title: "Berhasil", description: "Pengaturan platform telah diperbarui." })
+      toast({ title: "Berhasil", description: "Pengaturan telah diperbarui." })
     }
     setSaving(false)
   }
 
-  const quickMenus = [
-    { title: "Email SMTP", desc: "Konfigurasi pengiriman email otomatis", icon: Mail, color: "text-blue-500", bg: "bg-blue-500/10", href: "/super-admin/settings/email" },
-    { title: "WhatsApp", desc: "Integrasi gateway WhatsApp StarSender", icon: MessageSquare, color: "text-emerald-500", bg: "bg-emerald-500/10", href: "/super-admin/settings/whatsapp" },
-    { title: "Pembayaran", desc: "Pengaturan API Tripay Platform", icon: CreditCard, color: "text-purple-500", bg: "bg-purple-500/10", href: "/super-admin/settings/payment" },
-  ]
+  const handleTestEmail = async () => {
+    if (!testEmail) { toast({ title: "Isi email tujuan", variant: "destructive" }); return }
+    setTesting(true)
+    try {
+      const res = await fetch("/api/tenant/settings/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "smtp",
+          smtpHost: form.SMTP_HOST, 
+          smtpPort: Number(form.SMTP_PORT),
+          smtpUser: form.SMTP_USER, 
+          smtpPass: form.SMTP_PASS,
+          smtpFrom: form.SMTP_FROM || form.SMTP_USER, 
+          smtpTo: testEmail,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) toast({ title: "✅ Berhasil!", description: data.message })
+      else throw new Error(data.error)
+    } catch (e: any) {
+      toast({ title: "❌ Gagal", description: e.message, variant: "destructive" })
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  const handleTestWA = async () => {
+    if (!testWANumber) { toast({ title: "Isi nomor tujuan", variant: "destructive" }); return }
+    setTesting(true)
+    try {
+      const res = await fetch("/api/tenant/settings/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "whatsapp",
+          waApiKey: form.STARSENDER_API_KEY,
+          waTo: testWANumber,
+          message: "Tes koneksi WhatsApp dari Platform SchoolPro.",
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) toast({ title: "✅ Berhasil!", description: data.message })
+      else throw new Error(data.error)
+    } catch (e: any) {
+      toast({ title: "❌ Gagal", description: e.message, variant: "destructive" })
+    } finally {
+      setTesting(false)
+    }
+  }
 
   if (loading) return <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="skeleton h-32 rounded-2xl" />)}</div>
 
@@ -67,155 +141,295 @@ export default function SuperAdminSettingsPage() {
     <div className="space-y-6 pb-10">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Pengaturan Platform</h1>
-        <p className="text-muted-foreground mt-1">Kelola identitas dan konfigurasi utama seluruh platform.</p>
+        <p className="text-muted-foreground mt-1">Kelola identitas dan integrasi utama seluruh platform dalam satu tempat.</p>
       </div>
 
-      {/* Quick Navigation */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {quickMenus.map((menu) => (
-          <Link key={menu.title} href={menu.href}>
-            <Card className="glass border-0 hover:bg-muted/50 transition-all cursor-pointer group">
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shrink-0 transition-transform group-hover:scale-110", menu.bg)}>
-                  <menu.icon className={cn("h-6 w-6", menu.color)} />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-sm flex items-center gap-1">
-                    {menu.title}
-                    <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50" />
-                  </h3>
-                  <p className="text-xs text-muted-foreground truncate">{menu.desc}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
+      <Tabs defaultValue="general" className="space-y-6">
+        <div className="flex justify-between items-center bg-white/50 p-1 rounded-2xl border backdrop-blur-sm sticky top-0 z-10">
+          <TabsList className="bg-transparent border-0 h-11">
+            <TabsTrigger value="general" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">Umum</TabsTrigger>
+            <TabsTrigger value="email" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">Email & SMTP</TabsTrigger>
+            <TabsTrigger value="whatsapp" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">WhatsApp</TabsTrigger>
+            <TabsTrigger value="payment" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">Pembayaran</TabsTrigger>
+          </TabsList>
+        </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Identitas Platform */}
-        <Card className="glass border-0">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                <Globe className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Identitas Platform</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nama Platform</Label>
-              <Input 
-                value={settings.platform_name} 
-                onChange={(e) => setSettings({...settings, platform_name: e.target.value})}
-                placeholder="SchoolPro" 
-                className="rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Tagline Platform</Label>
-              <Input 
-                value={settings.platform_tagline} 
-                onChange={(e) => setSettings({...settings, platform_tagline: e.target.value})}
-                placeholder="Solusi Manajemen Digital" 
-                className="rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Email Kontak</Label>
-              <Input 
-                value={settings.contact_email} 
-                onChange={(e) => setSettings({...settings, contact_email: e.target.value})}
-                placeholder="support@schoolpro.id" 
-                className="rounded-xl"
-              />
-            </div>
-            <Button 
-              className="w-full gap-2 btn-gradient text-white border-0 rounded-xl"
-              onClick={() => handleSave({
-                platform_name: settings.platform_name,
-                platform_tagline: settings.platform_tagline,
-                contact_email: settings.contact_email
-              })}
-              disabled={saving}
-            >
-              {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
-              <Save className="h-4 w-4" />
-              Simpan Identitas
-            </Button>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          {/* Fitur Global */}
+        {/* --- TAB: UMUM --- */}
+        <TabsContent value="general" className="grid gap-6 lg:grid-cols-2 outline-none">
           <Card className="glass border-0">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                  <Shield className="h-4 w-4 text-primary" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10"><Globe className="h-4 w-4 text-primary" /></div>
+                <CardTitle className="text-lg">Identitas Platform</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Nama Platform</Label>
+                <Input value={form.platform_name} onChange={e => setForm({...form, platform_name: e.target.value})} placeholder="SchoolPro" className="rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label>Tagline Platform</Label>
+                <Input value={form.platform_tagline} onChange={e => setForm({...form, platform_tagline: e.target.value})} placeholder="Solusi Manajemen Digital" className="rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label>Email Kontak</Label>
+                <Input value={form.contact_email} onChange={e => setForm({...form, contact_email: e.target.value})} placeholder="support@schoolpro.id" className="rounded-xl" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
+                <div className="space-y-2">
+                  <Label>Harga per Siswa (Rp/Thn)</Label>
+                  <Input 
+                    type="number" 
+                    value={form.PRICE_PER_STUDENT} 
+                    onChange={e => setForm({...form, PRICE_PER_STUDENT: e.target.value})} 
+                    className="rounded-xl font-bold text-primary" 
+                  />
                 </div>
-                <CardTitle className="text-lg">Keamanan & Fitur</CardTitle>
+                <div className="space-y-2">
+                  <Label>Minimal Siswa</Label>
+                  <Input 
+                    type="number" 
+                    value={form.MIN_STUDENTS} 
+                    onChange={e => setForm({...form, MIN_STUDENTS: e.target.value})} 
+                    className="rounded-xl font-bold" 
+                  />
+                </div>
+              </div>
+
+              <Button 
+                className="w-full gap-2 btn-gradient text-white border-0 rounded-xl"
+                onClick={() => handleSaveBatch(['platform_name', 'platform_tagline', 'contact_email', 'PRICE_PER_STUDENT', 'MIN_STUDENTS'])}
+                disabled={saving}
+              >
+                {saving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save className="h-4 w-4" />}
+                Simpan Identitas & Harga
+              </Button>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-6">
+            <Card className="glass border-0">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10"><Shield className="h-4 w-4 text-primary" /></div>
+                  <CardTitle className="text-lg">Keamanan & Fitur</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <button
+                  onClick={() => {
+                    const newVal = form.allow_impersonate_user === "true" ? "false" : "true"
+                    setForm({...form, allow_impersonate_user: newVal})
+                    handleSaveBatch(['allow_impersonate_user'])
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 text-left",
+                    form.allow_impersonate_user === "true" ? "border-primary bg-primary/5" : "border-transparent bg-muted/50 hover:bg-muted"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", form.allow_impersonate_user === "true" ? "bg-primary/10" : "bg-muted")}>
+                      {form.allow_impersonate_user === "true" ? <Eye className="h-5 w-5 text-primary" /> : <EyeOff className="h-5 w-5 text-muted-foreground" />}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Login Sebagai User</p>
+                      <p className="text-xs text-muted-foreground">Izinkan Super Admin login ke tenant dashboard</p>
+                    </div>
+                  </div>
+                  <div className={cn("h-2.5 w-2.5 rounded-full", form.allow_impersonate_user === "true" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-muted-foreground/30")} />
+                </button>
+              </CardContent>
+            </Card>
+
+            <Card className="glass border-0">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10"><Server className="h-4 w-4 text-primary" /></div>
+                  <CardTitle className="text-lg">Informasi Sistem</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {[
+                  { label: "Status Redis", value: "Tersambung (Optimized)", color: "text-emerald-600" },
+                  { label: "Mode Output", value: "Next.js Standalone", color: "text-primary" },
+                  { label: "Versi Core", value: "15.1.7 (Stable)", color: "" },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center justify-between text-xs px-1">
+                    <span className="text-muted-foreground">{item.label}</span>
+                    <span className={cn("font-medium", item.color)}>{item.value}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* --- TAB: EMAIL & SMTP --- */}
+        <TabsContent value="email" className="grid gap-6 lg:grid-cols-2 outline-none">
+          <Card className="glass border-0">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10"><Mail className="h-4 w-4 text-blue-500" /></div>
+                <CardTitle className="text-lg">Konfigurasi SMTP</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-2">
+                  <Label>SMTP Host</Label>
+                  <Input value={form.SMTP_HOST} onChange={e => setForm({...form, SMTP_HOST: e.target.value})} placeholder="smtp.mailketing.co.id" className="rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Port</Label>
+                  <Input value={form.SMTP_PORT} onChange={e => setForm({...form, SMTP_PORT: e.target.value})} placeholder="587" className="rounded-xl" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Username</Label>
+                <Input value={form.SMTP_USER} onChange={e => setForm({...form, SMTP_USER: e.target.value})} placeholder="user@domain.com" className="rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label>Password / API Key</Label>
+                <div className="relative">
+                  <Input type={showPass ? "text" : "password"} value={form.SMTP_PASS} onChange={e => setForm({...form, SMTP_PASS: e.target.value})} placeholder="••••••••" className="rounded-xl pr-10" />
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Email Pengirim (From)</Label>
+                <Input value={form.SMTP_FROM} onChange={e => setForm({...form, SMTP_FROM: e.target.value})} placeholder="noreply@schoolpro.id" className="rounded-xl" />
+              </div>
+              <Button className="w-full gap-2 btn-gradient text-white border-0 rounded-xl mt-2" onClick={() => handleSaveBatch(['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'SMTP_FROM'])} disabled={saving}>
+                <Save className="h-4 w-4" /> Simpan SMTP
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="glass border-0">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10"><Send className="h-4 w-4 text-emerald-500" /></div>
+                <CardTitle className="text-lg">Uji Coba Pengiriman</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <button
-                onClick={() => handleSave({ allow_impersonate_user: settings.allow_impersonate_user === "true" ? "false" : "true" })}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 text-left",
-                  settings.allow_impersonate_user === "true"
-                    ? "border-primary bg-primary/5"
-                    : "border-transparent bg-muted/50 hover:bg-muted"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-xl",
-                    settings.allow_impersonate_user === "true" ? "bg-primary/10" : "bg-muted"
-                  )}>
-                    {settings.allow_impersonate_user === "true"
-                      ? <Eye className="h-5 w-5 text-primary" />
-                      : <EyeOff className="h-5 w-5 text-muted-foreground" />
-                    }
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Login Sebagai User</p>
-                    <p className="text-xs text-muted-foreground">Izinkan Super Admin login ke tenant dashboard</p>
-                  </div>
-                </div>
-                <div className={cn(
-                  "h-2.5 w-2.5 rounded-full",
-                  settings.allow_impersonate_user === "true" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-muted-foreground/30"
-                )} />
-              </button>
+              <div className="space-y-2">
+                <Label>Email Tujuan</Label>
+                <Input value={testEmail} onChange={e => setTestEmail(e.target.value)} type="email" placeholder="tujuan@gmail.com" className="rounded-xl" />
+              </div>
+              <Button variant="outline" className="w-full rounded-xl gap-2 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/5" onClick={handleTestEmail} disabled={testing || !form.SMTP_HOST}>
+                {testing ? "Mengirim..." : "Kirim Email Test"}
+              </Button>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Informasi Sistem */}
+        {/* --- TAB: WHATSAPP --- */}
+        <TabsContent value="whatsapp" className="grid gap-6 lg:grid-cols-2 outline-none">
           <Card className="glass border-0">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                  <Server className="h-4 w-4 text-primary" />
-                </div>
-                <CardTitle className="text-lg">Informasi Sistem</CardTitle>
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10"><MessageSquare className="h-4 w-4 text-emerald-500" /></div>
+                <CardTitle className="text-lg">StarSender API</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {[
-                { label: "Status Redis", value: "Tersambung (Optimized)", color: "text-emerald-600" },
-                { label: "Mode Output", value: "Next.js Standalone", color: "text-primary" },
-                { label: "Versi Core", value: "15.1.7 (Stable)", color: "" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between text-xs px-1">
-                  <span className="text-muted-foreground">{item.label}</span>
-                  <span className={cn("font-medium", item.color)}>{item.value}</span>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>API Token / Key</Label>
+                <div className="relative">
+                  <Input type={showWAToken ? "text" : "password"} value={form.STARSENDER_API_KEY} onChange={e => setForm({...form, STARSENDER_API_KEY: e.target.value})} placeholder="Token StarSender" className="rounded-xl pr-10" />
+                  <button type="button" onClick={() => setShowWAToken(!showWAToken)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">{showWAToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
                 </div>
-              ))}
+              </div>
+              <div className="space-y-2">
+                <Label>Device ID (Opsional)</Label>
+                <Input value={form.STARSENDER_DEVICE_ID} onChange={e => setForm({...form, STARSENDER_DEVICE_ID: e.target.value})} placeholder="ID Perangkat" className="rounded-xl" />
+              </div>
+              <Button className="w-full gap-2 btn-gradient text-white border-0 rounded-xl mt-2" onClick={() => handleSaveBatch(['STARSENDER_API_KEY', 'STARSENDER_DEVICE_ID'])} disabled={saving}>
+                <Save className="h-4 w-4" /> Simpan WhatsApp
+              </Button>
             </CardContent>
           </Card>
-        </div>
-      </div>
+
+          <Card className="glass border-0">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10"><Smartphone className="h-4 w-4 text-primary" /></div>
+                <CardTitle className="text-lg">Test WhatsApp</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <Label>Nomor Tujuan</Label>
+                <Input value={testWANumber} onChange={e => setTestWANumber(e.target.value)} placeholder="0812345678xx" className="rounded-xl" />
+              </div>
+              <Button variant="outline" className="w-full rounded-xl gap-2 border-primary/30 text-primary hover:bg-primary/5" onClick={handleTestWA} disabled={testing || !form.STARSENDER_API_KEY}>
+                {testing ? "Mengirim..." : "Kirim Pesan Tes"}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* --- TAB: PEMBAYARAN --- */}
+        <TabsContent value="payment" className="grid gap-6 lg:grid-cols-2 outline-none">
+          <Card className="glass border-0">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/10"><CreditCard className="h-4 w-4 text-purple-500" /></div>
+                <CardTitle className="text-lg">Konfigurasi Tripay</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Tripay Mode</Label>
+                <select value={form.TRIPAY_MODE} onChange={e => setForm({...form, TRIPAY_MODE: e.target.value})} className="flex h-10 w-full rounded-xl border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                  <option value="sandbox">Sandbox (Testing)</option>
+                  <option value="live">Live (Produksi)</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Merchant Code</Label>
+                <Input value={form.TRIPAY_MERCHANT_CODE} onChange={e => setForm({...form, TRIPAY_MERCHANT_CODE: e.target.value})} placeholder="TXXXX" className="rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label>API Key</Label>
+                <div className="relative">
+                  <Input type={showTripayKey ? "text" : "password"} value={form.TRIPAY_API_KEY} onChange={e => setForm({...form, TRIPAY_API_KEY: e.target.value})} placeholder="API Key" className="rounded-xl pr-10" />
+                  <button type="button" onClick={() => setShowTripayKey(!showTripayKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">{showTripayKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Private Key</Label>
+                <Input type="password" value={form.TRIPAY_PRIVATE_KEY} onChange={e => setForm({...form, TRIPAY_PRIVATE_KEY: e.target.value})} placeholder="Private Key" className="rounded-xl" />
+              </div>
+              <Button className="w-full gap-2 btn-gradient text-white border-0 rounded-xl mt-2" onClick={() => handleSaveBatch(['TRIPAY_MODE', 'TRIPAY_MERCHANT_CODE', 'TRIPAY_API_KEY', 'TRIPAY_PRIVATE_KEY'])} disabled={saving}>
+                <Save className="h-4 w-4" /> Simpan Pembayaran
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="glass border-0">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10"><ShieldCheck className="h-4 w-4 text-blue-500" /></div>
+                <CardTitle className="text-lg">Informasi Integrasi</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="text-sm space-y-4 text-muted-foreground">
+              <p>API platform digunakan untuk tagihan otomatis upgrade paket langganan tenant.</p>
+              <div className="rounded-xl bg-muted/50 p-4 space-y-2">
+                <p className="font-semibold text-foreground">URL Callback / IPN:</p>
+                <code className="block bg-muted p-2 rounded-lg text-xs break-all">https://schoolpro.id/api/payment/callback</code>
+                <p className="text-[10px]">Daftarkan URL ini di dashboard Tripay Anda.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

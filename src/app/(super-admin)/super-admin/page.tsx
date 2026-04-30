@@ -38,7 +38,7 @@ export default function SuperAdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Super Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Kelola dan pantau seluruh platform SaasMasterPro</p>
+        <p className="text-muted-foreground mt-1">Kelola dan pantau seluruh platform SchoolPro</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

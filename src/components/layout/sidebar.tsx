@@ -44,6 +44,8 @@ import {
   Info,
   Award,
   GraduationCap,
+  HelpCircle,
+  Database,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -132,18 +134,18 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
       items: [
         {
           label: "Akademik & Siswa",
-          href: isPro ? `${basePath}/students` : `${basePath}/billing`,
-          icon: isPro ? Users : Lock,
-          children: isPro ? [
+          href: `${basePath}/students`,
+          icon: Users,
+          children: [
             { label: "Daftar Siswa", href: `${basePath}/students`, icon: UserCog },
             { label: "Absensi", href: `${basePath}/attendance`, icon: ClipboardList },
             { label: "E-Rapor", href: `${basePath}/reports/grades`, icon: FileText },
-          ] : undefined
+          ],
         },
         {
-          label: "Pengguna",
+          label: "Data Master",
           href: `${basePath}/users`,
-          icon: Users,
+          icon: Database,
           children: [
             { label: "Daftar Pengguna", href: `${basePath}/users`, icon: UserCog },
             { label: "Undang Anggota", href: `${basePath}/users/invite`, icon: UserPlus },
@@ -254,9 +256,9 @@ function getSuperAdminMenu(): MenuSection[] {
           ],
         },
         {
-          label: "Pengguna",
+          label: "Data Master",
           href: "/super-admin/users",
-          icon: Users,
+          icon: Database,
           children: [
             { label: "Semua Pengguna", href: "/super-admin/users", icon: UserCog },
             { label: "Super Admin", href: "/super-admin/users/admins", icon: ShieldCheck },
@@ -281,8 +283,6 @@ function getSuperAdminMenu(): MenuSection[] {
     {
       title: "Monitoring",
       items: [
-        { label: "Analitik Platform", href: "/super-admin/analytics", icon: BarChart3 },
-        { label: "Aktivitas Sistem", href: "/super-admin/activity", icon: Activity },
         { label: "Audit Log Global", href: "/super-admin/audit", icon: FileText },
       ],
     },
@@ -293,12 +293,6 @@ function getSuperAdminMenu(): MenuSection[] {
           label: "Pengaturan",
           href: "/super-admin/settings",
           icon: Settings,
-          children: [
-            { label: "Umum", href: "/super-admin/settings", icon: Server },
-            { label: "Email & SMTP", href: "/super-admin/settings/email", icon: Mail },
-            { label: "WhatsApp", href: "/super-admin/settings/whatsapp", icon: Megaphone },
-            { label: "Payment Gateway", href: "/super-admin/settings/payment", icon: CreditCard },
-          ],
         },
       ],
     },
@@ -330,7 +324,7 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
   const currentPlan = (session?.user as any)?.tenants?.[0]?.plan || "free"
 
   // Branding: pakai context (update instan) untuk nama & logo, fallback ke session
-  const brandName = isSuperAdminPath ? "SaasMasterPro" : (branding.name || currentTenant?.name || "SaasMasterPro")
+  const brandName = isSuperAdminPath ? "SchoolPro" : (branding.name || currentTenant?.name || "SchoolPro")
   const brandLogo = isSuperAdminPath ? null : (branding.logo || (currentTenant as any)?.logo || null)
   const brandInitial = brandName.charAt(0).toUpperCase()
 

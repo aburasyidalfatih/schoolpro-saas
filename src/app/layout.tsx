@@ -11,7 +11,7 @@ import { ImpersonateBanner } from "@/components/shared/impersonate-banner"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SaasMasterPro",
+  title: "SchoolPro",
   description: "Platform SaaS Multi-Tenant untuk semua kebutuhan bisnis Anda",
   manifest: "/manifest.json",
 }

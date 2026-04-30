@@ -175,7 +175,10 @@ export function Header() {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={async () => {
+                await signOut({ redirect: false })
+                window.location.href = "/login"
+              }}
               className="flex items-center gap-2 text-destructive rounded-lg"
             >
               <LogOut className="h-4 w-4" />

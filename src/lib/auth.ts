@@ -26,6 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
         twoFactorCode: { label: "2FA Code", type: "text" },
+        hostname: { label: "Hostname", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -45,6 +46,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!isValid) {
           throw new Error("Email atau password salah")
         }
+
+        // --- DOMAIN BASED LOGIN RESTRICTION ---
+        const hostname = (credentials.hostname as string) || ""
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.my.id"
+        const isMainDomain = hostname === rootDomain || hostname === `www.${rootDomain}` || hostname === "localhost"
+
+        if (isMainDomain) {
+          // Hanya Super Admin yang boleh login di domain utama
+          if (!user.isSuperAdmin) {
+            throw new Error("Hanya Super Admin yang dapat login di domain utama.")
+          }
+        } else {
+          // Ini adalah subdomain tenant
+          const slug = hostname.split('.')[0]
+          
+          // Super Admin dilarang login langsung di subdomain
+          if (user.isSuperAdmin) {
+             throw new Error("Super Admin harus login melalui domain utama.")
+          }
+
+          // Cek apakah user terdaftar di tenant ini
+          const belongsToTenant = user.tenants.some(t => t.tenant.slug === slug)
+          if (!belongsToTenant) {
+            throw new Error(`Akses ditolak: Anda tidak terdaftar di sekolah ini.`)
+          }
+        }
+        // --------------------------------------
 
         if (user.twoFactorEnabled) {
           if (!credentials.twoFactorCode) throw new Error("2FA_REQUIRED")
@@ -66,6 +94,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: tu.role,
             theme: tu.tenant.theme || "aurora",
             logo: tu.tenant.logo || null,
+            plan: tu.tenant.plan || "free",
+            planId: tu.tenant.planId || null,
           })),
         }
       },
@@ -75,12 +105,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user, account }) {
       // Handle Google OAuth — auto-create user if not exists
       if (account?.provider === "google" && user.email) {
+        const { headers } = await import("next/headers")
+        const headersList = await headers()
+        const host = headersList.get("host") || ""
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.my.id"
+        const isMainDomain = host === rootDomain || host === `www.${rootDomain}` || host.startsWith("localhost:")
+        
+        let targetTenantSlug: string | null = null
+        if (!isMainDomain) {
+           targetTenantSlug = host.split('.')[0]
+        }
+
         const existing = await db.user.findUnique({
           where: { email: user.email },
         })
+        
         if (!existing) {
-          // Create user + personal tenant
-          const slug = user.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `user-${Date.now().toString(36)}`
           await db.$transaction(async (tx) => {
             const newUser = await tx.user.create({
               data: {
@@ -91,16 +131,53 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 emailVerified: new Date(),
               },
             })
-            const tenant = await tx.tenant.create({
-              data: { name: `${user.name || "User"}'s Org`, slug },
+
+            if (targetTenantSlug) {
+              // Daftar ke subdomain tenant sebagai member/user
+              const existingTenant = await tx.tenant.findUnique({ where: { slug: targetTenantSlug } })
+              if (existingTenant) {
+                 await tx.tenantUser.create({
+                    data: { tenantId: existingTenant.id, userId: newUser.id, role: "member" },
+                 })
+              }
+            } else {
+              // Main domain: Create personal tenant
+              const slug = user.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `user-${Date.now().toString(36)}`
+              const tenant = await tx.tenant.create({
+                data: { name: `${user.name || "User"}'s Org`, slug },
+              })
+              await tx.tenantUser.create({
+                data: { tenantId: tenant.id, userId: newUser.id, role: "owner" },
+              })
+            }
+
+            // Create default notification settings
+            await tx.notificationSetting.createMany({
+              data: [
+                { userId: newUser.id, channel: "inapp", enabled: true },
+                { userId: newUser.id, channel: "email", enabled: true },
+                { userId: newUser.id, channel: "whatsapp", enabled: false },
+              ],
             })
-            await tx.tenantUser.create({
-              data: { tenantId: tenant.id, userId: newUser.id, role: "owner" },
-            })
+
             // Update the user object id for JWT callback
             user.id = newUser.id
           })
         } else {
+          // Jika user sudah ada tapi belum terhubung ke tenant saat ini (dan login dari subdomain)
+          if (targetTenantSlug) {
+             const existingTenant = await db.tenant.findUnique({ where: { slug: targetTenantSlug } })
+             if (existingTenant) {
+               const alreadyMember = await db.tenantUser.findUnique({
+                 where: { tenantId_userId: { tenantId: existingTenant.id, userId: existing.id } }
+               })
+               if (!alreadyMember) {
+                  await db.tenantUser.create({
+                    data: { tenantId: existingTenant.id, userId: existing.id, role: "member" }
+                  })
+               }
+             }
+          }
           user.id = existing.id
         }
       }
@@ -132,6 +209,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: tu.role,
             theme: tu.tenant.theme || "aurora",
             logo: tu.tenant.logo || null,
+            plan: tu.tenant.plan || "free",
+            planId: tu.tenant.planId || null,
           }))
         }
       }
@@ -157,7 +236,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (impersonatedSlug) {
               const tenant = await db.tenant.findUnique({
                 where: { slug: impersonatedSlug },
-                select: { id: true, name: true, slug: true, theme: true, logo: true, plan: true }
+                select: { id: true, name: true, slug: true, theme: true, logo: true, plan: true, planId: true }
               })
               
               if (tenant) {
@@ -171,6 +250,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     theme: tenant.theme || "aurora",
                     logo: tenant.logo || null,
                     plan: tenant.plan || "free",
+                    planId: tenant.planId || null,
                   },
                   ...session.user.tenants.filter(t => t.slug !== impersonatedSlug)
                 ]

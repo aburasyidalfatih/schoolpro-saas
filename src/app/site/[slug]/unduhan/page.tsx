@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { getPublicTenantBySlug } from "@/lib/services/tenant-public"
 import { Download, FileText, ExternalLink, Search } from "lucide-react"
 import { format } from "date-fns"

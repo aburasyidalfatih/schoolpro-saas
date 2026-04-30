@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       await transporter.sendMail({
         from: data.smtpFrom || data.smtpUser,
         to: data.smtpTo,
-        subject: "Test Email — SaasMasterPro",
+        subject: "Test Email — SchoolPro",
         html: `<p>Email test berhasil dikirim dari konfigurasi SMTP tenant Anda.</p><p>Waktu: ${new Date().toLocaleString("id-ID")}</p>`,
       })
       return NextResponse.json({ message: "Email test berhasil dikirim!" })
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           messageType: "text",
           to: data.waPhone,
-          body: `Test pesan dari SaasMasterPro. Waktu: ${new Date().toLocaleString("id-ID")}`,
+          body: `Test pesan dari SchoolPro. Waktu: ${new Date().toLocaleString("id-ID")}`,
         }),
       })
       const result = await res.json()

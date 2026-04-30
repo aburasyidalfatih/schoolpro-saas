@@ -34,7 +34,7 @@ async function getEmailTransporter(tenantId?: string) {
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     }),
     from: process.env.SMTP_FROM,
-    fromName: "SaasMasterPro",
+    fromName: "SchoolPro",
   }
 }
 

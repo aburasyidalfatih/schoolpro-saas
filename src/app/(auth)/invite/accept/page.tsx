@@ -14,8 +14,27 @@ export default function AcceptInvitePage() {
   const router = useRouter()
   const [state, setState] = useState<"loading" | "success" | "error">("loading")
   const [message, setMessage] = useState("")
+  const [isMainDomain, setIsMainDomain] = useState(true)
+  const [tenantNameDisplay, setTenantNameDisplay] = useState<string | null>(null)
 
   useEffect(() => {
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.my.id"
+    const host = window.location.hostname
+    const main = host === rootDomain || host === `www.${rootDomain}` || host === "localhost"
+    setIsMainDomain(main)
+    
+    if (!main) {
+      const slug = host.split('.')[0]
+      fetch(`/api/website/${slug}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.name) {
+            setTenantNameDisplay(data.name)
+          }
+        })
+        .catch(console.error)
+    }
+
     if (status === "unauthenticated") {
       router.push(`/login?callbackUrl=/invite/accept?token=${token}`)
       return
@@ -67,6 +86,7 @@ export default function AcceptInvitePage() {
             </>
           )}
         </div>
+        <p className="text-center text-xs text-muted-foreground mt-6">&copy; {new Date().getFullYear()} {tenantNameDisplay || (isMainDomain ? "SchoolPro" : "Sistem Informasi Sekolah")}</p>
       </div>
     </div>
   )

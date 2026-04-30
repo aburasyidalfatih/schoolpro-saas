@@ -15,6 +15,7 @@ model Tenant {
   logo               String?
   description        String?
   plan               String              @default("free")
+  planId             String?
   theme              String              @default("aurora")
   isActive           Boolean             @default(true)
   settings           Json?
@@ -37,6 +38,8 @@ model Tenant {
   updatedAt          DateTime            @updatedAt
   expiresAt          DateTime?
   studentQuota       Int                 @default(0)
+  subscriptionPlan   SubscriptionPlan?   @relation(fields: [planId], references: [id])
+  subscriptions      Subscription[]
   achievements       Achievement[]
   alumni             Alumni[]
   auditLogs          AuditLog[]
@@ -57,6 +60,7 @@ model Tenant {
 
   @@index([isActive])
   @@index([plan])
+  @@index([planId])
   @@map("tenants")
 }
 
@@ -179,20 +183,22 @@ model NotificationSetting {
 }
 
 model Payment {
-  id        String    @id @default(cuid())
-  tenantId  String
-  reference String    @unique
-  amount    Float
-  method    String?
-  status    String    @default("pending")
-  plan      String
-  tripayRef String?
-  paidAt    DateTime?
-  expiredAt DateTime?
-  metadata  Json?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  tenantId     String
+  planId       String?
+  reference    String        @unique
+  amount       Float
+  method       String?
+  status       String        @default("pending")
+  plan         String
+  tripayRef    String?
+  paidAt       DateTime?
+  expiredAt    DateTime?
+  metadata     Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscription Subscription?
 
   @@index([tenantId])
   @@index([status])
@@ -475,4 +481,46 @@ model Slider {
 
   @@index([tenantId])
   @@map("sliders")
+}
+
+model SubscriptionPlan {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String?
+  price         Float    @default(0)
+  interval      String   @default("MONTHLY") // MONTHLY, YEARLY, ONETIME
+  features      Json?
+  maxStudents   Int      @default(0)
+  maxStorage    Int      @default(0) // MB
+  isActive      Boolean  @default(true)
+  isPopular     Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tenants       Tenant[]
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id           String           @id @default(cuid())
+  tenantId     String
+  planId       String
+  paymentId    String?          @unique
+  status       String           @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED, PENDING
+  startDate    DateTime         @default(now())
+  endDate      DateTime?
+  amount       Float            @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan         SubscriptionPlan @relation(fields: [planId], references: [id])
+  payment      Payment?         @relation(fields: [paymentId], references: [id])
+
+  @@index([tenantId])
+  @@index([planId])
+  @@index([status])
+  @@map("subscriptions")
 }

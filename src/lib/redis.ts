@@ -24,6 +24,8 @@ export interface RedisClient {
   expire(key: string, seconds: number): Promise<void>
   /** Get TTL in seconds (-1 = no expiry, -2 = not exists) */
   ttl(key: string): Promise<number>
+  /** Clear all keys in current database */
+  flush(): Promise<void>
 }
 
 // ==================== UPSTASH ADAPTER ====================
@@ -50,6 +52,7 @@ async function createUpstashClient(): Promise<RedisClient | null> {
       async incr(key) { return client.incr(key) },
       async expire(key, seconds) { await client.expire(key, seconds) },
       async ttl(key) { return client.ttl(key) },
+      async flush() { await client.flushdb() },
     }
   } catch (err) {
     logger.warn("Upstash Redis init failed, falling back", { error: String(err) })
@@ -87,6 +90,7 @@ async function createIoRedisClient(): Promise<RedisClient | null> {
       async incr(key) { return client.incr(key) },
       async expire(key, seconds) { await client.expire(key, seconds) },
       async ttl(key) { return client.ttl(key) },
+      async flush() { await client.flushdb() },
     }
   } catch (err) {
     logger.warn("Local Redis connection failed, falling back to in-memory", { error: String(err) })
@@ -151,6 +155,7 @@ const inMemoryClient: RedisClient = {
     const remaining = Math.ceil((entry.expiresAt - Date.now()) / 1000)
     return remaining > 0 ? remaining : -2
   },
+  async flush() { memStore.clear() },
 }
 
 // ==================== SINGLETON ====================

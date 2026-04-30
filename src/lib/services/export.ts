@@ -12,7 +12,7 @@ export async function exportToExcel(
   sheetName: string = "Data"
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = "SaasMasterPro"
+  workbook.creator = "SchoolPro"
   workbook.created = new Date()
 
   const worksheet = workbook.addWorksheet(sheetName)

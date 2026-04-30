@@ -1,20 +1,188 @@
 "use client"
 
+import { useEffect, useState, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Users } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import {
+  Users, Search, ShieldCheck, Mail, Calendar,
+  Building2, MoreHorizontal, UserCog
+} from "lucide-react"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ServerPagination } from "@/components/shared/server-pagination"
+import { cn } from "@/lib/utils"
+
+interface UserRow {
+  id: string
+  name: string
+  email: string
+  isSuperAdmin: boolean
+  createdAt: string
+  tenants: {
+    role: string
+    tenant: { name: string; slug: string }
+  }[]
+}
 
 export default function UsersPage() {
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
+  const limit = 20
+
+  const fetchUsers = useCallback(() => {
+    setLoading(true)
+    fetch(`/api/super-admin/users?page=${page}&limit=${limit}&search=${search}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setUsers(data.data || [])
+        setTotal(data.total || 0)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [page, search])
+
+  useEffect(() => { fetchUsers() }, [fetchUsers])
+
+  const totalPages = Math.ceil(total / limit)
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Semua Pengguna</h1>
-        <p className="text-muted-foreground mt-1">Kelola semua pengguna di platform</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Manajemen Pengguna</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Kelola seluruh pengguna di platform ({total} pengguna)</p>
+        </div>
       </div>
-      <Card className="glass border-0">
-        <CardContent className="p-12 text-center">
-          <Users className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
-          <p className="text-muted-foreground">Belum ada data</p>
-        </CardContent>
+
+      {/* Search */}
+      <div className="flex items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Cari nama atau email..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            className="pl-9 rounded-xl"
+          />
+        </div>
+      </div>
+
+      {/* Table */}
+      <Card className="glass border-0 overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b bg-muted/30">
+                <th className="px-4 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Nama & Email</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Akses Platform</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Organisasi (Tenant)</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Bergabung</th>
+                <th className="px-4 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-widest">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {loading ? (
+                [...Array(3)].map((_, i) => (
+                  <tr key={i} className="border-b">
+                    <td className="px-4 py-5" colSpan={5}><div className="skeleton h-10 w-full rounded-xl" /></td>
+                  </tr>
+                ))
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-20 text-center">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground/20 mb-4" />
+                    <p className="text-muted-foreground italic">Belum ada pengguna yang terdaftar.</p>
+                  </td>
+                </tr>
+              ) : (
+                users.map((u) => (
+                  <tr key={u.id} className="hover:bg-muted/20 transition-all group">
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted text-muted-foreground font-bold shadow-sm group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate max-w-[150px]">{u.name}</p>
+                          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <Mail className="h-3 w-3" /> {u.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4">
+                      {u.isSuperAdmin ? (
+                        <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20 gap-1.5 rounded-lg px-2 py-1">
+                          <ShieldCheck className="h-3.5 w-3.5" /> Super Admin
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1.5 rounded-lg px-2 py-1">
+                          User Platform
+                        </Badge>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <div className="flex flex-wrap gap-1.5 max-w-[250px]">
+                        {u.tenants.length > 0 ? (
+                          u.tenants.map((tu, i) => (
+                            <div key={i} className="flex items-center gap-1.5 bg-primary/5 text-primary border border-primary/10 rounded-lg px-2 py-0.5">
+                              <Building2 className="h-3 w-3" />
+                              <span className="text-[10px] font-bold uppercase truncate max-w-[100px]" title={tu.tenant.name}>
+                                {tu.tenant.name}
+                              </span>
+                              <span className="text-[9px] opacity-60">({tu.role})</span>
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">Tidak ada organisasi</span>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {new Date(u.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-primary/10 hover:text-primary transition-all">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 glass rounded-2xl p-2 shadow-2xl border-0 ring-1 ring-black/5">
+                          <DropdownMenuItem className="gap-2 rounded-xl h-10 cursor-pointer">
+                            <UserCog className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-sm">Lihat Detail</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-border/40 bg-muted/10">
+            <ServerPagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+          </div>
+        )}
       </Card>
     </div>
   )
