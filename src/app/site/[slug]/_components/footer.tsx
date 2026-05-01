@@ -230,7 +230,7 @@ export function WebsiteFooter({ tenant }: FooterProps) {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
             <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.3)" }}>
-              &copy; {year} {tenant.name}. All rights reserved. <span className="ml-2">v1.0.2 ({process.env.NEXT_PUBLIC_ROOT_DOMAIN || "local"})</span>
+              &copy; {year} {tenant.name}. All rights reserved. <span className="ml-2">v1.0.3 ({process.env.NEXT_PUBLIC_ROOT_DOMAIN || "local"})</span>
             </p>
             <div className="flex gap-4">
               <Link href={resolveHref("/contact")} className="text-[11px] transition-colors hover:text-white/60" style={{ color: "rgba(255,255,255,0.3)" }}>
