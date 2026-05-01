@@ -105,14 +105,23 @@ jobs:
             # Pastikan network external 'shared-proxy' ada
             docker network ls | grep -q "shared-proxy" || docker network create shared-proxy
             
-            # Ekspor image URL agar dibaca oleh docker-compose.yml
+            # Ekspor URL dan Alias
             export APP_IMAGE="ghcr.io/$REPO:$BRANCH"
+            if [ "$BRANCH" = "main" ]; then
+              export APP_ALIAS="schoolpro-prod-app"
+            else
+              export APP_ALIAS="schoolpro-dev-app"
+            fi
             
             # Pull image yang sudah di-build oleh GitHub Actions
             docker compose pull app
             
-            # Restart container dengan image baru
-            docker compose up -d
+            # Restart container dengan image baru (Hindari Nginx di Dev)
+            if [ "$BRANCH" = "main" ]; then
+              docker compose up -d
+            else
+              docker compose up -d app db redis
+            fi
             
             # Logout dari GHCR demi keamanan
             docker logout ghcr.io

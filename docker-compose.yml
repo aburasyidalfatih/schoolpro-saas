@@ -30,6 +30,11 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      default:
+      shared-proxy:
+        aliases:
+          - ${APP_ALIAS:-schoolpro-app}
 
   db:
     image: postgres:16-alpine
