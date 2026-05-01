@@ -46,6 +46,9 @@ import {
   GraduationCap,
   HelpCircle,
   Database,
+  Store,
+  Sparkles,
+  MonitorSmartphone,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -62,8 +65,8 @@ interface MenuItem {
   label: string
   href: string
   icon: LucideIcon
-  badge?: number
-  children?: { label: string; href: string; icon: LucideIcon }[]
+  badge?: number | string
+  children?: { label: string; href: string; icon: LucideIcon; badge?: number | string }[]
 }
 
 interface MenuSection {
@@ -134,14 +137,30 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
       title: "Manajemen",
       items: [
         {
+          label: "PPDB Online",
+          href: `${basePath}/ppdb`,
+          icon: Users,
+        },
+        {
           label: "Akademik & Siswa",
           href: `${basePath}/students`,
           icon: Users,
           children: [
             { label: "Daftar Siswa", href: `${basePath}/students`, icon: UserCog },
+            { label: "Proses Kenaikan", href: `${basePath}/students/promotion`, icon: TrendingUp },
             { label: "Absensi", href: `${basePath}/attendance`, icon: ClipboardList },
             { label: "E-Rapor", href: `${basePath}/reports/grades`, icon: FileText },
           ],
+        },
+        {
+          label: "Keuangan & Kas",
+          href: `${basePath}/finance`,
+          icon: Wallet,
+        },
+        {
+          label: "E-Kantin",
+          href: `${basePath}/canteen`,
+          icon: Store,
         },
         {
           label: "Data Master",
@@ -152,10 +171,18 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
             { label: "Data Guru", href: `${basePath}/users?role=guru`, icon: Users },
             { label: "Data Siswa", href: `${basePath}/users?role=siswa`, icon: Users },
             { label: "Data Orang Tua", href: `${basePath}/users?role=orangtua`, icon: Users },
+            { label: "Ekspor/Impor Data", href: `${basePath}/users/import`, icon: Download },
             { label: "Peran & Izin", href: `${basePath}/users/roles`, icon: ShieldCheck },
           ],
         },
       ],
+    },
+    {
+      title: "Portal & Laporan",
+      items: [
+        { label: "Portal Wali", href: `${basePath}/portal-wali`, icon: MonitorSmartphone },
+        { label: "Laporan Umum", href: `${basePath}/reports`, icon: FileText },
+      ]
     },
     {
       title: "Aktivitas & Pesan",
@@ -163,6 +190,7 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
         { label: "Notifikasi", href: `${basePath}/notifications`, icon: Bell },
         { label: "Pesan", href: `${basePath}/my-messages`, icon: Mail },
         { label: "Dokumen Saya", href: `${basePath}/my-documents`, icon: FolderOpen },
+        { label: "AI Assistant", href: `${basePath}/ai`, icon: Sparkles },
       ],
     },
     {
@@ -483,8 +511,11 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                           {!collapsed && (
                           <span className="flex-1 text-left flex items-center gap-2">
                             {item.label}
-                            {typeof item.badge === 'number' && item.badge > 0 && !collapsed && (
-                              <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white px-1.5">
+                            {item.badge !== undefined && !collapsed && (
+                              <span className={cn(
+                                "ml-auto inline-flex items-center justify-center rounded-full font-bold px-1.5",
+                                typeof item.badge === "number" ? "h-5 min-w-[20px] bg-amber-500 text-[10px] text-white" : "h-4 text-[9px] border border-amber-500/30 text-amber-600 bg-amber-500/10"
+                              )}>
                                 {item.badge}
                               </span>
                             )}
@@ -523,8 +554,11 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                         {!collapsed && (
                           <span className="flex items-center gap-2">
                             {item.label}
-                            {typeof item.badge === 'number' && item.badge > 0 && (
-                              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white px-1.5">
+                            {item.badge !== undefined && (
+                              <span className={cn(
+                                "inline-flex items-center justify-center rounded-full font-bold px-1.5",
+                                typeof item.badge === "number" ? "h-5 min-w-[20px] bg-amber-500 text-[10px] text-white" : "h-4 text-[9px] border border-amber-500/30 text-amber-600 bg-amber-500/10"
+                              )}>
                                 {item.badge}
                               </span>
                             )}
@@ -549,7 +583,14 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                                 )}
                               >
                                 <child.icon className={cn("h-4 w-4 shrink-0", isSubActive ? "text-primary" : "text-muted-foreground/70")} />
-                                <span>{child.label}</span>
+                                <div className="flex flex-1 items-center gap-2">
+                                  <span>{child.label}</span>
+                                  {child.badge !== undefined && (
+                                    <span className="ml-auto inline-flex items-center justify-center rounded-full font-bold px-1.5 h-4 text-[8px] border border-amber-500/30 text-amber-600 bg-amber-500/10 uppercase tracking-widest">
+                                      {child.badge}
+                                    </span>
+                                  )}
+                                </div>
                               </Link>
                             )
                           })}
