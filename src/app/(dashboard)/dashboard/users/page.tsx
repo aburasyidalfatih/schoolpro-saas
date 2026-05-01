@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,6 +32,9 @@ interface UserRow {
 const roleBadge: Record<string, string> = {
   owner: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
   admin: "bg-primary/10 text-primary",
+  guru: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  siswa: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  orangtua: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   member: "bg-muted text-muted-foreground",
 }
 
@@ -41,6 +45,9 @@ export default function UsersPage() {
   const [search, setSearch] = useState("")
   const [showAdd, setShowAdd] = useState(false)
   const [addLoading, setAddLoading] = useState(false)
+
+  const searchParams = useSearchParams()
+  const roleParam = searchParams.get("role")
 
   const tenantId = session?.user?.tenants?.[0]?.id
   const currentRole = session?.user?.tenants?.[0]?.role
@@ -76,11 +83,11 @@ export default function UsersPage() {
   const fetchUsers = useCallback(() => {
     if (!resolvedTenantId || !isAdmin) return
     setLoading(true)
-    fetch(`/api/tenant/users?tenantId=${resolvedTenantId}`)
+    fetch(`/api/tenant/users?tenantId=${resolvedTenantId}${roleParam ? `&role=${roleParam}` : ""}`)
       .then((r) => r.json())
       .then((data) => { setUsers(data.data || []); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [resolvedTenantId, isAdmin])
+  }, [resolvedTenantId, isAdmin, roleParam])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
@@ -159,8 +166,10 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Pengguna</h1>
-          <p className="text-muted-foreground mt-1">Kelola anggota organisasi ({filtered.length} user)</p>
+          <h1 className="text-2xl font-bold tracking-tight capitalize">
+            {roleParam ? `Data ${roleParam === "orangtua" ? "Orang Tua" : roleParam}` : "Semua Pengguna"}
+          </h1>
+          <p className="text-muted-foreground mt-1">Kelola anggota organisasi ({filtered.length} data)</p>
         </div>
         <Button className="gap-2 btn-gradient text-white border-0 rounded-xl" onClick={() => setShowAdd(!showAdd)}>
           <UserPlus className="h-4 w-4" />
@@ -191,9 +200,12 @@ export default function UsersPage() {
             </div>
             <div className="space-y-2">
               <Label>Role</Label>
-              <select name="role" className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
-                <option value="member">Member</option>
+              <select name="role" defaultValue={roleParam || "member"} className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
                 <option value="admin">Admin</option>
+                <option value="guru">Guru</option>
+                <option value="siswa">Siswa</option>
+                <option value="orangtua">Orang Tua</option>
+                <option value="member">Member Umum</option>
               </select>
             </div>
             <div className="flex items-end gap-2">

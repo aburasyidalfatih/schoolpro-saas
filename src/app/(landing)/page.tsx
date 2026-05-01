@@ -234,7 +234,7 @@ export default function LandingPage() {
 
       <footer className="border-t glass">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} SchoolPro. Hak cipta dilindungi. <span className="opacity-50 text-xs ml-2">v1.0.1</span></p>
+          <p>&copy; {new Date().getFullYear()} SchoolPro. Hak cipta dilindungi. <span className="opacity-50 text-xs ml-2">v1.0.2 ({process.env.NEXT_PUBLIC_ROOT_DOMAIN || "local"})</span></p>
         </div>
       </footer>
     </div>

@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         })
 
         await tx.tenantUser.create({
-          data: { tenantId: existingTenant.id, userId: user.id, role: "member" },
+          data: { tenantId: existingTenant.id, userId: user.id, role: "orangtua" },
         })
 
         await tx.notificationSetting.createMany({

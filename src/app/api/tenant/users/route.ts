@@ -12,8 +12,15 @@ export async function GET(req: Request) {
   const tenantId = url.searchParams.get("tenantId")
   if (!tenantId) return NextResponse.json({ error: "tenantId harus diisi" }, { status: 400 })
 
+  const role = url.searchParams.get("role")
+
+  const whereClause: any = { tenantId }
+  if (role) {
+    whereClause.role = role
+  }
+
   const data = await db.tenantUser.findMany({
-    where: { tenantId },
+    where: whereClause,
     include: {
       user: { select: { id: true, name: true, email: true, phone: true, isActive: true, createdAt: true } },
     },

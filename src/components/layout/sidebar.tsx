@@ -148,8 +148,10 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
           href: `${basePath}/users`,
           icon: Database,
           children: [
-            { label: "Daftar Pengguna", href: `${basePath}/users`, icon: UserCog },
-            { label: "Undang Anggota", href: `${basePath}/users/invite`, icon: UserPlus },
+            { label: "Data Admin", href: `${basePath}/users?role=admin`, icon: ShieldCheck },
+            { label: "Data Guru", href: `${basePath}/users?role=guru`, icon: Users },
+            { label: "Data Siswa", href: `${basePath}/users?role=siswa`, icon: Users },
+            { label: "Data Orang Tua", href: `${basePath}/users?role=orangtua`, icon: Users },
             { label: "Peran & Izin", href: `${basePath}/users/roles`, icon: ShieldCheck },
           ],
         },
