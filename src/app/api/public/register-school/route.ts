@@ -1,18 +1,37 @@
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 import { sendApplicationNotification } from "@/lib/services/application"
+import { parseBody } from "@/lib/api-utils"
+
+const registerSchoolSchema = z.object({
+  schoolName: z.string().min(3, "Nama sekolah minimal 3 karakter").max(200),
+  schoolSlug: z
+    .string()
+    .min(3, "Subdomain minimal 3 karakter")
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, "Slug hanya boleh huruf kecil, angka, dan strip"),
+  npsn: z.string().min(8, "NPSN harus 8 digit").max(8, "NPSN harus 8 digit"),
+  schoolStatus: z.enum(["NEGERI", "SWASTA"]).optional().default("SWASTA"),
+  province: z.string().optional(),
+  regency: z.string().optional(),
+  adminName: z.string().min(2, "Nama admin minimal 2 karakter").max(100),
+  adminEmail: z.string().email("Email tidak valid"),
+  adminPhone: z.string().min(10, "Nomor telepon minimal 10 digit").max(15),
+  address: z.string().optional(),
+  logo: z.string().url().optional().nullable(),
+})
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const { 
-      schoolName, schoolSlug, npsn, schoolStatus, 
-      province, regency, adminName, adminEmail, adminPhone, address, logo
-    } = body
+    const parsed = await parseBody(req, registerSchoolSchema)
+    if (parsed.error) return parsed.error
 
-    if (!schoolName || !schoolSlug || !adminEmail || !adminPhone || !npsn) {
-      return NextResponse.json({ error: "Data wajib diisi" }, { status: 400 })
-    }
+    const {
+      schoolName, schoolSlug, npsn, schoolStatus,
+      province, regency, adminName, adminEmail, adminPhone, address, logo
+    } = parsed.data
 
     // Cek ketersediaan slug/subdomain
     const existingTenant = await db.tenant.findUnique({ where: { slug: schoolSlug } })
@@ -44,7 +63,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Pengajuan berhasil dikirim", id: application.id })
   } catch (error) {
-    console.error("Registration error:", error)
+    logger.error("Registration error", error, { path: "/api/public/register-school" })
     return NextResponse.json({ error: "Gagal mengirim pengajuan" }, { status: 500 })
   }
 }

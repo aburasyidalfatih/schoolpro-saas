@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { verifyToken, consumeToken } from "@/lib/services/token"
 import { verifyEmailSchema } from "@/lib/validations/auth"
 import { parseBody } from "@/lib/api-utils"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Email berhasil diverifikasi" })
   } catch (error) {
-    console.error("Verify email error:", error)
+    logger.error("Verify email failed", error, { path: "/api/auth/verify-email" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }

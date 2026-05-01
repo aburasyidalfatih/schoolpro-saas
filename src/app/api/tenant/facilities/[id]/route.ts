@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { logger } from "@/lib/logger"
 
 export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -61,8 +62,9 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     })
 
     return NextResponse.json({ message: "Fasilitas berhasil diperbarui" })
-  } catch (error: any) {
-    return NextResponse.json({ error: "Terjadi kesalahan server", details: error.message }, { status: 500 })
+  } catch (error) {
+    logger.error("Facility update failed", error, { facilityId: params.id })
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 })
   }
 }
 
@@ -94,7 +96,8 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
       }
     })
     return NextResponse.json({ message: "Fasilitas berhasil dihapus" })
-  } catch (error: any) {
-    return NextResponse.json({ error: "Gagal menghapus fasilitas", details: error.message }, { status: 500 })
+  } catch (error) {
+    logger.error("Facility delete failed", error, { facilityId: params.id })
+    return NextResponse.json({ error: "Gagal menghapus fasilitas" }, { status: 500 })
   }
 }

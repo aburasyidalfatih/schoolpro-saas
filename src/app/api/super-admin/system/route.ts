@@ -4,6 +4,7 @@ import { exec } from "child_process"
 import { promisify } from "util"
 import { auth } from "@/lib/auth"
 import { getRedisClient } from "@/lib/redis"
+import { logger } from "@/lib/logger"
 
 const execAsync = promisify(exec)
 
@@ -35,7 +36,7 @@ export async function GET() {
         uptime: Date.now() - p.pm2_env.pm_uptime,
       }))
     } catch (e) {
-      console.error("PM2 fetch failed", e)
+      logger.error("PM2 fetch failed", e)
     }
 
     return NextResponse.json({
@@ -79,7 +80,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error) {
+    logger.error("System action failed", error, { path: "/api/super-admin/system" })
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 })
   }
 }

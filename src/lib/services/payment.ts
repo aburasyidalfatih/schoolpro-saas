@@ -147,6 +147,15 @@ export async function handleCallback(body: TripayCallbackBody) {
 
   if (!payment) return null
 
+  // Idempotency check: jangan proses ulang jika sudah paid/expired
+  if (payment.status === "paid" || payment.status === "expired") {
+    logger.info("[payment] Callback already processed, skipping", {
+      merchantRef: body.merchant_ref,
+      currentStatus: payment.status,
+    })
+    return payment
+  }
+
   // Step 2: Verify callback signature
   const cfg = await getTripayConfig(payment.tenantId)
   if (!verifyCallbackSignature(body, cfg.privateKey)) {

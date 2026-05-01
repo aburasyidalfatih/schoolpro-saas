@@ -5,6 +5,7 @@ import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/services/notification"
 import { inviteSchema } from "@/lib/validations/tenant"
 import { parseBody } from "@/lib/api-utils"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   try {
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Undangan terkirim", invitation })
   } catch (error) {
-    console.error("Invite error:", error)
+    logger.error("Invite failed", error, { path: "/api/tenant/invite" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }

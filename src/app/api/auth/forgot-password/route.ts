@@ -5,9 +5,17 @@ import { sendEmail } from "@/lib/services/notification"
 import { rateLimit } from "@/lib/rate-limit"
 import { forgotPasswordSchema } from "@/lib/validations/auth"
 import { parseBody } from "@/lib/api-utils"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   try {
+    // Rate limit: 5 requests per minute per IP
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "anonymous"
+    const { success } = await rateLimit(`auth:forgot:${ip}`, 5, 60_000)
+    if (!success) {
+      return NextResponse.json({ error: "Terlalu banyak permintaan. Coba lagi nanti." }, { status: 429 })
+    }
+
     const parsed = await parseBody(req, forgotPasswordSchema)
     if (parsed.error) return parsed.error
     const { email } = parsed.data
@@ -34,7 +42,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Jika email terdaftar, link reset akan dikirim." })
   } catch (error) {
-    console.error("Forgot password error:", error)
+    logger.error("Forgot password failed", error, { path: "/api/auth/forgot-password" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }

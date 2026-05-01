@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
       message: `Password untuk ${ownerUser.user.email} berhasil direset` 
     })
   } catch (error) {
-    console.error("Reset password error:", error)
+    logger.error("Reset password failed", error, { path: "/api/super-admin/tenants/reset-password" })
     return NextResponse.json({ error: "Gagal mereset password" }, { status: 500 })
   }
 }

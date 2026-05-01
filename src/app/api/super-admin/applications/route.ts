@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { approveApplication, sendApplicationNotification } from "@/lib/services/application"
+import { logger } from "@/lib/logger"
 
 // Ambil semua daftar pengajuan
 export async function GET() {
@@ -39,8 +40,8 @@ export async function PUT(req: Request) {
       
       return NextResponse.json({ message: `Status diperbarui ke ${status}`, application })
     }
-  } catch (error: any) {
-    console.error("Update application error:", error)
-    return NextResponse.json({ error: error.message || "Gagal memperbarui status" }, { status: 500 })
+  } catch (error) {
+    logger.error("Update application failed", error, { applicationId: id })
+    return NextResponse.json({ error: "Gagal memperbarui status pengajuan" }, { status: 500 })
   }
 }

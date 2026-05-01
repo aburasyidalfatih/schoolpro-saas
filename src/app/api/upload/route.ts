@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { saveFile } from "@/lib/services/upload"
 import path from "path"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   try {
@@ -57,11 +58,12 @@ export async function POST(req: Request) {
         url: publicUrl,
       },
     })
-  } catch (error: any) {
-    if (error.message?.includes("batas maksimum")) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : ""
+    if (errMsg.includes("batas maksimum")) {
+      return NextResponse.json({ error: "Ukuran file melebihi batas maksimum" }, { status: 400 })
     }
-    console.error("Upload error:", error)
+    logger.error("Upload failed", error, { path: "/api/upload" })
     return NextResponse.json({ error: "Upload gagal" }, { status: 500 })
   }
 }

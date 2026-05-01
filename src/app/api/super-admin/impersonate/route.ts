@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 
 // POST: mulai impersonate tenant
 export async function POST(req: Request) {
@@ -32,6 +33,29 @@ export async function POST(req: Request) {
   const owner = tenant.users[0]?.user
   if (!owner) return NextResponse.json({ error: "Tenant tidak punya owner" }, { status: 400 })
 
+  // Audit log: catat impersonation start
+  await db.auditLog.create({
+    data: {
+      userId: session.user.id,
+      action: "IMPERSONATE_START",
+      entity: "Tenant",
+      entityId: tenant.id,
+      newData: {
+        tenantSlug: tenant.slug,
+        tenantName: tenant.name,
+        impersonatedAs: owner.email,
+      },
+      ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+      userAgent: req.headers.get("user-agent") || null,
+    },
+  })
+
+  logger.info("Super admin impersonation started", {
+    adminId: session.user.id,
+    tenantId: tenant.id,
+    tenantSlug: tenant.slug,
+  })
+
   const response = NextResponse.json({
     tenantId: tenant.id,
     tenantSlug: tenant.slug,
@@ -45,18 +69,41 @@ export async function POST(req: Request) {
     path: "/",
     maxAge: 60 * 60,
     sameSite: "lax",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
   })
   response.cookies.set("impersonate-by", session.user.id, {
     path: "/",
     maxAge: 60 * 60,
     sameSite: "lax",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
   })
 
   return response
 }
 
 // DELETE: stop impersonate
-export async function DELETE() {
+export async function DELETE(req: Request) {
+  const session = await auth()
+
+  // Audit log: catat impersonation stop
+  if (session?.user?.id) {
+    await db.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "IMPERSONATE_STOP",
+        entity: "Tenant",
+        ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+        userAgent: req.headers.get("user-agent") || null,
+      },
+    })
+
+    logger.info("Super admin impersonation stopped", {
+      adminId: session.user.id,
+    })
+  }
+
   const response = NextResponse.json({ message: "Impersonate dihentikan" })
   response.cookies.delete("impersonate-tenant")
   response.cookies.delete("impersonate-by")

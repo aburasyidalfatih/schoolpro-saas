@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 
 // GET: list active sessions for current user
 export async function GET() {
@@ -28,7 +29,7 @@ export async function GET() {
 
     return NextResponse.json({ data: sessions })
   } catch (error) {
-    console.error("Sessions list error:", error)
+    logger.error("Sessions list failed", error, { path: "/api/auth/sessions" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }
@@ -59,7 +60,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ message: "Session berhasil dihapus" })
   } catch (error) {
-    console.error("Session revoke error:", error)
+    logger.error("Session revoke failed", error, { path: "/api/auth/sessions" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }

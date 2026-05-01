@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { createUpgradeInvoice } from "@/lib/services/billing"
 import { headers } from "next/headers"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   const session = await auth() as any
@@ -27,7 +28,8 @@ export async function POST(req: Request) {
     const result = await createUpgradeInvoice(tenantId, studentCount)
     
     return NextResponse.json(result)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error) {
+    logger.error("Billing checkout failed", error, { path: "/api/tenant/billing/checkout" })
+    return NextResponse.json({ error: "Terjadi kesalahan saat memproses pembayaran" }, { status: 500 })
   }
 }

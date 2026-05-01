@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   try {
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Berhasil bergabung", tenantId: invitation.tenantId })
   } catch (error) {
-    console.error("Accept invite error:", error)
+    logger.error("Accept invite failed", error, { path: "/api/tenant/invite/accept" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }

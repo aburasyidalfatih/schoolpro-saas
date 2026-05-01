@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { logger } from "@/lib/logger"
 
 export async function GET(req: Request) {
   const session = await auth()
@@ -58,7 +59,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ message: "Fasilitas berhasil ditambahkan", facility })
-  } catch (error: any) {
-    return NextResponse.json({ error: "Terjadi kesalahan server", details: error.message }, { status: 500 })
+  } catch (error) {
+    logger.error("Facility create failed", error, { path: "/api/tenant/facilities" })
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 })
   }
 }

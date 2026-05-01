@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { exportToExcel } from "@/lib/services/export"
 import { exportSchema } from "@/lib/validations/super-admin"
 import { parseBody } from "@/lib/api-utils"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
       },
     })
   } catch (error) {
-    console.error("Export error:", error)
+    logger.error("Export failed", error, { path: "/api/export" })
     return NextResponse.json({ error: "Export gagal" }, { status: 500 })
   }
 }

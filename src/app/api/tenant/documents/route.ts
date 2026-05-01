@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { logger } from "@/lib/logger"
 
 export async function GET(req: Request) {
   const session = await auth()
@@ -62,7 +63,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ message: "Dokumen berhasil diunggah", document })
-  } catch (error: any) {
-    return NextResponse.json({ error: "Terjadi kesalahan server", details: error.message }, { status: 500 })
+  } catch (error) {
+    logger.error("Document upload failed", error, { path: "/api/tenant/documents" })
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 })
   }
 }

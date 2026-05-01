@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { subscriptionPlanSchema } from "@/lib/validations/super-admin"
+import { logger } from "@/lib/logger"
 
 function safeParseFeatures(features: string | undefined): string[] {
   if (!features || features === "[]" || features === "") return []
@@ -43,8 +44,9 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(plan)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+  } catch (error) {
+    logger.error("Plan create failed", error, { path: "/api/super-admin/plans" })
+    return NextResponse.json({ error: "Gagal membuat paket" }, { status: 400 })
   }
 }
 
@@ -68,8 +70,9 @@ export async function PUT(req: Request) {
     })
 
     return NextResponse.json(plan)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+  } catch (error) {
+    logger.error("Plan update failed", error, { path: "/api/super-admin/plans" })
+    return NextResponse.json({ error: "Gagal memperbarui paket" }, { status: 400 })
   }
 }
 
@@ -84,7 +87,8 @@ export async function DELETE(req: Request) {
 
     await db.subscriptionPlan.delete({ where: { id } })
     return NextResponse.json({ message: "Plan deleted" })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+  } catch (error) {
+    logger.error("Plan delete failed", error, { path: "/api/super-admin/plans" })
+    return NextResponse.json({ error: "Gagal menghapus paket" }, { status: 400 })
   }
 }

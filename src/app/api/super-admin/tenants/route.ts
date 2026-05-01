@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 
 export async function GET(req: Request) {
   const session = await auth()
@@ -88,10 +89,12 @@ export async function PUT(req: Request) {
     })
 
     return NextResponse.json({ message: "Tenant berhasil diupdate", data: updated })
-  } catch (error: any) {
-    if (error.code === 'P2002') {
+  } catch (error) {
+    const prismaError = error as any
+    if (prismaError?.code === 'P2002') {
       return NextResponse.json({ error: "Slug atau Domain sudah digunakan" }, { status: 400 })
     }
+    logger.error("Tenant update failed", error, { tenantId: id })
     return NextResponse.json({ error: "Gagal mengupdate tenant" }, { status: 500 })
   }
 }

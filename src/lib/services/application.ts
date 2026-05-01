@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import nodemailer from "nodemailer"
 import bcrypt from "bcryptjs"
+import { logger } from "@/lib/logger"
 
 /**
  * Mengambil pengaturan platform secara dinamis dari database
@@ -64,7 +65,7 @@ export async function sendApplicationNotification(applicationId: string) {
               </div>`
       })
     } catch (err) {
-      console.error("Email notification failed:", err)
+      logger.error("Email notification failed", err)
     }
   }
 
@@ -84,7 +85,7 @@ export async function sendApplicationNotification(applicationId: string) {
         }),
       })
     } catch (err) {
-      console.error("WA notification failed:", err)
+      logger.error("WA notification failed", err)
     }
   }
 }

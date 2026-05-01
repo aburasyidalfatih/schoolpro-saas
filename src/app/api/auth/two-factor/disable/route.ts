@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { disableTwoFactor } from "@/lib/services/two-factor"
 import { z } from "zod"
 import { parseBody } from "@/lib/api-utils"
+import { logger } from "@/lib/logger"
 
 const schema = z.object({
   password: z.string().min(1, "Password harus diisi"),
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "2FA berhasil dinonaktifkan" })
   } catch (error) {
-    console.error("2FA disable error:", error)
+    logger.error("2FA disable failed", error, { path: "/api/auth/two-factor/disable" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }

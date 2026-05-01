@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { headers } from "next/headers"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   const session = await auth() as any
@@ -44,7 +45,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error) {
+    logger.error("Billing cancel failed", error, { path: "/api/tenant/billing/cancel" })
+    return NextResponse.json({ error: "Gagal membatalkan pembayaran" }, { status: 500 })
   }
 }

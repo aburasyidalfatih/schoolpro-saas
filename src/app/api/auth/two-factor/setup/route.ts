@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { generateTwoFactorSecret } from "@/lib/services/two-factor"
+import { logger } from "@/lib/logger"
 
 // POST: generate 2FA secret + QR code
 export async function POST() {
@@ -20,7 +21,7 @@ export async function POST() {
       secret: result.secret,
     })
   } catch (error) {
-    console.error("2FA setup error:", error)
+    logger.error("2FA setup failed", error, { path: "/api/auth/two-factor/setup" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }

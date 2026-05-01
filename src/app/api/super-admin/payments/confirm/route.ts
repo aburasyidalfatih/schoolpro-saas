@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -62,8 +63,8 @@ export async function POST(req: Request) {
       success: true,
       message: `Tenant "${payment.tenant.name}" berhasil diupgrade ke PRO hingga ${expiresAt.toLocaleDateString("id-ID")}.`,
     })
-  } catch (error: any) {
-    console.error("Confirm payment error:", error)
-    return NextResponse.json({ error: error.message || "Terjadi kesalahan" }, { status: 500 })
+  } catch (error) {
+    logger.error("Confirm payment failed", error, { path: "/api/super-admin/payments/confirm" })
+    return NextResponse.json({ error: "Terjadi kesalahan saat konfirmasi pembayaran" }, { status: 500 })
   }
 }

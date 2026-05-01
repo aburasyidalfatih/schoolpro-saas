@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { saveFile } from "@/lib/services/upload"
 import path from "path"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: Request) {
   try {
@@ -50,8 +51,8 @@ export async function POST(req: Request) {
       message: "File berhasil diupload",
       url: publicUrl,
     })
-  } catch (error: any) {
-    console.error("Public upload error:", error)
-    return NextResponse.json({ error: error.message || "Upload gagal" }, { status: 500 })
+  } catch (error) {
+    logger.error("Public upload failed", error, { path: "/api/public/upload" })
+    return NextResponse.json({ error: "Upload gagal" }, { status: 500 })
   }
 }

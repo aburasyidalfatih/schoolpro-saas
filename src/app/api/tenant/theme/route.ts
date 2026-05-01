@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { themeSchema } from "@/lib/validations/tenant"
 import { parseBody } from "@/lib/api-utils"
+import { logger } from "@/lib/logger"
 
 export async function PUT(req: Request) {
   try {
@@ -33,7 +34,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ theme: updated.theme })
   } catch (error) {
-    console.error("Update theme error:", error)
+    logger.error("Update theme failed", error, { path: "/api/tenant/theme" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }

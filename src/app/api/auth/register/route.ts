@@ -4,9 +4,18 @@ import { db } from "@/lib/db"
 import { generateSlug } from "@/lib/utils"
 import { registerSchema } from "@/lib/validations/auth"
 import { parseBody } from "@/lib/api-utils"
+import { logger } from "@/lib/logger"
+import { rateLimit } from "@/lib/rate-limit"
 
 export async function POST(req: Request) {
   try {
+    // Rate limit: 10 requests per minute per IP
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "anonymous"
+    const { success } = await rateLimit(`auth:register:${ip}`, 10, 60_000)
+    if (!success) {
+      return NextResponse.json({ error: "Terlalu banyak permintaan. Coba lagi nanti." }, { status: 429 })
+    }
+
     const parsed = await parseBody(req, registerSchema)
     if (parsed.error) return parsed.error
     const { name, email, password, tenantName, tenantSlug } = parsed.data
@@ -95,7 +104,7 @@ export async function POST(req: Request) {
       tenantSlug: result.tenant.slug,
     })
   } catch (error) {
-    console.error("Register error:", error)
+    logger.error("Register failed", error, { path: "/api/auth/register" })
     return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 })
   }
 }

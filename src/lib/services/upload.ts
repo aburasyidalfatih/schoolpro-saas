@@ -3,6 +3,7 @@ import path from "path"
 import crypto from "crypto"
 import { db } from "@/lib/db"
 import sharp from "sharp"
+import { logger } from "@/lib/logger"
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads"
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024 // 5MB
@@ -109,7 +110,7 @@ export async function saveFile(
       mimeType = "image/webp"
       ext = ".webp"
     } catch (error) {
-      console.error("Image processing error:", error)
+      logger.error("Image processing error", error)
       // Fallback to original buffer if sharp fails
     }
   }

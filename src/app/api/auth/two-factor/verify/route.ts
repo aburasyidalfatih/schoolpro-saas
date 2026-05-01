@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { enableTwoFactor } from "@/lib/services/two-factor"
 import { z } from "zod"
 import { parseBody } from "@/lib/api-utils"
+import { logger } from "@/lib/logger"
 
 const schema = z.object({
   code: z.string().length(6, "Kode OTP harus 6 digit"),
@@ -25,11 +26,12 @@ export async function POST(req: Request) {
       message: "2FA berhasil diaktifkan",
       backupCodes: result.backupCodes,
     })
-  } catch (error: any) {
-    if (error.message === "Kode OTP tidak valid") {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : ""
+    if (errMsg === "Kode OTP tidak valid") {
+      return NextResponse.json({ error: "Kode OTP tidak valid" }, { status: 400 })
     }
-    console.error("2FA verify error:", error)
+    logger.error("2FA verify failed", error, { path: "/api/auth/two-factor/verify" })
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 })
   }
 }
