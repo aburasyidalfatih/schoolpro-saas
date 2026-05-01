@@ -141,7 +141,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="#fitur" className="hover:text-foreground transition-colors">Fitur Terpadu</Link>
             <Link href="#solusi" className="hover:text-foreground transition-colors">Solusi</Link>
-            <Link href="#harga" className="hover:text-foreground transition-colors">Harga</Link>
+
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login"><Button variant="ghost" className="rounded-xl">Masuk</Button></Link>
@@ -316,59 +316,7 @@ export default function LandingPage() {
         </Tabs>
       </section>
 
-      {/* Pricing */}
-      <section id="harga" className="relative overflow-hidden py-28 border-t border-b bg-muted/20">
-        <div className="container relative mx-auto px-4">
-          <div className="text-center mb-16 space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm text-primary font-medium">
-              <CreditCard className="h-3.5 w-3.5" />
-              Investasi Pendidikan
-            </div>
-            <h2 className="text-4xl font-bold tracking-tight">Harga Fleksibel Sesuai Kebutuhan</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Tidak perlu membayar fitur yang belum Anda butuhkan. Skalakan perlahan.
-            </p>
-          </div>
 
-          <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
-            {plans.map((plan) => (
-              <div key={plan.name} className={`glass rounded-3xl p-8 hover-lift relative ${plan.popular ? "ring-2 ring-primary glow-primary transform md:-translate-y-4" : ""}`}>
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full btn-gradient px-4 py-1.5 text-xs font-bold tracking-wider text-white shadow-lg uppercase">
-                    Pilihan Favorit
-                  </div>
-                )}
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-2 min-h-[40px]">{plan.description}</p>
-                  <div className="flex items-baseline gap-1 mt-6">
-                    <span className="text-4xl font-black tracking-tight">{plan.price}</span>
-                    <span className="text-muted-foreground text-sm font-medium">{plan.period}</span>
-                  </div>
-                </div>
-                
-                <div className="h-px w-full bg-border my-6"></div>
-
-                <ul className="space-y-4 mb-8 min-h-[220px]">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-3 text-sm">
-                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 mt-0.5">
-                        <Check className="h-3 w-3 text-primary font-bold" />
-                      </div>
-                      <span className="leading-snug text-foreground/80">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/daftarkan-sekolah" className="block mt-auto">
-                  <Button className={`w-full rounded-xl h-12 font-semibold text-base ${plan.popular ? "btn-gradient text-white shadow-xl glow-primary border-0" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`} variant={plan.popular ? "default" : "secondary"}>
-                    {plan.name === "Enterprise" ? "Hubungi Kami" : "Pilih Paket " + plan.name}
-                  </Button>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* CTA */}
       <section className="container mx-auto px-4 py-28">
