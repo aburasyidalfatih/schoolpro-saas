@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
 import nodemailer from "nodemailer"
+import bcrypt from "bcryptjs"
 
 /**
  * Mengambil pengaturan platform secara dinamis dari database
@@ -25,9 +26,13 @@ export async function sendApplicationNotification(applicationId: string) {
   let message = ""
 
   switch (app.status) {
+    case "PENDING":
+      subject = `Pendaftaran ${app.schoolName} Berhasil Diterima`
+      message = `Halo ${app.adminName},\n\nSelamat! Formulir pendaftaran sekolah ${app.schoolName} telah kami terima dan saat ini sudah masuk ke dalam antrean peninjauan tim kami.\n\nKami akan segera menghubungi Anda kembali setelah proses verifikasi selesai.\n\nTerima kasih.`
+      break
     case "APPROVED":
       subject = `Selamat! Pendaftaran ${app.schoolName} Disetujui`
-      message = `Halo ${app.adminName},\n\nPendaftaran sekolah ${app.schoolName} telah disetujui. Anda sekarang dapat mengakses dashboard sekolah menggunakan email ini.\n\nSilakan login di: https://${app.schoolSlug}.${settings.NEXT_PUBLIC_ROOT_DOMAIN || 'schoolpro.id'}/login\n\nTerima kasih.`
+      message = `Halo ${app.adminName},\n\nPendaftaran sekolah ${app.schoolName} telah disetujui. Anda sekarang dapat mengakses dashboard sekolah menggunakan kredensial berikut:\n\nURL Login: https://${app.schoolSlug}.${settings.NEXT_PUBLIC_ROOT_DOMAIN || 'schoolpro.id'}/login\nEmail: ${app.adminEmail}\nPassword Sementara: schoolpro123\n\n⚠️ PENTING: Harap segera mengganti password Anda setelah berhasil login pertama kali demi keamanan akun Anda.\n\nTerima kasih.`
       break
     case "REVISION":
       subject = `Permintaan Revisi Pendaftaran: ${app.schoolName}`
@@ -115,13 +120,13 @@ export async function approveApplication(id: string) {
   let user = await db.user.findUnique({ where: { email: app.adminEmail } })
   
   if (!user) {
-    // Buat user baru (Password default atau invite link)
-    // Untuk demo ini kita buat user non-aktif yang harus reset password
+    // Buat user baru dengan password standar yang di-hash
+    const hashedPassword = await bcrypt.hash("schoolpro123", 12)
     user = await db.user.create({
       data: {
         name: app.adminName,
         email: app.adminEmail,
-        password: "PASSWORD_NEED_RESET", // Idealnya kirim link set password
+        password: hashedPassword,
         phone: app.adminPhone,
       }
     })

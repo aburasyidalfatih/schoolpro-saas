@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { sendApplicationNotification } from "@/lib/services/application"
 
 export async function POST(req: Request) {
   try {
@@ -37,6 +38,9 @@ export async function POST(req: Request) {
         status: "PENDING"
       }
     })
+
+    // Kirim notifikasi WA status PENDING
+    await sendApplicationNotification(application.id)
 
     return NextResponse.json({ message: "Pengajuan berhasil dikirim", id: application.id })
   } catch (error) {
