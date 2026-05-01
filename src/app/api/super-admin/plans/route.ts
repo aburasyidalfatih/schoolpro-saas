@@ -3,6 +3,19 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { subscriptionPlanSchema } from "@/lib/validations/super-admin"
 
+function safeParseFeatures(features: string | undefined): string[] {
+  if (!features || features === "[]" || features === "") return []
+  try {
+    const parsed = JSON.parse(features)
+    if (Array.isArray(parsed)) {
+      return parsed.filter((f: any) => typeof f === "string" && f.trim() !== "")
+    }
+    return []
+  } catch {
+    return []
+  }
+}
+
 export async function GET() {
   const session = await auth()
   if (!session?.user?.isSuperAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
@@ -25,7 +38,7 @@ export async function POST(req: Request) {
     const plan = await db.subscriptionPlan.create({
       data: {
         ...validated,
-        features: validated.features ? JSON.parse(validated.features) : []
+        features: safeParseFeatures(validated.features)
       }
     })
 
@@ -50,7 +63,7 @@ export async function PUT(req: Request) {
       where: { id },
       data: {
         ...validated,
-        features: validated.features ? JSON.parse(validated.features) : []
+        features: safeParseFeatures(validated.features)
       }
     })
 

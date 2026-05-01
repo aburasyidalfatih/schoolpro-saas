@@ -55,6 +55,9 @@ const nextConfig: NextConfig = {
     workerThreads: false,
     reactCompiler: false,
     optimizePackageImports: ["lucide-react", "recharts", "date-fns", "@radix-ui/react-icons"],
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
   },
   async headers() {
     return [

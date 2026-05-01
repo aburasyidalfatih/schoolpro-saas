@@ -31,8 +31,6 @@ export default function SuperAdminSettingsPage() {
     platform_tagline: "Solusi Manajemen Sekolah Digital",
     allow_impersonate_user: "true",
     contact_email: "support@schoolpro.id",
-    PRICE_PER_STUDENT: "30000",
-    MIN_STUDENTS: "50",
     
     // Email
     SMTP_HOST: "",
@@ -177,34 +175,13 @@ export default function SuperAdminSettingsPage() {
                 <Input value={form.contact_email} onChange={e => setForm({...form, contact_email: e.target.value})} placeholder="support@schoolpro.id" className="rounded-xl" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
-                <div className="space-y-2">
-                  <Label>Harga per Siswa (Rp/Thn)</Label>
-                  <Input 
-                    type="number" 
-                    value={form.PRICE_PER_STUDENT} 
-                    onChange={e => setForm({...form, PRICE_PER_STUDENT: e.target.value})} 
-                    className="rounded-xl font-bold text-primary" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Minimal Siswa</Label>
-                  <Input 
-                    type="number" 
-                    value={form.MIN_STUDENTS} 
-                    onChange={e => setForm({...form, MIN_STUDENTS: e.target.value})} 
-                    className="rounded-xl font-bold" 
-                  />
-                </div>
-              </div>
-
               <Button 
                 className="w-full gap-2 btn-gradient text-white border-0 rounded-xl"
-                onClick={() => handleSaveBatch(['platform_name', 'platform_tagline', 'contact_email', 'PRICE_PER_STUDENT', 'MIN_STUDENTS'])}
+                onClick={() => handleSaveBatch(['platform_name', 'platform_tagline', 'contact_email'])}
                 disabled={saving}
               >
                 {saving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save className="h-4 w-4" />}
-                Simpan Identitas & Harga
+                Simpan Identitas Platform
               </Button>
             </CardContent>
           </Card>

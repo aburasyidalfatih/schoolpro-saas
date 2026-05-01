@@ -1,46 +1,59 @@
-# Panduan Deployment SchoolPro (Optimized v2)
+# Panduan Deployment SchoolPro (Docker Architecture)
 
-Dokumen ini menjelaskan workflow deployment terbaru menggunakan **Next.js 15 Standalone Mode** untuk efisiensi RAM di VPS 4GB.
+Dokumen ini menjelaskan workflow deployment terbaru menggunakan **Docker Compose** yang telah diotomatisasi melalui GitHub Actions.
 
 ## 1. Arsitektur & Lingkungan
-| Project | URL | Port | Mode | PM2 Name |
-| :--- | :--- | :--- | :--- | :--- |
-| **Development** | `schoolpro.my.id` | 3001 | Standalone | `schoolpro-dev` |
-| **Production** | `schoolpro.id` | 3000 | Standalone | `schoolpro-prod` |
+| Lingkungan | URL / Port | Mode | Runner |
+| :--- | :--- | :--- | :--- |
+| **Local Dev** | `localhost:3000` | Development | `npm run dev` (Node.js langsung) |
+| **Local Docker** | `schoolpro.test:80` | Production Clone | `docker-compose up` |
+| **Production** | `schoolpro.id` | Standalone Docker | CI/CD GitHub Actions |
 
 ## 2. Opsi Workflow Deployment
 
 ### OPSI A: Otomatis via GitHub Actions (Rekomendasi Utama)
-Gunakan opsi ini untuk update rutin agar VPS tidak terbebani proses build.
-1.  Kerja di branch `develop`.
-2.  `git add .` -> `git commit` -> `git push origin develop`.
-3.  GitHub Actions akan mem-build di server mereka dan mengirim file jadi ke VPS.
-4.  Aplikasi di VPS akan restart otomatis dalam ~1 detik.
+Workflow utama Anda saat ini sepenuhnya terotomatisasi.
+1. Kerja di branch `develop` atau `main` di komputer lokal Anda.
+2. Lakukan perubahan kode, lalu:
+   ```bash
+   git add .
+   git commit -m "Deskripsi perubahan"
+   git push origin develop
+   ```
+3. GitHub Actions akan secara otomatis (*background*):
+   - Masuk ke VPS Anda via SSH.
+   - Menarik (pull) kode terbaru.
+   - Melakukan `docker compose build --no-cache app`.
+   - Melakukan `docker compose up -d` untuk me-restart layanan.
+4. Anda cukup menunggu ~1-2 menit dan aplikasi di VPS akan terupdate dengan sendirinya tanpa downtime panjang.
 
-### OPSI B: Manual Build di VPS (Khusus Masa Development)
-Gunakan opsi ini jika ingin mengetes fitur baru secara cepat langsung di VPS.
-**⚠️ WAJIB: Matikan project lain agar RAM (4GB) fokus ke proses build.**
-1.  `pm2 stop schoolpro-prod` (Bebaskan RAM).
-2.  `cd /home/ubuntu/schoolpro-dev`.
-3.  `npm run build` (Script sudah dioptimasi dengan limit RAM 2GB).
-4.  `pm2 restart schoolpro-dev`.
-5.  Setelah selesai, jangan lupa `git push` agar kode di VPS dan GitHub tetap sinkron.
+### OPSI B: Manual Build di VPS (Troubleshooting)
+Jika GitHub Actions sedang bermasalah, Anda bisa mendeploy secara manual dengan masuk ke VPS:
+1. Akses VPS via SSH.
+2. Buka folder project: `cd /home/ubuntu/schoolpro-prod` (atau `-dev`).
+3. Tarik kode terbaru: `git pull origin main`
+4. Build ulang image aplikasi: `docker compose build --no-cache app`
+5. Restart aplikasi: `docker compose up -d`
 
-## 3. Perintah Operasional PM2
-Gunakan konfigurasi terpusat di `/home/ubuntu/ecosystem.config.js`:
-- **Restart Semua:** `pm2 delete all && pm2 start /home/ubuntu/ecosystem.config.js`
-- **Cek Status:** `pm2 status`
-- **Lihat Log:** `pm2 logs schoolpro-dev --lines 50`
+## 3. Menjalankan di Lokal (Local Development)
 
-## 4. Konfigurasi Standalone
-Aplikasi kini berjalan menggunakan `.next/standalone/server.js`. 
-- Jangan hapus folder `.next/static` dan `public` karena sudah disinkronkan ke dalam folder standalone.
-- Jika ada penambahan environment variables, update file `.env` di root masing-masing folder project.
+### Mode Pengembangan Cepat (Hot Reload)
+Gunakan mode ini untuk membuat fitur baru atau mengedit UI.
+```bash
+npm run dev
+```
+*(Catatan: Jika Anda mengubah `next.config.ts`, Anda wajib mematikan (`Ctrl+C`) lalu menyalakan ulang `npm run dev`).*
 
-## 5. Aturan Emas VPS 4GB
-1. **Dilarang build dua project bersamaan di VPS.**
-2. **Dilarang menjalankan `next dev` di VPS** (Gunakan build production agar ringan).
-3. Selalu pastikan Swap Memory aktif jika penggunaan RAM fisik mendekati 90%.
+### Menguji Mode Produksi di Lokal (Docker)
+Gunakan ini jika Anda ingin memastikan aplikasi berjalan sempurna seperti di VPS sebelum di-push.
+```bash
+docker-compose up -d --build
+```
+*(Catatan: Jika Anda mengubah pengaturan server seperti batas unggah NGINX, selalu jalankan `docker-compose restart nginx`).*
+
+## 4. Aturan Emas
+1. **Jangan lagi menggunakan PM2**. Keseluruhan arsitektur kita sekarang berjalan dalam ekosistem container (Docker).
+2. Jika ada error `413 Payload Too Large` saat upload gambar di VPS, itu diatur di `client_max_body_size` pada konfigurasi NGINX host VPS Anda (di `/etc/nginx/sites-available/...`), bukan di dalam repository ini.
 
 ---
 *Dibuat oleh Gemini CLI - April 2026*

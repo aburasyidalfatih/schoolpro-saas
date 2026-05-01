@@ -60,8 +60,7 @@ export default async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/_next") || 
     pathname.startsWith("/static") || 
-    pathname.startsWith("/api") ||
-    pathname.includes(".")
+    pathname.includes(".") && !pathname.startsWith("/api")
   ) {
     return addSecurityHeaders(NextResponse.next())
   }
@@ -113,7 +112,9 @@ export default async function middleware(request: NextRequest) {
     if (
       pathname.startsWith("/dashboard") ||
       pathname.startsWith("/login") ||
-      pathname.startsWith("/register")
+      pathname.startsWith("/register") ||
+      pathname.startsWith("/api") ||
+      pathname.startsWith("/invoice")
     ) {
       const response = NextResponse.next()
       response.headers.set("x-tenant-slug", subdomain)
@@ -136,6 +137,15 @@ export default async function middleware(request: NextRequest) {
   if (isCustomDomain) {
     const slug = await resolveCustomDomain(hostname, request.url)
     if (!slug) return addSecurityHeaders(NextResponse.rewrite(new URL("/not-found", request.url)))
+
+    if (pathname.startsWith("/api") || pathname.startsWith("/invoice")) {
+      const response = NextResponse.next()
+      response.headers.set("x-tenant-slug", slug)
+      response.headers.set("x-custom-domain", hostname)
+      response.headers.set("x-hostname", hostname)
+      response.headers.set("x-root-domain", rootDomain)
+      return addSecurityHeaders(response)
+    }
 
     const url = request.nextUrl.clone()
     url.pathname = `/site/${slug}${pathname}`

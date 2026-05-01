@@ -2,37 +2,39 @@ import { Users, BookOpen, Award, Clock } from "lucide-react"
 
 interface Stat { value: string; label: string; icon: string }
 
-const iconMap: Record<string, React.ElementType> = {
-  users: Users, book: BookOpen, award: Award, clock: Clock,
-}
-
 export function StatsBar({ stats }: { stats: Stat[] }) {
+  if (!stats || stats.length === 0) return null
+
   return (
-    /* Directly below hero — same dark background as navbar, NO floating */
-    <section style={{ background: "hsl(var(--primary)/0.92)" }}>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4">
-          {stats.map((stat, i) => {
-            const Icon = iconMap[stat.icon] || Users
-            return (
-              <div
-                key={i}
-                className={`flex items-center gap-4 px-6 py-5 ${
-                  i < stats.length - 1 ? "border-r border-white/15" : ""
-                }`}
-              >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15">
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-extrabold text-white leading-none">{stat.value}</p>
-                  <p className="text-xs text-white/60 mt-0.5 font-medium">{stat.label}</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-20 -mt-20 md:-mt-24 mb-16">
+      <div 
+        className="grid grid-cols-2 md:grid-cols-4 overflow-hidden rounded-2xl border border-white/20 backdrop-blur-xl shadow-2xl relative"
+        style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.95) 0%, hsl(var(--primary)/0.8) 100%)" }}
+      >
+        {/* Subtle inner glow */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-transparent pointer-events-none" />
+
+        {stats.map((stat, i) => (
+          <div
+            key={i}
+            className={`flex flex-col items-center justify-center p-8 text-center relative group overflow-hidden ${
+              i < stats.length - 1 ? "md:border-r border-white/10" : ""
+            } ${i % 2 === 0 ? "border-r md:border-r-0 border-white/10" : ""} ${
+              i < 2 ? "border-b md:border-b-0 border-white/10" : ""
+            }`}
+          >
+             {/* Hover shine effect */}
+             <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
+             
+             <p className="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-md relative z-10">
+               {stat.value}
+             </p>
+             <p className="text-xs md:text-sm font-bold text-white/80 uppercase tracking-widest relative z-10">
+               {stat.label}
+             </p>
+          </div>
+        ))}
       </div>
-    </section>
+    </div>
   )
 }

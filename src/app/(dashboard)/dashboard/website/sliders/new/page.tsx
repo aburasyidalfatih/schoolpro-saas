@@ -46,6 +46,41 @@ export default function NewSliderPage() {
     }
   }
 
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement("img")
+      img.src = URL.createObjectURL(file)
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        let { width, height } = img
+        // Resize to max 1920x1080 to keep it lightweight
+        if (width > 1920) {
+          height = Math.round((height * 1920) / width)
+          width = 1920
+        }
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return resolve(file) // fallback
+        ctx.drawImage(img, 0, 0, width, height)
+        
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file)
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+              type: "image/webp",
+              lastModified: Date.now(),
+            })
+            resolve(compressedFile)
+          },
+          "image/webp",
+          0.8 // 80% quality
+        )
+      }
+      img.onerror = () => resolve(file) // fallback if error
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!tenantId || !file) {
@@ -57,8 +92,12 @@ export default function NewSliderPage() {
 
     try {
       setUploading(true)
+      
+      // Kompres gambar di klien (browser) untuk menghindari batas Nginx/Next.js
+      const compressedFile = await compressImage(file)
+      
       const fd = new FormData()
-      fd.append("file", file)
+      fd.append("file", compressedFile)
       fd.append("tenantId", tenantId)
       fd.append("subDir", "sliders")
       
@@ -217,7 +256,7 @@ export default function NewSliderPage() {
                 {saving ? (
                   <>
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    {uploading ? "Mengunggah..." : "Menyimpan..."}
+                    {uploading ? "Mengunggah & Mengoptimalkan..." : "Menyimpan..."}
                   </>
                 ) : (
                   <><Save className="h-4 w-4" /> Simpan Slide</>

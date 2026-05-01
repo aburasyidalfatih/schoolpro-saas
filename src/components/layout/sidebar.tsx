@@ -50,7 +50,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useTenantBranding } from "@/components/providers/tenant-branding-provider"
 
@@ -62,6 +62,7 @@ interface MenuItem {
   label: string
   href: string
   icon: LucideIcon
+  badge?: number
   children?: { label: string; href: string; icon: LucideIcon }[]
 }
 
@@ -235,7 +236,7 @@ function getMemberMenu(basePath: string): MenuSection[] {
 }
 
 // --- SUPER ADMIN MENU ---
-function getSuperAdminMenu(): MenuSection[] {
+function getSuperAdminMenu(pendingPayments = 0): MenuSection[] {
   return [
     {
       items: [
@@ -273,6 +274,7 @@ function getSuperAdminMenu(): MenuSection[] {
           label: "Pembayaran",
           href: "/super-admin/payments",
           icon: CreditCard,
+          badge: pendingPayments,
           children: [
             { label: "Semua Transaksi", href: "/super-admin/payments", icon: Receipt },
             { label: "Pendapatan", href: "/super-admin/payments/revenue", icon: Wallet },
@@ -313,11 +315,21 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
   const { branding } = useTenantBranding()
   const [collapsed, setCollapsed] = useState(false)
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({})
+  const [pendingPayments, setPendingPayments] = useState(0)
 
   const basePath = "/dashboard"
+  const isSuperAdminPath = pathname.startsWith("/super-admin")
+
+  // Fetch pending payments count for super admin badge
+  useEffect(() => {
+    if (!isSuperAdminPath) return
+    fetch("/api/super-admin/stats")
+      .then(r => r.json())
+      .then(d => setPendingPayments(d.pendingPayments || 0))
+      .catch(() => {})
+  }, [isSuperAdminPath])
 
   // Detect role dari session
-  const isSuperAdminPath = pathname.startsWith("/super-admin")
   const currentTenantSlug = session?.user?.tenants?.[0]?.slug
   const currentTenant = session?.user?.tenants?.find((t) => t.slug === currentTenantSlug) || session?.user?.tenants?.[0]
   const currentRole = currentTenant?.role || "member"
@@ -336,7 +348,7 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
   // Pilih menu berdasarkan role
   let sections: MenuSection[]
   if (isSuperAdminPath) {
-    sections = getSuperAdminMenu()
+    sections = getSuperAdminMenu(pendingPayments)
   } else if (isAdminRole) {
     sections = getTenantMenu(basePath, currentPlan)
   } else {
@@ -466,7 +478,16 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                           )}>
                             <item.icon className="h-[18px] w-[18px]" />
                           </div>
-                          {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
+                          {!collapsed && (
+                          <span className="flex-1 text-left flex items-center gap-2">
+                            {item.label}
+                            {item.badge && item.badge > 0 && !collapsed && (
+                              <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white px-1.5">
+                                {item.badge}
+                              </span>
+                            )}
+                          </span>
+                        )}
                         </Link>
                         {!collapsed && (
                           <button
@@ -497,7 +518,16 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                         )}>
                           <item.icon className="h-[18px] w-[18px]" />
                         </div>
-                        {!collapsed && <span>{item.label}</span>}
+                        {!collapsed && (
+                          <span className="flex items-center gap-2">
+                            {item.label}
+                            {item.badge && item.badge > 0 && (
+                              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white px-1.5">
+                                {item.badge}
+                              </span>
+                            )}
+                          </span>
+                        )}
                       </Link>
                     )}
 

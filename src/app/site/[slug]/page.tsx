@@ -50,13 +50,27 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
       {/* ── Hero ── */}
       <HeroSlider
         base={base}
-        slides={[{
-          subtitle: tenant.name,
-          title: tenant.tagline || `Selamat Datang di\n${tenant.name}`,
-          description: tenant.description || "Kami berkomitmen memberikan layanan terbaik untuk Anda.",
-          cta: { href: `${base}/contact`, label: "Hubungi Kami" },
-          ctaSecondary: { href: `${base}/about`, label: "Tentang Kami" },
-        }]}
+        slides={
+          tenant.sliders && tenant.sliders.length > 0
+            ? tenant.sliders.map((s: any) => ({
+                subtitle: "",
+                title: s.title || tenant.tagline || `Selamat Datang di\n${tenant.name}`,
+                description: s.subtitle || "",
+                image: s.imageUrl,
+                cta: s.buttonText
+                  ? { label: s.buttonText, href: s.buttonLink || "/contact" }
+                  : { href: `/contact`, label: "Hubungi Kami" },
+              }))
+            : [
+                {
+                  subtitle: tenant.name,
+                  title: tenant.tagline || `Selamat Datang di\n${tenant.name}`,
+                  description: tenant.description || "Kami berkomitmen memberikan layanan terbaik untuk Anda.",
+                  cta: { href: `/contact`, label: "Hubungi Kami" },
+                  ctaSecondary: { href: `/about`, label: "Tentang Kami" },
+                },
+              ]
+        }
       />
 
       {/* ── Stats Bar ── */}

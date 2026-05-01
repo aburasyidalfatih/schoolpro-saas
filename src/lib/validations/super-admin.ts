@@ -23,14 +23,14 @@ export const subscriptionPlanSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Nama paket harus diisi"),
   slug: z.string().min(1, "Slug harus diisi"),
-  description: z.string().optional(),
-  price: z.number().min(0),
-  interval: z.enum(["MONTHLY", "YEARLY", "ONETIME"]),
-  features: z.string().optional(), // Store as JSON string from UI
-  maxStudents: z.number().min(0),
-  maxStorage: z.number().min(0),
-  isActive: z.boolean().default(true),
-  isPopular: z.boolean().default(false),
+  description: z.string().optional().nullable(),
+  price: z.number().min(0).default(0),
+  interval: z.enum(["MONTHLY", "YEARLY", "ONETIME"]).default("YEARLY"),
+  features: z.string().optional(), // JSON string from UI
+  maxStudents: z.number().min(0).default(0),
+  maxStorage: z.number().min(0).default(1024),
+  isActive: z.boolean().optional().default(true),
+  isPopular: z.boolean().optional().default(false),
   sortOrder: z.number().default(0),
 })
 

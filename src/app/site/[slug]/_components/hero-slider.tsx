@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, Play } from "lucide-react"
 
@@ -18,89 +18,161 @@ interface HeroSliderProps {
   base: string
 }
 
+const AUTO_INTERVAL = 6000
+const TRANSITION_MS = 600
+
 export function HeroSlider({ slides, base }: HeroSliderProps) {
   const [current, setCurrent] = useState(0)
+  const [prev, setPrev]       = useState<number | null>(null)
+  const [animating, setAnimating] = useState(false)
+  const [direction, setDirection] = useState<"next" | "prev">("next")
+  const [textKey, setTextKey] = useState(0) // forces text re-mount → re-animation
 
+  const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const autoTimer       = useRef<ReturnType<typeof setInterval> | null>(null)
+  const isSingle        = slides.length <= 1
+
+  const goTo = useCallback(
+    (index: number, dir: "next" | "prev") => {
+      if (animating) return
+      setDirection(dir)
+      setPrev(current)
+      setAnimating(true)
+      setCurrent(index)
+      setTextKey((k) => k + 1)
+
+      if (transitionTimer.current) clearTimeout(transitionTimer.current)
+      transitionTimer.current = setTimeout(() => {
+        setPrev(null)
+        setAnimating(false)
+      }, TRANSITION_MS)
+    },
+    [animating, current]
+  )
+
+  // Auto-slide — restart whenever `current` changes so timing is fresh
   useEffect(() => {
-    if (slides.length <= 1) return
-    const t = setInterval(() => setCurrent((p) => (p + 1) % slides.length), 6000)
-    return () => clearInterval(t)
-  }, [slides.length])
+    if (isSingle) return
+    if (autoTimer.current) clearInterval(autoTimer.current)
+    autoTimer.current = setInterval(() => {
+      setCurrent((c) => {
+        const next = (c + 1) % slides.length
+        setDirection("next")
+        setPrev(c)
+        setAnimating(true)
+        setTextKey((k) => k + 1)
+        if (transitionTimer.current) clearTimeout(transitionTimer.current)
+        transitionTimer.current = setTimeout(() => {
+          setPrev(null)
+          setAnimating(false)
+        }, TRANSITION_MS)
+        return next
+      })
+    }, AUTO_INTERVAL)
+    return () => { if (autoTimer.current) clearInterval(autoTimer.current) }
+  }, [slides.length, isSingle])
 
-  const slide = slides[current]
-  const lines = slide.title.split("\\n")
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (autoTimer.current) clearInterval(autoTimer.current)
+      if (transitionTimer.current) clearTimeout(transitionTimer.current)
+    }
+  }, [])
+
+  const slide     = slides[current]
+  const prevSlide = prev !== null ? slides[prev] : null
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ minHeight: "72vh" }}>
-      {/* Background image */}
-      <div className="absolute inset-0">
-        {slide.image ? (
-          <img src={slide.image} alt="" className="w-full h-full object-cover object-center" />
-        ) : (
-          /* Gradient placeholder that looks like a photo background */
-          <div
-            className="w-full h-full"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--primary)/0.9) 0%, hsl(var(--primary)/0.6) 40%, hsl(var(--primary)/0.3) 100%)",
-            }}
-          />
-        )}
-        {/* Left-to-right dark overlay — darker on left where text is */}
+    <section className="relative w-full overflow-hidden" style={{ minHeight: "80vh" }}>
+
+      {/* ── Background layers ── */}
+      {prevSlide && (
         <div
-          className="absolute inset-0"
+          key={`bg-prev-${prev}`}
+          className="absolute inset-0 z-10"
           style={{
-            background: "linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.15) 100%)",
+            animation: `${direction === "next" ? "bgExitLeft" : "bgExitRight"} ${TRANSITION_MS}ms ease forwards`,
           }}
-        />
+        >
+          <SlideBackground slide={prevSlide} />
+        </div>
+      )}
+      <div
+        key={`bg-curr-${current}`}
+        className="absolute inset-0 z-20"
+        style={{
+          animation: animating
+            ? `${direction === "next" ? "bgEnterRight" : "bgEnterLeft"} ${TRANSITION_MS}ms ease forwards`
+            : "none",
+        }}
+      >
+        <SlideBackground slide={slide} />
       </div>
 
-      {/* Content */}
-      <div className="relative flex items-center" style={{ minHeight: "72vh" }}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full py-16">
-          <div className="max-w-xl">
-            {/* Subtitle label */}
-            <p
-              className="text-xs font-bold uppercase tracking-[0.25em] mb-3"
-              style={{ color: "hsl(45 95% 65%)" }}
-            >
-              {slide.subtitle}
-            </p>
+      {/* ── Text + CTA content ── */}
+      <div className="relative z-30 flex items-center" style={{ minHeight: "80vh", paddingBottom: "6rem" }}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full py-20">
+          {/* key forces remount → re-trigger CSS animations */}
+          <div key={textKey}>
 
-            {/* Title — last line in accent color */}
-            <h1 className="text-4xl sm:text-5xl font-extrabold leading-[1.15] text-white mb-5">
-              {lines.map((line, i) => (
-                <span key={i} className="block">
-                  {i === lines.length - 1 ? (
-                    <span style={{ color: "hsl(45 95% 60%)" }}>{line}</span>
-                  ) : (
-                    line
-                  )}
-                </span>
-              ))}
+            {/* Subtitle */}
+            {slide.subtitle && (
+              <div className="flex items-center gap-3 mb-3" style={{ animation: "textFadeUp 0.5s 0.1s ease both" }}>
+                <div className="h-[2px] w-8 bg-amber-400 shrink-0" />
+                <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] text-amber-400 drop-shadow-md whitespace-nowrap">
+                  {slide.subtitle}
+                </p>
+              </div>
+            )}
+
+            {/* Title */}
+            <h1
+              className="font-black leading-[1.15] text-white mb-4 drop-shadow-lg tracking-tight whitespace-nowrap"
+              style={{
+                fontSize: "clamp(1.75rem, 4vw, 3.5rem)",
+                animation: "textFadeUp 0.55s 0.2s ease both",
+              }}
+            >
+              {slide.title.split("\\n").map((line, i, arr) =>
+                i === arr.length - 1 ? (
+                  <span key={i} className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500">
+                    {line}
+                  </span>
+                ) : (
+                  <span key={i} className="block">{line}</span>
+                )
+              )}
             </h1>
 
             {/* Description */}
-            <p className="text-sm text-white/70 leading-relaxed mb-8 max-w-md">
-              {slide.description}
-            </p>
+            {slide.description && (
+              <p
+                className="text-sm sm:text-base text-white/80 leading-relaxed mb-8 max-w-lg font-medium drop-shadow"
+                style={{ animation: "textFadeUp 0.6s 0.3s ease both" }}
+              >
+                {slide.description}
+              </p>
+            )}
 
             {/* CTAs */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-4" style={{ animation: "textFadeUp 0.65s 0.4s ease both" }}>
               <Link
-                href={`${base}${slide.cta.href}`}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold shadow-lg transition-all hover:opacity-90"
-                style={{ background: "hsl(var(--primary))", color: "white" }}
+                href={slide.cta.href.startsWith("http") ? slide.cta.href : `${base}${slide.cta.href}`}
+                className="group/btn relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-white overflow-hidden transition-all hover:scale-105"
+                style={{ background: "hsl(var(--primary))", boxShadow: "0 10px 25px -5px hsl(var(--primary)/0.5)" }}
               >
-                {slide.cta.label}
-                <ChevronRight className="h-4 w-4" />
+                <span className="absolute inset-0 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black" />
+                <span className="relative">{slide.cta.label}</span>
+                <ChevronRight className="relative h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
               </Link>
               {slide.ctaSecondary && (
                 <Link
-                  href={`${base}${slide.ctaSecondary.href}`}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold border-2 border-white/50 text-white hover:bg-white/10 transition-all"
+                  href={slide.ctaSecondary.href.startsWith("http") ? slide.ctaSecondary.href : `${base}${slide.ctaSecondary.href}`}
+                  className="inline-flex items-center gap-3 px-7 py-3.5 rounded-xl text-sm font-bold border border-white/30 bg-white/5 backdrop-blur-md text-white hover:bg-white/20 hover:border-white/50 transition-all shadow-xl"
                 >
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
-                    <Play className="h-3 w-3 fill-white text-white" />
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-black">
+                    <Play className="h-3 w-3 fill-black" />
                   </div>
                   {slide.ctaSecondary.label}
                 </Link>
@@ -110,34 +182,109 @@ export function HeroSlider({ slides, base }: HeroSliderProps) {
         </div>
       </div>
 
-      {/* Slider controls — only if multiple slides */}
-      {slides.length > 1 && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+      {/* ── Navigation Arrows ── */}
+      {!isSingle && (
+        <>
           <button
-            onClick={() => setCurrent((p) => (p - 1 + slides.length) % slides.length)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white transition-colors"
+            onClick={() => goTo((current - 1 + slides.length) % slides.length, "prev")}
+            className="hidden md:flex absolute left-16 top-1/2 -translate-y-1/2 z-40 h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-black/30 backdrop-blur-md text-white hover:bg-white hover:text-black transition-all duration-300 hover:scale-110 shadow-lg"
+            aria-label="Previous slide"
           >
-            <ChevronLeft className="h-3.5 w-3.5" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
-          <div className="flex gap-1.5">
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`rounded-full transition-all duration-300 ${
-                  i === current ? "w-6 h-2 bg-white" : "w-2 h-2 bg-white/40"
-                }`}
+          <button
+            onClick={() => goTo((current + 1) % slides.length, "next")}
+            className="hidden md:flex absolute right-16 top-1/2 -translate-y-1/2 z-40 h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-black/30 backdrop-blur-md text-white hover:bg-white hover:text-black transition-all duration-300 hover:scale-110 shadow-lg"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </>
+      )}
+
+      {/* ── Dot Indicators ── */}
+      {!isSingle && (
+        <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i, i > current ? "next" : "prev")}
+              aria-label={`Go to slide ${i + 1}`}
+              style={{ width: 36, height: 16, display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <span
+                style={{
+                  display: "block",
+                  borderRadius: 9999,
+                  width: i === current ? 32 : 10,
+                  height: 10,
+                  background: i === current ? "hsl(45, 95%, 60%)" : "rgba(255,255,255,0.4)",
+                  boxShadow: i === current ? "0 0 12px 3px rgba(251,191,36,0.7)" : "none",
+                  transition: "all 0.4s ease",
+                }}
               />
-            ))}
-          </div>
-          <button
-            onClick={() => setCurrent((p) => (p + 1) % slides.length)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white transition-colors"
-          >
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
+            </button>
+          ))}
         </div>
       )}
+
+      {/* ── Keyframes ── */}
+      <style>{`
+        @keyframes bgEnterRight {
+          from { opacity: 0; transform: translateX(60px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes bgEnterLeft {
+          from { opacity: 0; transform: translateX(-60px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes bgExitLeft {
+          from { opacity: 1; transform: translateX(0); }
+          to   { opacity: 0; transform: translateX(-60px); }
+        }
+        @keyframes bgExitRight {
+          from { opacity: 1; transform: translateX(0); }
+          to   { opacity: 0; transform: translateX(60px); }
+        }
+        @keyframes textFadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes kenburns {
+          from { transform: scale(1.04) translate(0, 0); }
+          to   { transform: scale(1.10) translate(-1%, -1%); }
+        }
+      `}</style>
     </section>
+  )
+}
+
+function SlideBackground({ slide }: { slide: Slide }) {
+  return (
+    <div className="absolute inset-0">
+      {slide.image ? (
+        <img
+          src={slide.image}
+          alt=""
+          className="w-full h-full object-cover object-center"
+          style={{ animation: "kenburns 20s ease-in-out infinite alternate" }}
+        />
+      ) : (
+        <div
+          className="w-full h-full"
+          style={{
+            background:
+              "linear-gradient(135deg, hsl(var(--primary)/0.9) 0%, hsl(var(--primary)/0.6) 40%, hsl(var(--primary)/0.3) 100%)",
+          }}
+        />
+      )}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.15) 100%)",
+        }}
+      />
+    </div>
   )
 }

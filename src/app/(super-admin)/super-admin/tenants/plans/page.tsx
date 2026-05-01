@@ -5,22 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
-import { 
-  Zap, Star, CheckCircle2, Save, 
-  Users, ShieldCheck, Plus, Edit, Trash2
+import {
+  Zap, Star, CheckCircle2,
+  Users, ShieldCheck, Edit, X, HardDrive, ArrowUpDown, CreditCard, Save
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 
 interface SubscriptionPlan {
   id: string
@@ -44,48 +43,104 @@ export default function PlansPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const fetchPlans = async () => {
+  // Feature input (only the text field, list lives inside editingPlan.features)
+  const [featureInput, setFeatureInput] = useState("")
+
+  // PRO pricing config (only relevant when editing PRO plan)
+  const [pricing, setPricing] = useState({ PRICE_PER_STUDENT: "30000", MIN_STUDENTS: "50" })
+
+  const fetchAll = async () => {
     setLoading(true)
     try {
-      const res = await fetch("/api/super-admin/plans")
-      const data = await res.json()
-      setPlans(data)
-    } catch (error) {
-      toast({ title: "Error", description: "Gagal memuat paket.", variant: "destructive" })
+      const [plansRes, settingsRes] = await Promise.all([
+        fetch("/api/super-admin/plans"),
+        fetch("/api/super-admin/settings"),
+      ])
+      const plansData = await plansRes.json()
+      const settingsData = await settingsRes.json()
+      // Stable order: free always left, pro always right
+      const ORDER = ["free", "pro"]
+      const sorted = [...plansData].sort(
+        (a: any, b: any) => ORDER.indexOf(a.slug) - ORDER.indexOf(b.slug)
+      )
+      setPlans(sorted)
+      setPricing({
+        PRICE_PER_STUDENT: settingsData.PRICE_PER_STUDENT || "30000",
+        MIN_STUDENTS: settingsData.MIN_STUDENTS || "50",
+      })
+    } catch {
+      toast({ title: "Error", description: "Gagal memuat data.", variant: "destructive" })
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchPlans()
-  }, [])
+  useEffect(() => { fetchAll() }, [])
+
+  const openEdit = (plan: SubscriptionPlan) => {
+    // Normalize features: DB may return array OR JSON string (from seed/old saves)
+    let feats: string[] = []
+    if (Array.isArray(plan.features)) {
+      feats = plan.features.filter((f: any) => typeof f === "string")
+    } else if (typeof plan.features === "string" && plan.features) {
+      try { feats = JSON.parse(plan.features) } catch { feats = [] }
+    }
+    setEditingPlan({ ...plan, features: feats })
+    setFeatureInput("")
+    setIsDialogOpen(true)
+  }
+
+  const addFeature = () => {
+    const trimmed = featureInput.trim()
+    if (!trimmed || !editingPlan) return
+    setEditingPlan(prev => ({ ...prev!, features: [...(Array.isArray(prev?.features) ? prev!.features : []), trimmed] }))
+    setFeatureInput("")
+  }
+
+  const removeFeature = (idx: number) => {
+    if (!editingPlan) return
+    setEditingPlan(prev => ({ ...prev!, features: (Array.isArray(prev?.features) ? prev!.features : []).filter((_: any, i: number) => i !== idx) }))
+  }
 
   const handleSave = async () => {
-    if (!editingPlan) return
+    if (!editingPlan?.name?.trim()) {
+      toast({ title: "Validasi", description: "Nama paket wajib diisi.", variant: "destructive" })
+      return
+    }
+
     setSaving(true)
-    
     try {
-      const isNew = !editingPlan.id
+      const isProPlan = editingPlan.slug === "pro"
+
+      // Save plan data — features already stored as array in editingPlan.features
+      const feats = Array.isArray(editingPlan.features) ? editingPlan.features : []
       const res = await fetch("/api/super-admin/plans", {
-        method: isNew ? "POST" : "PUT",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...editingPlan,
-          features: Array.isArray(editingPlan.features) 
-            ? JSON.stringify(editingPlan.features) 
-            : editingPlan.features
+          features: JSON.stringify(feats),
         }),
       })
 
-      if (res.ok) {
-        toast({ title: "Berhasil", description: `Paket berhasil ${isNew ? 'ditambahkan' : 'diperbarui'}.` })
-        setIsDialogOpen(false)
-        fetchPlans()
-      } else {
+      if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || "Gagal menyimpan paket")
       }
+
+      // If PRO plan, also save pricing config
+      if (isProPlan) {
+        const pricingRes = await fetch("/api/super-admin/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pricing),
+        })
+        if (!pricingRes.ok) throw new Error("Gagal menyimpan konfigurasi harga")
+      }
+
+      toast({ title: "Berhasil", description: "Paket berhasil diperbarui." })
+      setIsDialogOpen(false)
+      fetchAll()
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
     } finally {
@@ -93,278 +148,314 @@ export default function PlansPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus paket ini?")) return
-    
-    try {
-      const res = await fetch(`/api/super-admin/plans?id=${id}`, { method: "DELETE" })
-      if (res.ok) {
-        toast({ title: "Berhasil", description: "Paket telah dihapus." })
-        fetchPlans()
-      }
-    } catch (error) {
-      toast({ title: "Error", description: "Gagal menghapus paket.", variant: "destructive" })
-    }
-  }
+  const isProPlan = editingPlan?.slug === "pro"
 
-  if (loading && plans.length === 0) return <div className="space-y-4">{[1, 2].map(i => <div key={i} className="skeleton h-64 rounded-2xl" />)}</div>
+  if (loading && plans.length === 0) {
+    return <div className="space-y-4">{[1, 2].map(i => <div key={i} className="skeleton h-64 rounded-2xl" />)}</div>
+  }
 
   return (
     <div className="space-y-6 pb-10">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Paket & Harga</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Kelola fitur dan konfigurasi paket tetap secara dinamis.</p>
-        </div>
-        <Button 
-          className="gap-2 btn-gradient text-white border-0 rounded-xl" 
-          onClick={() => {
-            setEditingPlan({
-              name: "",
-              slug: "",
-              description: "",
-              price: 0,
-              interval: "MONTHLY",
-              features: "[]",
-              maxStudents: 0,
-              maxStorage: 100,
-              isActive: true,
-              isPopular: false,
-              sortOrder: 0
-            })
-            setIsDialogOpen(true)
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Paket
-        </Button>
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Paket & Harga</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Kelola konfigurasi paket <strong>Free</strong> dan <strong>PRO</strong> platform.
+        </p>
       </div>
 
+      {/* Plan Cards */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {plans.map((plan) => (
-          <Card key={plan.id} className={cn("glass border-0 overflow-hidden relative", plan.isPopular && "ring-2 ring-primary/20")}>
-            <div className={cn("h-2", plan.slug === 'free' ? "bg-slate-400" : "bg-primary")} />
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <div className={cn("p-2.5 rounded-xl", plan.slug === 'free' ? "bg-slate-100 text-slate-600" : "bg-primary/10 text-primary")}>
-                    {plan.slug === 'free' ? <Zap className="h-5 w-5" /> : <Star className={cn("h-5 w-5", plan.isPopular && "fill-primary")} />}
+        {plans.map((plan) => {
+          const feats = Array.isArray(plan.features) ? plan.features : []
+          return (
+            <Card key={plan.id} className={cn("glass border-0 overflow-hidden relative", plan.isPopular && "ring-2 ring-primary/30")}>
+              <div className={cn("h-1.5", plan.slug === "free" ? "bg-slate-400" : "bg-gradient-to-r from-primary to-primary/60")} />
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className={cn("p-2.5 rounded-xl", plan.slug === "free" ? "bg-slate-100 text-slate-600" : "bg-primary/10 text-primary")}>
+                      {plan.slug === "free" ? <Zap className="h-5 w-5" /> : <Star className={cn("h-5 w-5", plan.isPopular && "fill-primary")} />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <CardTitle>{plan.name}</CardTitle>
+                        {plan.isPopular && <Badge className="bg-primary/10 text-primary text-[10px] h-5">Populer</Badge>}
+                        {!plan.isActive && <Badge variant="outline" className="text-[10px] h-5 text-muted-foreground">Nonaktif</Badge>}
+                      </div>
+                      <CardDescription>{plan.description}</CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle>{plan.name}</CardTitle>
-                    <CardDescription>{plan.description}</CardDescription>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => {
-                    setEditingPlan({
-                      ...plan,
-                      features: Array.isArray(plan.features) ? JSON.stringify(plan.features, null, 2) : plan.features
-                    })
-                    setIsDialogOpen(true)
-                  }}>
-                    <Edit className="h-4 w-4" />
+                  <Button variant="outline" size="sm" className="gap-1.5 rounded-xl h-8 text-xs" onClick={() => openEdit(plan)}>
+                    <Edit className="h-3.5 w-3.5" /> Edit
                   </Button>
-                  {plan.slug !== 'free' && plan.slug !== 'pro' && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive" onClick={() => handleDelete(plan.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Price */}
+                <div className="text-3xl font-bold">
+                  {plan.slug === "pro" ? (
+                    <div>
+                      <span className="text-lg text-primary block font-bold">Pay-per-Student</span>
+                      <span className="text-xs font-normal text-muted-foreground">
+                        Rp {Number(pricing.PRICE_PER_STUDENT).toLocaleString("id-ID")} / siswa / tahun · min. {pricing.MIN_STUDENTS} siswa
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      Rp {plan.price.toLocaleString("id-ID")}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        {plan.interval === "MONTHLY" ? " / bulan" : plan.interval === "YEARLY" ? " / tahun" : " / sekali bayar"}
+                      </span>
+                    </>
                   )}
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-3xl font-bold">
-                {plan.slug === 'pro' ? (
-                  <div className="space-y-1">
-                    <span className="text-lg text-primary block">Pay-per-Student</span>
-                    <span className="text-sm font-normal text-muted-foreground italic">Harga diatur di Pengaturan Umum</span>
-                  </div>
-                ) : (
-                  <>
-                    Rp {plan.price.toLocaleString('id-ID')} 
-                    <span className="text-sm font-normal text-muted-foreground">
-                      {plan.interval === 'MONTHLY' ? ' / bulan' : plan.interval === 'YEARLY' ? ' / tahun' : ' / sekali bayar'}
-                    </span>
-                  </>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/50 border border-border/50">
-                  <Label className="text-[10px] uppercase text-muted-foreground block mb-1">Kuota Siswa</Label>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-primary" />
-                    <span className="font-bold text-sm">
-                      {plan.slug === 'pro' ? 'Sesuai Pembelian' : (plan.maxStudents === 0 ? 'Tak Terbatas' : `${plan.maxStudents} Siswa`)}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/50 border border-border/50">
-                  <Label className="text-[10px] uppercase text-muted-foreground block mb-1">Penyimpanan</Label>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-primary" />
-                    <span className="font-bold text-sm">{plan.maxStorage} MB</span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Fitur Utama:</Label>
-                <ul className="space-y-2 text-sm">
-                  {(Array.isArray(plan.features) ? plan.features : []).slice(0, 5).map((f: string, i: number) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                  {(Array.isArray(plan.features) ? plan.features : []).length > 5 && (
-                    <li className="text-xs text-muted-foreground pl-6">+ {(Array.isArray(plan.features) ? plan.features : []).length - 5} fitur lainnya</li>
-                  )}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                {/* Quotas */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                    <p className="text-[10px] uppercase text-muted-foreground mb-1">Kuota Siswa</p>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5 text-primary" />
+                      <span className="font-bold text-sm">
+                        {plan.slug === "pro" ? "Sesuai Pembelian" : plan.maxStudents === 0 ? "Tak Terbatas" : `${plan.maxStudents} siswa`}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                    <p className="text-[10px] uppercase text-muted-foreground mb-1">Penyimpanan</p>
+                    <div className="flex items-center gap-1.5">
+                      <HardDrive className="h-3.5 w-3.5 text-primary" />
+                      <span className="font-bold text-sm">
+                        {plan.maxStorage >= 1024 ? `${(plan.maxStorage / 1024).toFixed(0)} GB` : `${plan.maxStorage} MB`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Features */}
+                {feats.length > 0 && (
+                  <ul className="space-y-1.5">
+                    {feats.slice(0, 5).map((f: string, i: number) => (
+                      <li key={i} className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                    {feats.length > 5 && (
+                      <li className="text-xs text-muted-foreground pl-6">+ {feats.length - 5} fitur lainnya</li>
+                    )}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
-      <Card className="border border-blue-200 bg-blue-50/50">
-        <CardContent className="p-4 flex items-start gap-3">
-          <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5" />
-          <div className="text-xs text-blue-700 leading-relaxed">
-            <p className="font-bold mb-1">Catatan Sistem:</p>
-            <p>Halaman ini untuk mengatur paket dengan harga tetap. Untuk pengaturan harga dinamis **"Pay-per-Student"** (Paket PRO), silakan gunakan menu **Pengaturan Platform -&gt; Umum**.</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Edit/Add Dialog */}
+      {/* ─── Edit Dialog ─── */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl bg-white border-0 shadow-2xl rounded-2xl p-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-6 pb-2">
-            <DialogTitle className="text-xl font-bold">{editingPlan?.id ? 'Edit Detail Paket' : 'Tambah Paket Baru'}</DialogTitle>
-            <DialogDescription>Konfigurasi fitur dan batasan kuota untuk paket ini.</DialogDescription>
+        <DialogContent className="max-w-xl rounded-3xl p-0 overflow-hidden border-0 shadow-2xl">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b border-border/50">
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <div className={cn("p-1.5 rounded-lg", isProPlan ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-600")}>
+                {isProPlan ? <Star className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+              </div>
+              Edit Paket {editingPlan?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Perbarui konfigurasi dan fitur paket ini.
+            </DialogDescription>
           </DialogHeader>
 
           {editingPlan && (
-            <div className="px-6 py-4 space-y-5 overflow-y-auto max-h-[60vh] border-y border-border/50">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-muted-foreground">Nama Paket</Label>
-                  <Input 
-                    value={editingPlan.name} 
-                    onChange={e => setEditingPlan({...editingPlan, name: e.target.value})}
-                    placeholder="Contoh: Paket Bisnis"
-                    className="rounded-xl border border-border/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
+            <div className="px-6 py-5 space-y-5 overflow-y-auto max-h-[70vh]">
+
+              {/* Name + Description */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Nama Paket</Label>
+                  <Input
+                    value={editingPlan.name || ""}
+                    onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
+                    className="rounded-xl"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-muted-foreground">Slug (ID Sistem)</Label>
-                  <Input 
-                    value={editingPlan.slug} 
-                    onChange={e => setEditingPlan({...editingPlan, slug: e.target.value})}
-                    placeholder="contoh: pro"
-                    className="rounded-xl border border-border/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
-                    disabled={editingPlan.slug === 'free' || editingPlan.slug === 'pro'}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Urutan Tampil</Label>
+                  <Input
+                    type="number"
+                    value={editingPlan.sortOrder ?? 0}
+                    onChange={e => setEditingPlan({ ...editingPlan, sortOrder: Number(e.target.value) })}
+                    className="rounded-xl"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Deskripsi</Label>
-                <Input 
-                  value={editingPlan.description || ""} 
-                  onChange={e => setEditingPlan({...editingPlan, description: e.target.value})}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Deskripsi Singkat</Label>
+                <Input
+                  value={editingPlan.description || ""}
+                  onChange={e => setEditingPlan({ ...editingPlan, description: e.target.value })}
                   placeholder="Penjelasan singkat paket"
-                  className="rounded-xl border border-border/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
+                  className="rounded-xl"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-muted-foreground">Harga (Rp)</Label>
-                  <Input 
-                    type="number"
-                    value={editingPlan.price} 
-                    onChange={e => setEditingPlan({...editingPlan, price: Number(e.target.value)})}
-                    className="rounded-xl border border-border/60 focus-visible:ring-primary focus-visible:border-primary transition-all font-bold text-primary"
-                  />
+              {/* Price fields — only for FREE plan */}
+              {!isProPlan && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Harga (Rp)</Label>
+                    <Input
+                      type="number"
+                      value={editingPlan.price || 0}
+                      onChange={e => setEditingPlan({ ...editingPlan, price: Number(e.target.value) })}
+                      className="rounded-xl font-bold text-primary"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Periode Tagihan</Label>
+                    <select
+                      className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      value={editingPlan.interval}
+                      onChange={e => setEditingPlan({ ...editingPlan, interval: e.target.value })}
+                    >
+                      <option value="MONTHLY">Bulanan</option>
+                      <option value="YEARLY">Tahunan</option>
+                      <option value="ONETIME">Sekali Bayar</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-muted-foreground">Interval</Label>
-                  <select 
-                    className="w-full h-10 rounded-xl border border-border/60 focus:ring-2 focus:ring-primary focus:outline-none px-3 text-sm transition-all"
-                    value={editingPlan.interval}
-                    onChange={e => setEditingPlan({...editingPlan, interval: e.target.value})}
-                  >
-                    <option value="MONTHLY">Bulanan</option>
-                    <option value="YEARLY">Tahunan</option>
-                    <option value="ONETIME">Sekali Bayar</option>
-                  </select>
+              )}
+
+              {/* PRO Pricing Config — only for PRO plan */}
+              {isProPlan && (
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    <p className="text-sm font-bold text-primary">Konfigurasi Harga Pay-per-Student</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Harga per Siswa (Rp / Tahun)</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">Rp</span>
+                        <Input
+                          type="number"
+                          value={pricing.PRICE_PER_STUDENT}
+                          onChange={e => setPricing({ ...pricing, PRICE_PER_STUDENT: e.target.value })}
+                          className="rounded-xl pl-8 font-bold text-primary"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Contoh: 50 siswa = Rp {(50 * Number(pricing.PRICE_PER_STUDENT)).toLocaleString("id-ID")}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Minimal Pembelian Siswa</Label>
+                      <Input
+                        type="number"
+                        value={pricing.MIN_STUDENTS}
+                        onChange={e => setPricing({ ...pricing, MIN_STUDENTS: e.target.value })}
+                        className="rounded-xl font-bold"
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Minimal <strong>{pricing.MIN_STUDENTS}</strong> siswa per upgrade.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Quotas */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" /> Kuota Siswa
+                  </Label>
+                  <Input
+                    type="number"
+                    value={editingPlan.maxStudents ?? 0}
+                    onChange={e => setEditingPlan({ ...editingPlan, maxStudents: Number(e.target.value) })}
+                    className="rounded-xl"
+                    disabled={isProPlan}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    {isProPlan ? "Ditentukan saat pembelian" : "Isi 0 untuk tidak terbatas"}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold flex items-center gap-1.5">
+                    <HardDrive className="h-3.5 w-3.5" /> Penyimpanan (MB)
+                  </Label>
+                  <Input
+                    type="number"
+                    value={editingPlan.maxStorage ?? 1024}
+                    onChange={e => setEditingPlan({ ...editingPlan, maxStorage: Number(e.target.value) })}
+                    className="rounded-xl"
+                  />
+                  <p className="text-[10px] text-muted-foreground">1024 = 1 GB, 5120 = 5 GB</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-muted-foreground">Maks Siswa (0=Unlimited)</Label>
-                  <Input 
-                    type="number"
-                    value={editingPlan.maxStudents} 
-                    onChange={e => setEditingPlan({...editingPlan, maxStudents: Number(e.target.value)})}
-                    className="rounded-xl border border-border/60 focus-visible:ring-primary focus-visible:border-primary transition-all px-3 py-2 text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-muted-foreground">Maks Storage (MB)</Label>
-                  <Input 
-                    type="number"
-                    value={editingPlan.maxStorage} 
-                    onChange={e => setEditingPlan({...editingPlan, maxStorage: Number(e.target.value)})}
-                    className="rounded-xl border border-border/60 focus-visible:ring-primary focus-visible:border-primary transition-all px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
+              {/* Sort Order hint removed — moved to top */}
 
+              {/* Feature Builder */}
               <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Fitur (List JSON)</Label>
-                <Textarea 
-                  value={editingPlan.features} 
-                  onChange={e => setEditingPlan({...editingPlan, features: e.target.value})}
-                  placeholder='["Fitur A", "Fitur B"]'
-                  className="rounded-xl border border-border/60 focus-visible:ring-primary focus-visible:border-primary transition-all min-h-[80px] font-mono text-xs"
-                />
+                <Label className="text-xs font-semibold">Fitur Unggulan</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={featureInput}
+                    onChange={e => setFeatureInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addFeature())}
+                    placeholder="Ketik fitur lalu tekan Enter..."
+                    className="rounded-xl flex-1"
+                  />
+                  <Button type="button" variant="outline" className="rounded-xl shrink-0" onClick={addFeature}>
+                    Tambah
+                  </Button>
+                </div>
+                {(() => {
+                  const feats: string[] = Array.isArray(editingPlan?.features) ? editingPlan.features as string[] : []
+                  return feats.length > 0 ? (
+                    <ul className="space-y-1.5 mt-2">
+                      {feats.map((feat, i) => (
+                        <li key={i} className="flex items-center gap-2 rounded-xl bg-muted/40 px-3 py-2 text-sm group">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                          <span className="flex-1">{feat}</span>
+                          <button
+                            onClick={() => removeFeature(i)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Belum ada fitur ditambahkan.</p>
+                  )
+                })()}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/20">
-                  <div className="space-y-0.5">
-                    <Label className="text-xs font-bold">Aktif</Label>
-                    <p className="text-[10px] text-muted-foreground">Tampil di billing</p>
-                  </div>
-                  <Switch 
-                    checked={editingPlan.isActive}
-                    onCheckedChange={checked => setEditingPlan({...editingPlan, isActive: checked})}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/20">
-                  <div className="space-y-0.5">
-                    <Label className="text-xs font-bold">Populer</Label>
-                    <p className="text-[10px] text-muted-foreground">Badge unggulan</p>
-                  </div>
-                  <Switch 
-                    checked={editingPlan.isPopular}
-                    onCheckedChange={checked => setEditingPlan({...editingPlan, isPopular: checked})}
-                  />
-                </div>
-              </div>
             </div>
           )}
 
-          <DialogFooter className="p-6 bg-muted/10 border-t">
-            <Button variant="ghost" className="rounded-xl" onClick={() => setIsDialogOpen(false)}>Batal</Button>
-            <Button className="rounded-xl btn-gradient text-white border-0 px-8" onClick={handleSave} disabled={saving}>
-              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+          <DialogFooter className="px-6 py-4 border-t bg-muted/20 gap-2">
+            <Button variant="ghost" className="rounded-xl" onClick={() => setIsDialogOpen(false)}>
+              Batal
+            </Button>
+            <Button
+              className="rounded-xl btn-gradient text-white border-0 px-8 gap-2"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> Menyimpan...</>
+              ) : (
+                <><Save className="h-4 w-4" /> Simpan Perubahan</>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

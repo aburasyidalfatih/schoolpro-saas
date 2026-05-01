@@ -41,6 +41,7 @@ export async function GET(req: Request) {
     theme: t.theme,
     isActive: t.isActive,
     createdAt: t.createdAt,
+    studentQuota: t.studentQuota,
     userCount: t._count.users,
     owner: t.users[0]?.user || null,
   }))

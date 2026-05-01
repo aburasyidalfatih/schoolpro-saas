@@ -24,21 +24,7 @@ export async function getPricingConfig() {
 }
 
 /**
- * Mendapatkan pengaturan Tripay Platform dari Database
- */
-async function getTripayConfig() {
-  const settings = await db.platformSetting.findMany({
-    where: {
-      key: { in: ['TRIPAY_API_KEY', 'TRIPAY_PRIVATE_KEY', 'TRIPAY_MERCHANT_CODE', 'TRIPAY_MODE'] }
-    }
-  })
-  const config: Record<string, string> = {}
-  settings.forEach(s => config[s.key] = s.value)
-  return config
-}
-
-/**
- * Membuat Invoice Tripay untuk Upgrade ke PRO
+ * Membuat Invoice untuk Upgrade ke PRO (tanpa Tripay - manual confirm)
  */
 export async function createUpgradeInvoice(tenantId: string, studentCount: number) {
   const pricing = await getPricingConfig()
@@ -50,31 +36,37 @@ export async function createUpgradeInvoice(tenantId: string, studentCount: numbe
   const tenant = await db.tenant.findUnique({ where: { id: tenantId } })
   if (!tenant) throw new Error("Tenant tidak ditemukan")
 
-  const config = await getTripayConfig()
   const amount = studentCount * pricing.PRICE_PER_STUDENT
-  const reference = `INV-${Date.now()}-${tenant.slug}`
+  const reference = `INV-${Date.now()}-${tenant.slug.toUpperCase()}`
+  const expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 jam
 
-  // 1. Catat ke tabel Payment sebagai PENDING
-  await db.payment.create({
+  // Catat ke tabel Payment sebagai PENDING
+  const payment = await db.payment.create({
     data: {
       tenantId: tenant.id,
       reference,
       amount,
       plan: "pro",
       status: "pending",
+      expiredAt,
       metadata: {
         studentCount,
-        pricePerStudent: pricing.PRICE_PER_STUDENT
+        pricePerStudent: pricing.PRICE_PER_STUDENT,
+        tenantName: tenant.name,
+        tenantSlug: tenant.slug,
       }
     }
   })
 
-  // 2. Request ke Tripay API
-  const url = config.TRIPAY_MODE === 'live' 
-    ? 'https://tripay.co.id/api/transaction/create' 
-    : 'https://tripay.co.id/api-sandbox/transaction/create'
-
-  // Catatan: Detail integrasi Tripay (signature, dll) diasumsikan 
-  // ditangani oleh helper payment yang lebih spesifik.
-  return { reference, amount, checkoutUrl: "#" } 
+  return {
+    id: payment.id,
+    reference: payment.reference,
+    amount: payment.amount,
+    studentCount,
+    pricePerStudent: pricing.PRICE_PER_STUDENT,
+    tenantName: tenant.name,
+    expiredAt: payment.expiredAt,
+    status: payment.status,
+    createdAt: payment.createdAt,
+  }
 }

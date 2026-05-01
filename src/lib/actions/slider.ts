@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { sliderSchema } from "@/lib/validations/slider"
 import { revalidatePath } from "next/cache"
+import { invalidatePublicTenantCache } from "@/lib/services/tenant-public"
 
 async function checkTenantAccess(tenantId: string) {
   const session = await auth()
@@ -59,6 +60,8 @@ export async function createSlider(tenantId: string, data: any) {
   })
   
   revalidatePath("/(dashboard)/dashboard/website/sliders", "page")
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { slug: true } })
+  if (tenant) await invalidatePublicTenantCache(tenant.slug)
   return slider
 }
 
@@ -73,6 +76,8 @@ export async function updateSlider(id: string, tenantId: string, data: any) {
   })
   
   revalidatePath("/(dashboard)/dashboard/website/sliders", "page")
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { slug: true } })
+  if (tenant) await invalidatePublicTenantCache(tenant.slug)
 }
 
 export async function deleteSlider(id: string, tenantId: string) {
@@ -83,6 +88,8 @@ export async function deleteSlider(id: string, tenantId: string) {
   })
   
   revalidatePath("/(dashboard)/dashboard/website/sliders", "page")
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { slug: true } })
+  if (tenant) await invalidatePublicTenantCache(tenant.slug)
 }
 
 export async function toggleSliderStatus(id: string, tenantId: string, isActive: boolean) {
@@ -94,4 +101,6 @@ export async function toggleSliderStatus(id: string, tenantId: string, isActive:
   })
   
   revalidatePath("/(dashboard)/dashboard/website/sliders", "page")
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { slug: true } })
+  if (tenant) await invalidatePublicTenantCache(tenant.slug)
 }

@@ -3,12 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "NEXT_MINIFIER_THREADS=1 NODE_OPTIONS='--max-old-space-size=2048' next build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
     "start": "next start",
-    "start:prod": "pm2 start ecosystem.config.js",
-    "stop:prod": "pm2 stop ecosystem.config.js && pm2 delete schoolpro-dev",
-    "restart:prod": "pm2 restart schoolpro-dev",
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
