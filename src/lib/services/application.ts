@@ -99,8 +99,15 @@ export async function approveApplication(id: string) {
       email: app.adminEmail,
       phone: app.adminPhone,
       address: app.address,
+      logo: app.logo,
       isActive: true,
-      plan: "free"
+      plan: "free",
+      settings: {
+        npsn: app.npsn,
+        province: app.province,
+        regency: app.regency,
+        schoolStatus: app.schoolStatus,
+      }
     }
   })
 

@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { 
       schoolName, schoolSlug, npsn, schoolStatus, 
-      province, regency, adminName, adminEmail, adminPhone, address 
+      province, regency, adminName, adminEmail, adminPhone, address, logo
     } = body
 
     if (!schoolName || !schoolSlug || !adminEmail || !adminPhone || !npsn) {
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
         adminEmail,
         adminPhone,
         address,
+        logo,
         status: "PENDING"
       }
     })

@@ -276,6 +276,7 @@ model TenantApplication {
   adminEmail   String
   adminPhone   String
   address      String?
+  logo         String?  // <-- NEW
   status       String   @default("PENDING")
   adminMessage String?
   createdAt    DateTime @default(now())

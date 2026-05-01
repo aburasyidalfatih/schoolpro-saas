@@ -20,6 +20,12 @@ export default function RegisterSchoolPage() {
   const [isChecking, setIsChecking] = useState(false)
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null)
   
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+
+  const [captchaParams, setCaptchaParams] = useState({ a: 0, b: 0 })
+  const [captchaAnswer, setCaptchaAnswer] = useState("")
+  
   const [form, setForm] = useState({
     schoolName: "",
     schoolSlug: "",
@@ -32,6 +38,13 @@ export default function RegisterSchoolPage() {
     adminPhone: "",
     address: "",
   })
+
+  useEffect(() => {
+    setCaptchaParams({
+      a: Math.floor(Math.random() * 10) + 1,
+      b: Math.floor(Math.random() * 10) + 1,
+    })
+  }, [])
 
   // Debounced Subdomain Checker
   useEffect(() => {
@@ -58,16 +71,51 @@ export default function RegisterSchoolPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const correctAnswer = captchaParams.a + captchaParams.b
+    if (parseInt(captchaAnswer) !== correctAnswer) {
+      toast({ title: "Verifikasi Gagal", description: "Hasil perhitungan matematika tidak tepat.", variant: "destructive" })
+      return
+    }
+
     if (isAvailable === false) {
       toast({ title: "Gagal", description: "Subdomain sudah digunakan", variant: "destructive" })
       return
     }
 
     setLoading(true)
+
+    let uploadedLogoUrl = ""
+    if (logoFile) {
+      const formData = new FormData()
+      formData.append("file", logoFile)
+      
+      try {
+        const uploadRes = await fetch("/api/public/upload", {
+          method: "POST",
+          body: formData,
+        })
+        
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json()
+          throw new Error(errData.error || "Gagal upload logo")
+        }
+        
+        const uploadData = await uploadRes.json()
+        uploadedLogoUrl = uploadData.url
+      } catch (err: any) {
+        setLoading(false)
+        toast({ title: "Gagal", description: err.message, variant: "destructive" })
+        return
+      }
+    }
+
+    const payload = { ...form, logo: uploadedLogoUrl }
+
     const res = await fetch("/api/public/register-school", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     })
 
     const data = await res.json()
@@ -128,6 +176,38 @@ export default function RegisterSchoolPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <Label>Logo Sekolah (Opsional)</Label>
+                <div className="flex items-center gap-4">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo" className="h-16 w-16 object-contain rounded-lg border bg-white" />
+                  ) : (
+                    <div className="h-16 w-16 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted/50">
+                      <School className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input 
+                      type="file" 
+                      accept="image/png, image/jpeg, image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          if (file.size > 2 * 1024 * 1024) {
+                            toast({ title: "File Terlalu Besar", description: "Maksimal ukuran logo adalah 2MB", variant: "destructive" })
+                            return
+                          }
+                          setLogoFile(file)
+                          setLogoPreview(URL.createObjectURL(file))
+                        }
+                      }}
+                      className="rounded-xl h-11"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">Maks 2MB. Format: JPG, PNG, WEBP.</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Nama Sekolah</Label>
@@ -300,6 +380,23 @@ export default function RegisterSchoolPage() {
                   </div>
                   <p className="text-[10px] text-muted-foreground">Nomor ini akan digunakan untuk notifikasi status pengajuan.</p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section 4: Verifikasi Keamanan */}
+          <Card className="glass border-0">
+            <CardContent className="pt-6 space-y-4">
+              <div className="space-y-2">
+                <Label>Verifikasi Anti-Spam: Berapa hasil dari {captchaParams.a} + {captchaParams.b}?</Label>
+                <Input 
+                  required 
+                  type="number"
+                  value={captchaAnswer} 
+                  onChange={(e) => setCaptchaAnswer(e.target.value)}
+                  placeholder="Masukkan hasil perhitungan" 
+                  className="rounded-xl h-11 text-lg font-semibold"
+                />
               </div>
             </CardContent>
           </Card>
