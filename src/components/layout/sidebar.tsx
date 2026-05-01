@@ -483,7 +483,7 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                           {!collapsed && (
                           <span className="flex-1 text-left flex items-center gap-2">
                             {item.label}
-                            {item.badge && item.badge > 0 && !collapsed && (
+                            {typeof item.badge === 'number' && item.badge > 0 && !collapsed && (
                               <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white px-1.5">
                                 {item.badge}
                               </span>
@@ -523,7 +523,7 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
                         {!collapsed && (
                           <span className="flex items-center gap-2">
                             {item.label}
-                            {item.badge && item.badge > 0 && (
+                            {typeof item.badge === 'number' && item.badge > 0 && (
                               <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white px-1.5">
                                 {item.badge}
                               </span>
