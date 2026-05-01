@@ -4,69 +4,82 @@
 
 @layer base {
   /* ============================================================
-     DEFAULT (Aurora) — Soft Violet
+     DEFAULT (EduTech) — Professional Tech Blue & Cyan
+     Mencerminkan: Kepercayaan (Biru), Inovasi & Masa Depan (Cyan), Pertumbuhan.
      ============================================================ */
   :root {
-    --background: 240 20% 97%;
-    --foreground: 240 30% 8%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 240 30% 8%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 30% 8%;
-    --primary: 252 42% 58%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 18% 93%;
-    --secondary-foreground: 240 30% 8%;
-    --muted: 240 18% 93%;
-    --muted-foreground: 240 8% 46%;
-    --accent: 252 35% 93%;
-    --accent-foreground: 252 42% 42%;
-    --destructive: 0 52% 58%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 16% 88%;
-    --input: 240 16% 88%;
-    --ring: 252 42% 58%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%; /* Tech Blue */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 199 89% 48%; /* Cyan/Teal accent */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
     --radius: 1rem;
-    --glass-bg: rgba(255,255,255,0.65);
-    --glass-border: rgba(255,255,255,0.45);
-    --glass-shadow: 0 8px 32px rgba(60,40,120,0.05);
+    
+    /* Glassmorphism khusus EduTech */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px rgba(14, 56, 140, 0.05);
     --glass-blur: 16px;
-    --gradient-primary: linear-gradient(135deg,hsl(252,40%,60%) 0%,hsl(263,37%,57%) 50%,hsl(275,34%,55%) 100%);
-    --gradient-mesh: radial-gradient(at 20% 80%,hsl(252,45%,93%) 0%,transparent 50%),radial-gradient(at 80% 20%,hsl(272,38%,93%) 0%,transparent 50%),radial-gradient(at 50% 50%,hsl(240,25%,97%) 0%,transparent 80%);
-    --gradient-orb1: hsl(252,42%,58%);
-    --gradient-orb2: hsl(263,38%,55%);
-    --gradient-orb3: hsl(275,34%,53%);
-    --glow-color: 252 42% 58%;
+    
+    /* Gradient Masa Depan (Biru ke Cyan) */
+    --gradient-primary: linear-gradient(135deg, hsl(221, 83%, 53%) 0%, hsl(205, 85%, 50%) 50%, hsl(190, 90%, 45%) 100%);
+    --gradient-mesh: radial-gradient(at 10% 90%, hsl(221, 80%, 94%) 0%, transparent 40%),
+                     radial-gradient(at 90% 10%, hsl(190, 80%, 93%) 0%, transparent 40%),
+                     radial-gradient(at 50% 50%, hsl(210, 40%, 98%) 0%, transparent 80%);
+    --gradient-orb1: hsl(221, 83%, 53%);
+    --gradient-orb2: hsl(205, 85%, 50%);
+    --gradient-orb3: hsl(190, 90%, 45%);
+    --glow-color: 221 83% 53%;
   }
   .dark {
-    --background: 240 22% 5%;
-    --foreground: 240 15% 90%;
-    --card: 240 22% 8%;
-    --card-foreground: 240 15% 90%;
-    --popover: 240 22% 8%;
-    --popover-foreground: 240 15% 90%;
-    --primary: 252 42% 64%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 20% 12%;
-    --secondary-foreground: 240 15% 90%;
-    --muted: 240 20% 12%;
-    --muted-foreground: 240 8% 52%;
-    --accent: 252 30% 18%;
-    --accent-foreground: 252 42% 78%;
-    --destructive: 0 48% 46%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 18% 16%;
-    --input: 240 18% 16%;
-    --ring: 252 42% 64%;
-    --glass-bg: rgba(10,10,22,0.65);
-    --glass-border: rgba(255,255,255,0.07);
-    --glass-shadow: 0 8px 32px rgba(0,0,0,0.28);
-    --gradient-primary: linear-gradient(135deg,hsl(252,40%,60%) 0%,hsl(263,37%,57%) 50%,hsl(275,34%,55%) 100%);
-    --gradient-mesh: radial-gradient(at 20% 80%,hsl(252,35%,12%) 0%,transparent 50%),radial-gradient(at 80% 20%,hsl(272,28%,12%) 0%,transparent 50%),radial-gradient(at 50% 50%,hsl(240,20%,6%) 0%,transparent 80%);
-    --gradient-orb1: hsl(252,40%,32%);
-    --gradient-orb2: hsl(263,36%,30%);
-    --gradient-orb3: hsl(275,32%,28%);
-    --glow-color: 252 42% 64%;
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%; /* Lighter Tech Blue for dark mode */
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 224 76% 48%;
+    
+    /* Dark Glassmorphism */
+    --glass-bg: rgba(10, 15, 30, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    
+    /* Dark Mesh (Neon feel) */
+    --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(205, 85%, 50%) 50%, hsl(190, 90%, 45%) 100%);
+    --gradient-mesh: radial-gradient(at 10% 90%, hsl(221, 80%, 12%) 0%, transparent 40%),
+                     radial-gradient(at 90% 10%, hsl(190, 80%, 10%) 0%, transparent 40%),
+                     radial-gradient(at 50% 50%, hsl(222, 47%, 5%) 0%, transparent 80%);
+    --gradient-orb1: hsl(221, 83%, 30%);
+    --gradient-orb2: hsl(205, 85%, 25%);
+    --gradient-orb3: hsl(190, 90%, 25%);
+    --glow-color: 217 91% 60%;
   }
 
   /* CORPORATE — Soft Navy */
