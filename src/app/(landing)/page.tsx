@@ -158,7 +158,7 @@ export default function LandingPage() {
         <div className="absolute -top-20 right-0 h-80 w-80 rounded-full orb-2 opacity-15 blur-3xl" />
         <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full orb-3 opacity-10 blur-3xl" />
 
-        <div className="container relative mx-auto px-4 py-20 text-center lg:py-28">
+        <div className="container relative mx-auto px-4 py-16 text-center lg:py-20">
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="inline-flex items-center gap-2 rounded-full glass px-4 py-2 text-sm">
               <Sparkles className="h-4 w-4 text-primary" />
@@ -192,7 +192,7 @@ export default function LandingPage() {
       </section>
 
       {/* Solusi Section */}
-      <section id="solusi" className="container mx-auto px-4 py-16 md:py-24">
+      <section id="solusi" className="container mx-auto px-4 py-12 md:py-16">
         <div className="glass rounded-3xl p-8 md:p-12 relative overflow-hidden">
           <div className="absolute top-0 right-0 h-40 w-40 rounded-full orb-1 opacity-10 blur-3xl" />
           
@@ -243,7 +243,7 @@ export default function LandingPage() {
       </section>
 
       {/* Fitur Terpadu - Tabs Section */}
-      <section id="fitur" className="container mx-auto px-4 py-20 md:py-28">
+      <section id="fitur" className="container mx-auto px-4 py-12 md:py-16">
         <div className="text-center mb-16 space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm text-primary font-medium">
             <School className="h-3.5 w-3.5" />
@@ -319,7 +319,7 @@ export default function LandingPage() {
 
 
       {/* CTA */}
-      <section className="container mx-auto px-4 py-28">
+      <section className="container mx-auto px-4 py-16 md:py-20">
         <div className="glass rounded-[2.5rem] p-12 md:p-20 text-center relative overflow-hidden border">
           <div className="absolute -top-20 -right-20 h-80 w-80 rounded-full orb-1 opacity-20 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 h-80 w-80 rounded-full orb-2 opacity-20 blur-3xl" />
