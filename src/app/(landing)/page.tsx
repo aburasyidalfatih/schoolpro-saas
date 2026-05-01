@@ -144,7 +144,6 @@ export default function LandingPage() {
 
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/login"><Button variant="ghost" className="rounded-xl">Masuk</Button></Link>
             <Link href="/daftarkan-sekolah">
               <Button className="rounded-xl btn-gradient text-white shadow-lg glow-primary border-0">Daftar Gratis</Button>
             </Link>
