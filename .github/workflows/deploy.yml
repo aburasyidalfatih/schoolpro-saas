@@ -16,6 +16,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 30m
           script: |
+            set -e
+            
             # Tentukan direktori berdasarkan branch (main untuk prod, develop untuk dev)
             if [ "${{ github.ref }}" = "refs/heads/main" ]; then
               APP_DIR="/home/${{ secrets.REMOTE_USER }}/schoolpro-prod"

@@ -166,13 +166,25 @@ export default function BillingPage() {
           </CardHeader>
           
           <CardContent className="flex flex-col flex-1 space-y-5 relative z-10">
-            <div className={cn(
-              "text-5xl font-black uppercase tracking-widest drop-shadow-sm",
-              isPro 
-                ? "bg-gradient-to-b from-white via-emerald-50 to-emerald-200/80 bg-clip-text text-transparent" 
-                : "text-foreground"
-            )}>
-              {billing?.plan?.toUpperCase() || "FREE"}
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "text-5xl font-black uppercase tracking-widest drop-shadow-sm",
+                isPro 
+                  ? "bg-gradient-to-b from-white via-emerald-50 to-emerald-200/80 bg-clip-text text-transparent" 
+                  : "text-foreground"
+              )}>
+                {billing?.plan?.toUpperCase() || "FREE"}
+              </div>
+              
+              {isPro && (
+                <div className="flex flex-col border-l border-emerald-500/30 pl-4 py-1">
+                  <span className="text-[10px] font-bold text-emerald-300/80 uppercase tracking-widest mb-0.5">Kapasitas</span>
+                  <span className="text-xl font-black text-white flex items-center gap-1.5">
+                    {billing?.studentQuota || 0} 
+                    <span className="text-sm font-semibold text-emerald-100/70">Siswa</span>
+                  </span>
+                </div>
+              )}
             </div>
 
             {currentPlanFeatures.length > 0 && (
