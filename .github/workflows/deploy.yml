@@ -1,47 +1,121 @@
-name: Deploy to VPS (Docker)
+name: Deploy SchoolPro SaaS
 
 on:
   push:
-    branches: [main, develop]
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
 
 jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Set target branch name
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "BRANCH=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
+          else
+            echo "BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH }}
+
+      - name: Set lowercase repository name
+        run: |
+          echo "REPO=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ env.REPO }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ env.REPO }}:${{ env.BRANCH }}
+          labels: ${{ steps.meta.outputs.labels }}
+
   deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Set target variables
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "BRANCH=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
+          else
+            echo "BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+          echo "REPO=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
       - name: Execute Deployment via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+          BRANCH: ${{ env.BRANCH }}
+          REPO: ${{ env.REPO }}
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 30m
+          envs: GITHUB_TOKEN,ACTOR,BRANCH,REPO
           script: |
             set -e
             
+            # Login to GHCR so the VPS can pull the private image
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u $ACTOR --password-stdin
+            
             # Tentukan direktori berdasarkan branch (main untuk prod, develop untuk dev)
-            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            if [ "$BRANCH" = "main" ]; then
               APP_DIR="/home/${{ secrets.REMOTE_USER }}/schoolpro-prod"
             else
               APP_DIR="/home/${{ secrets.REMOTE_USER }}/schoolpro-dev"
             fi
-
-            echo "Deploying to $APP_DIR"
             
-            # Pindah ke direktori aplikasi
+            echo "Deploying branch $BRANCH to $APP_DIR"
             cd $APP_DIR
-
-            # Ambil perubahan terbaru dari GitHub
-            git fetch --all
-            git reset --hard origin/${{ github.ref_name }}
             
-            # Pastikan network external 'shared-proxy' ada sebelum menjalankan compose
+            # Ambil konfigurasi (docker-compose.yml dll) terbaru dari GitHub
+            git fetch --all
+            git reset --hard origin/$BRANCH
+            
+            # Pastikan network external 'shared-proxy' ada
             docker network ls | grep -q "shared-proxy" || docker network create shared-proxy
             
-            # Rebuild image Docker (tanpa cache agar mendapat update terbaru)
-            docker compose build --no-cache app
+            # Ekspor image URL agar dibaca oleh docker-compose.yml
+            export APP_IMAGE="ghcr.io/$REPO:$BRANCH"
+            
+            # Pull image yang sudah di-build oleh GitHub Actions
+            docker compose pull app
             
             # Restart container dengan image baru
             docker compose up -d
             
-            # Bersihkan image/container lama yang tidak terpakai agar SSD tidak penuh
+            # Logout dari GHCR demi keamanan
+            docker logout ghcr.io
+            
+            # Bersihkan image/container lama
             docker image prune -f
