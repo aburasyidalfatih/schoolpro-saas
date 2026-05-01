@@ -16,7 +16,8 @@ import {
   Wallet,
   Settings,
   BellRing,
-  Sparkles
+  Sparkles,
+  Bot
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -98,6 +99,19 @@ const featureModules = [
       { name: "Notifikasi Otomatis (WhatsApp/Email)", status: "coming_soon" },
       { name: "Cetak Laporan Tagihan & Transaksi (PDF/Excel)", status: "coming_soon" },
       { name: "Dasbor Petugas Terpadu", status: "coming_soon" }
+    ]
+  },
+  {
+    id: "ai",
+    title: "AI Assistant",
+    icon: Bot,
+    description: "Asisten AI pintar untuk menganalisis data, merangkum laporan, dan menjawab pertanyaan dengan bahasa alami.",
+    features: [
+      { name: "Tanya Jawab Status Keuangan & Tunggakan", status: "coming_soon" },
+      { name: "Analisis Perkembangan Nilai Siswa", status: "coming_soon" },
+      { name: "Ringkasan Absensi Guru & Staf", status: "coming_soon" },
+      { name: "Generator Draf Pesan & Pengumuman", status: "coming_soon" },
+      { name: "Isolasi Privasi Data per Tenant", status: "coming_soon" }
     ]
   }
 ]
