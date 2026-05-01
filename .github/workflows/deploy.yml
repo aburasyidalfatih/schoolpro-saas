@@ -34,6 +34,9 @@ jobs:
             git fetch --all
             git reset --hard origin/${{ github.ref_name }}
             
+            # Pastikan network external 'shared-proxy' ada sebelum menjalankan compose
+            docker network ls | grep -q "shared-proxy" || docker network create shared-proxy
+            
             # Rebuild image Docker (tanpa cache agar mendapat update terbaru)
             docker compose build --no-cache app
             
