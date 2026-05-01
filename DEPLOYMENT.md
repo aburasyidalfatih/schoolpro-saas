@@ -3,11 +3,14 @@
 Dokumen ini menjelaskan workflow deployment terbaru menggunakan **Docker Compose** yang telah diotomatisasi melalui GitHub Actions.
 
 ## 1. Arsitektur & Lingkungan
-| Lingkungan | URL / Port | Mode | Runner |
-| :--- | :--- | :--- | :--- |
-| **Local Dev** | `localhost:3000` | Development | `npm run dev` (Node.js langsung) |
-| **Local Docker** | `schoolpro.test:80` | Production Clone | `docker-compose up` |
-| **Production** | `schoolpro.id` | Standalone Docker | CI/CD GitHub Actions |
+| Lingkungan | Domain / URL | Variabel Lingkungan Utama |
+| :--- | :--- | :--- |
+| **Local Dev** | `localhost:3000` | `NEXT_PUBLIC_ROOT_DOMAIN="localhost"` |
+| **Development VPS** | `schoolpro.my.id` | `NEXT_PUBLIC_ROOT_DOMAIN="schoolpro.my.id"` |
+| **Production VPS** | `schoolpro.id` | `NEXT_PUBLIC_ROOT_DOMAIN="schoolpro.id"` |
+
+> [!IMPORTANT]
+> Sistem *routing multi-tenant* sangat bergantung pada variabel `NEXT_PUBLIC_ROOT_DOMAIN` di file `.env` server Anda. Pastikan Anda mengatur variabel ini dengan benar di masing-masing *server* agar subdomain otomatis terdeteksi.
 
 ## 2. Opsi Workflow Deployment
 
