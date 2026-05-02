@@ -622,6 +622,13 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
           </div>
         </div>
       )}
+
+      {/* App Version */}
+      <div className={cn("p-4 text-center border-t border-border mt-auto", collapsed ? "hidden" : "block")}>
+        <p className="text-[10px] text-muted-foreground font-mono" title="Application Version">
+          v1.0.0 {process.env.NEXT_PUBLIC_APP_VERSION ? `(rev: ${process.env.NEXT_PUBLIC_APP_VERSION.substring(0, 7)})` : "(dev)"}
+        </p>
+      </div>
     </aside>
   )
 }

@@ -55,6 +55,8 @@ jobs:
           push: true
           tags: ghcr.io/${{ env.REPO }}:${{ env.BRANCH }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
 
   deploy:
     needs: build-and-push

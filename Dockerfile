@@ -26,6 +26,10 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 
+ARG APP_VERSION
+ENV NEXT_PUBLIC_APP_VERSION=${APP_VERSION}
+
+
 RUN npx next build
 
 # --- Production ---

@@ -19,9 +19,10 @@ Seluruh proses kompilasi kode (NPM Install & Next.js Build) kini dilakukan oleh 
 ### A. Deployment ke Lingkungan Development (`develop`)
 Proses ini berjalan 100% otomatis:
 1. Lakukan *commit* dan *push* ke branch `develop`.
-2. GitHub Actions akan mem- *build* Docker Image dan mengunggahnya ke GHCR secara tertutup (privat).
-3. GitHub Actions masuk ke VPS Anda dan memerintahkan VPS untuk mengunduh (*pull*) image tersebut.
-4. VPS akan menjalankan `docker compose up -d app db redis` (Service Nginx sengaja dilewati agar tidak terjadi konflik *port* dengan server produksi).
+2. GitHub Actions akan otomatis mem-*build* Docker Image dan menyisipkan ID Versi (Commit SHA) ke dalam aplikasi agar Anda bisa melacak rilis mana yang sedang aktif.
+3. Image yang sudah jadi akan diunggah ke GHCR secara tertutup (privat).
+4. GitHub Actions masuk ke VPS Anda dan memerintahkan VPS untuk mengunduh (*pull*) image tersebut.
+5. VPS akan menjalankan `docker compose up -d app db redis` (Service Nginx sengaja dilewati agar tidak terjadi konflik *port* dengan server produksi).
 
 ### B. Deployment ke Lingkungan Production (`main`)
 Demi keamanan ekstra agar aplikasi *live* tidak berubah tanpa persetujuan Anda, deployment ke `main` dibuat **Manual**:
