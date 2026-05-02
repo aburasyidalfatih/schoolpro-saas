@@ -17,8 +17,8 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
   const totalStaff = staff.length
 
   // Group staff by role
-  const principal = staff.find((s: any) => s.role.toLowerCase().includes("kepala sekolah"))
-  const teachers = staff.filter((s: any) => !s.role.toLowerCase().includes("kepala sekolah"))
+  const principal = staff.find((s: any) => s.role && s.role.toLowerCase().includes("kepala sekolah"))
+  const teachers = staff.filter((s: any) => s.role && !s.role.toLowerCase().includes("kepala sekolah"))
 
   return (
     <div className="bg-background min-h-screen">
