@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { staffSchema } from "@/lib/validations/staff"
 import { revalidatePath } from "next/cache"
+import crypto from "crypto"
 
 async function checkTenantAccess(tenantId: string) {
   const session = await auth()
@@ -53,7 +54,8 @@ export async function createStaff(tenantId: string, data: any) {
 
     if (!user) {
       const bcrypt = await import("bcryptjs")
-      const hashedPassword = await bcrypt.hash("password123", 12)
+      const tempPassword = crypto.randomBytes(8).toString("base64url")
+      const hashedPassword = await bcrypt.hash(tempPassword, 12)
       user = await db.user.create({
         data: { name: parsed.name, email, password: hashedPassword },
       })
@@ -111,7 +113,8 @@ export async function updateStaff(id: string, tenantId: string, data: any) {
 
     if (!user) {
       const bcrypt = await import("bcryptjs")
-      const hashedPassword = await bcrypt.hash("password123", 12)
+      const tempPassword = crypto.randomBytes(8).toString("base64url")
+      const hashedPassword = await bcrypt.hash(tempPassword, 12)
       user = await db.user.create({
         data: { name: parsed.name, email, password: hashedPassword },
       })

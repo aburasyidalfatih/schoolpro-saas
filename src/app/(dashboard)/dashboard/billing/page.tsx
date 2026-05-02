@@ -24,6 +24,7 @@ interface TenantBilling {
   isActive: boolean; expiresAt: string | null
   pricing: { PRICE_PER_STUDENT: number; MIN_STUDENTS: number }
   hasPendingInvoice?: boolean
+  upgradeEnabled?: boolean
 }
 interface PlanInfo {
   slug: string; name: string; description: string; price: number
@@ -247,8 +248,9 @@ export default function BillingPage() {
         </Card>
 
         {/* ── Card Upgrade PRO ── */}
-        <Card className="lg:col-span-2 glass border-0 overflow-hidden">
-          <div className="h-1.5 bg-gradient-to-r from-primary to-primary/60" />
+        {billing?.upgradeEnabled ? (
+          <Card className="lg:col-span-2 glass border-0 overflow-hidden">
+            <div className="h-1.5 bg-gradient-to-r from-primary to-primary/60" />
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
@@ -330,6 +332,17 @@ export default function BillingPage() {
             </Button>
           </CardContent>
         </Card>
+        ) : (
+          <Card className="lg:col-span-2 glass border-0 flex flex-col items-center justify-center p-10 text-center min-h-[350px]">
+            <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-5">
+              <ShieldCheck className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-xl mb-2 text-muted-foreground">Upgrade ke Paket PRO</CardTitle>
+            <CardDescription className="max-w-md mx-auto">
+              Fitur upgrade paket secara mandiri sedang dinonaktifkan sementara oleh Super Admin. Silakan hubungi admin pusat untuk melakukan upgrade paket langganan Anda.
+            </CardDescription>
+          </Card>
+        )}
       </div>
 
       {/* ── Invoice Dialog ── */}

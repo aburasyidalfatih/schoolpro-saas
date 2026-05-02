@@ -40,7 +40,7 @@ export async function GET() {
   if (!tenantUser) return NextResponse.json({ error: "Unauthorized", slug_detected: slug }, { status: 401 })
   const tenantId = tenantUser.id
 
-  const [tenant, pricing, proPlan, pendingPayment] = await Promise.all([
+  const [tenant, pricing, proPlan, pendingPayment, platformSetting] = await Promise.all([
     db.tenant.findUnique({
       where: { id: tenantId },
       select: {
@@ -60,6 +60,10 @@ export async function GET() {
     db.payment.findFirst({
       where: { tenantId, status: "pending" },
       select: { id: true }
+    }),
+    db.platformSetting.findUnique({
+      where: { key: "enable_billing_upgrade" },
+      select: { value: true }
     })
   ])
 
@@ -69,6 +73,7 @@ export async function GET() {
     ...tenant,
     pricing,
     proFeatures,
-    hasPendingInvoice: !!pendingPayment
+    hasPendingInvoice: !!pendingPayment,
+    upgradeEnabled: platformSetting?.value === "true"
   })
 }

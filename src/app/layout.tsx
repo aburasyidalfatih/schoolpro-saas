@@ -8,6 +8,8 @@ import { ColorThemeProvider } from "@/components/providers/color-theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { ImpersonateBanner } from "@/components/shared/impersonate-banner"
 
+import { ConfirmProvider } from "@/components/providers/confirm-provider"
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -33,9 +35,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <ColorThemeProvider>
-              <ImpersonateBanner />
-              {children}
-              <Toaster />
+              <ConfirmProvider>
+                <ImpersonateBanner />
+                {children}
+                <Toaster />
+              </ConfirmProvider>
             </ColorThemeProvider>
           </ThemeProvider>
         </SessionProvider>

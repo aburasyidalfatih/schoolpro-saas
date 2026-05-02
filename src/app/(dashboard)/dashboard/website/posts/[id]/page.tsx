@@ -200,8 +200,8 @@ export default function PostFormPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="seoTitle" className="text-sm font-medium">Meta Title (Judul SEO)</Label>
-                  <span className={`text-[10px] font-medium ${watch("seoTitle")?.length > 60 ? "text-red-500" : "text-muted-foreground"}`}>
-                    {watch("seoTitle")?.length || 0} / 60
+                  <span className={`text-[10px] font-medium ${(watch("seoTitle") ?? "").length > 60 ? "text-red-500" : "text-muted-foreground"}`}>
+                    {(watch("seoTitle") ?? "").length} / 60
                   </span>
                 </div>
                 <Input 
@@ -217,8 +217,8 @@ export default function PostFormPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="seoDesc" className="text-sm font-medium">Meta Description</Label>
-                  <span className={`text-[10px] font-medium ${watch("seoDesc")?.length > 160 ? "text-red-500" : "text-muted-foreground"}`}>
-                    {watch("seoDesc")?.length || 0} / 160
+                  <span className={`text-[10px] font-medium ${(watch("seoDesc") ?? "").length > 160 ? "text-red-500" : "text-muted-foreground"}`}>
+                    {(watch("seoDesc") ?? "").length} / 160
                   </span>
                 </div>
                 <Textarea 
@@ -309,9 +309,9 @@ export default function PostFormPage() {
             </CardHeader>
             <CardContent>
               <ImageUploadDirect 
-                tenantId={tenantId}
+                tenantId={tenantId ?? ""}
                 value={featuredImageValue}
-                onChange={(url) => setValue("featuredImage", url, { shouldValidate: true })}
+                onChange={(url) => setValue("featuredImage", url ?? "", { shouldValidate: true })}
               />
               <input type="hidden" {...register("featuredImage")} />
               {errors.featuredImage && <p className="text-xs text-red-500 mt-2">{errors.featuredImage.message}</p>}

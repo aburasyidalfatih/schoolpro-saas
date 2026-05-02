@@ -54,7 +54,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // --- DOMAIN BASED LOGIN RESTRICTION ---
         const hostname = (credentials.hostname as string) || ""
         const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.my.id"
-        const isMainDomain = hostname === rootDomain || hostname === `www.${rootDomain}` || hostname === "localhost"
+        // Cek apakah ini domain utama (support port untuk local dev)
+        const hostWithoutPort = hostname.split(":")[0]
+        const isMainDomain = 
+          !hostname ||  // tidak ada hostname = fallback ke main domain
+          hostname === rootDomain || 
+          hostname === `www.${rootDomain}` || 
+          hostWithoutPort === "localhost" ||
+          hostWithoutPort === rootDomain ||
+          hostWithoutPort === `www.${rootDomain}`
 
         if (isMainDomain) {
           // Hanya Super Admin yang boleh login di domain utama
@@ -63,7 +71,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         } else {
           // Ini adalah subdomain tenant
-          const slug = hostname.split('.')[0]
+          const slug = hostWithoutPort.replace(`.${rootDomain}`, "").split('.')[0]
           
           // Super Admin dilarang login langsung di subdomain
           if (user.isSuperAdmin) {

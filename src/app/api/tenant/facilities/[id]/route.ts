@@ -37,7 +37,8 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
 
     const parsed = schema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: "Data tidak valid", details: parsed.error.format() }, { status: 400 })
+      const messages = parsed.error.errors.map((e) => e.message).join(", ")
+      return NextResponse.json({ error: messages || "Data tidak valid" }, { status: 400 })
     }
 
     const { tenantId, ...data } = parsed.data

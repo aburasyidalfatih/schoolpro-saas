@@ -41,6 +41,7 @@ model Tenant {
   achievements       Achievement[]
   alumni             Alumni[]
   auditLogs          AuditLog[]
+  categories         Category[]
   contactSubmissions ContactSubmission[]
   documents          Document[]
   events             Event[]
@@ -51,12 +52,15 @@ model Tenant {
   payments           Payment[]
   popups             Popup[]
   posts              Post[]
-  categories         Category[]
   programs           Program[]
   sliders            Slider[]
   staff              Staff[]
   subscriptions      Subscription[]
   users              TenantUser[]
+  periodePpdb        PeriodePpdb[]
+  pendaftarPpdb      PendaftarPpdb[]
+  rekening           Rekening[]
+  students           Student[]
   subscriptionPlan   SubscriptionPlan?   @relation(fields: [planId], references: [id])
 
   @@index([isActive])
@@ -87,9 +91,11 @@ model User {
   notifications        Notification[]
   posts                Post[]
   sessions             Session[]
+  staffProfiles        Staff[]
+  pendaftarPpdb        PendaftarPpdb[]
+  students             Student[]
   tenants              TenantUser[]
   verificationTokens   VerificationToken[]
-  staffProfiles        Staff[]
 
   @@index([isActive])
   @@index([isSuperAdmin])
@@ -278,7 +284,6 @@ model TenantApplication {
   adminEmail   String
   adminPhone   String
   address      String?
-  logo         String?  // <-- NEW
   status       String   @default("PENDING")
   adminMessage String?
   createdAt    DateTime @default(now())
@@ -287,29 +292,30 @@ model TenantApplication {
   province     String?
   regency      String?
   schoolStatus String?  @default("SWASTA")
+  logo         String?
 
   @@index([status])
   @@map("tenant_applications")
 }
 
 model Post {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   tenantId      String
   authorId      String
   title         String
   slug          String
   content       String
   featuredImage String?
-  type          String   @default("BLOG_GURU")
-  status        String   @default("PUBLISHED")
-  seoTitle      String?
+  type          String    @default("BLOG_GURU")
+  status        String    @default("PUBLISHED")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   seoDesc       String?
+  seoTitle      String?
   categoryId    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   category      Category? @relation(fields: [categoryId], references: [id])
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, slug])
   @@index([tenantId])
@@ -457,8 +463,6 @@ model Alumni {
 model Staff {
   id        String   @id @default(cuid())
   tenantId  String
-  userId    String?
-  email     String?
   name      String
   role      String
   imageUrl  String?
@@ -466,6 +470,8 @@ model Staff {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  email     String?
+  userId    String?
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user      User?    @relation(fields: [userId], references: [id])
 
@@ -551,4 +557,157 @@ model Subscription {
   @@index([planId])
   @@index([status])
   @@map("subscriptions")
+}
+
+model PeriodePpdb {
+  id           String              @id @default(cuid())
+  tenantId     String
+  nama         String
+  tanggalBuka  DateTime
+  tanggalTutup DateTime
+  isActive     Boolean             @default(true)
+  pengaturan   Json?               // biayaPendaftaran, kuota, biayaDaftarUlang
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pendaftar    PendaftarPpdb[]
+  persyaratan  PersyaratanBerkas[]
+
+  @@index([tenantId])
+  @@index([isActive])
+  @@map("periode_ppdbs")
+}
+
+model PersyaratanBerkas {
+  id        String       @id @default(cuid())
+  periodeId String
+  nama      String
+  isWajib   Boolean      @default(true)
+  tipeFile  String?      // e.g., "image/*,application/pdf"
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  periode   PeriodePpdb  @relation(fields: [periodeId], references: [id], onDelete: Cascade)
+  berkas    BerkasPpdb[]
+
+  @@index([periodeId])
+  @@map("persyaratan_berkas")
+}
+
+model PendaftarPpdb {
+  id             String        @id @default(cuid())
+  tenantId       String
+  userId         String
+  periodeId      String
+  noPendaftaran  String        @unique
+  namaLengkap    String
+  dataFormulir   Json?         // NISN, jenis kelamin, TTL, alamat, telepon
+  dataOrangtua   Json?         // ayah, ibu, wali
+  status         String        @default("MENUNGGU") // MENUNGGU, TERVERIFIKASI, DITERIMA, DITOLAK
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  periode        PeriodePpdb   @relation(fields: [periodeId], references: [id], onDelete: Cascade)
+  berkas         BerkasPpdb[]
+  tagihan        TagihanPpdb[]
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([periodeId])
+  @@index([status])
+  @@map("pendaftar_ppdbs")
+}
+
+model BerkasPpdb {
+  id            String            @id @default(cuid())
+  pendaftarId   String
+  requirementId String
+  fileUrl       String
+  status        String            @default("MENUNGGU") // MENUNGGU, DITERIMA, DITOLAK
+  catatan       String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  pendaftar     PendaftarPpdb     @relation(fields: [pendaftarId], references: [id], onDelete: Cascade)
+  requirement   PersyaratanBerkas @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  @@index([pendaftarId])
+  @@index([requirementId])
+  @@map("berkas_ppdbs")
+}
+
+model TagihanPpdb {
+  id          String           @id @default(cuid())
+  pendaftarId String
+  jenis       String           // PENDAFTARAN, DAFTAR_ULANG
+  nominal     Float
+  items       Json?            // breakdown: [{nama: "Seragam", nominal: 500000}, ...]
+  status      String           @default("BELUM_LUNAS") // BELUM_LUNAS, LUNAS
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  pendaftar   PendaftarPpdb    @relation(fields: [pendaftarId], references: [id], onDelete: Cascade)
+  pembayaran  PembayaranPpdb[]
+
+  @@index([pendaftarId])
+  @@map("tagihan_ppdbs")
+}
+
+model PembayaranPpdb {
+  id          String      @id @default(cuid())
+  tagihanId   String
+  nominal     Float
+  buktiUrl    String?
+  status      String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  catatan     String?
+  paidAt      DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  tagihan     TagihanPpdb @relation(fields: [tagihanId], references: [id], onDelete: Cascade)
+
+  @@index([tagihanId])
+  @@map("pembayaran_ppdbs")
+}
+
+model Rekening {
+  id            String   @id @default(cuid())
+  tenantId      String
+  namaBank      String
+  nomorRekening String
+  atasNama      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("rekenings")
+}
+
+model Student {
+  id             String    @id @default(cuid())
+  tenantId       String
+  userId         String?
+  noPendaftaran  String?   // optional link to PPDB
+  nis            String?   @unique
+  nisn           String?   @unique
+  name           String
+  gender         String?
+  birthPlace     String?
+  birthDate      DateTime?
+  address        String?
+  phone          String?
+  email          String?
+  fatherName     String?
+  motherName     String?
+  guardianName   String?
+  metadata       Json?
+  isActive       Boolean   @default(true)
+  syncedAt       DateTime? // when it was synced from PPDB
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user           User?     @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([isActive])
+  @@map("students")
 }

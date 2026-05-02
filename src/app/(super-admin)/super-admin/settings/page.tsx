@@ -30,6 +30,7 @@ export default function SuperAdminSettingsPage() {
     platform_name: "SchoolPro",
     platform_tagline: "Solusi Manajemen Sekolah Digital",
     allow_impersonate_user: "true",
+    enable_billing_upgrade: "false",
     contact_email: "support@schoolpro.id",
     
     // Email
@@ -63,11 +64,12 @@ export default function SuperAdminSettingsPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  const handleSaveBatch = async (fields: string[]) => {
+  const handleSaveBatch = async (fields: string[], overrides?: Record<string, string>) => {
     setSaving(true)
     const dataToSave: Record<string, string> = {}
     fields.forEach(f => {
-      dataToSave[f] = String((form as any)[f])
+      // Gunakan override jika ada (untuk menghindari React stale state)
+      dataToSave[f] = overrides?.[f] !== undefined ? overrides[f] : String((form as any)[f])
     })
 
     const res = await fetch("/api/super-admin/settings", {
@@ -194,12 +196,12 @@ export default function SuperAdminSettingsPage() {
                   <CardTitle className="text-lg">Keamanan & Fitur</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <button
                   onClick={() => {
                     const newVal = form.allow_impersonate_user === "true" ? "false" : "true"
                     setForm({...form, allow_impersonate_user: newVal})
-                    handleSaveBatch(['allow_impersonate_user'])
+                    handleSaveBatch(['allow_impersonate_user'], { allow_impersonate_user: newVal })
                   }}
                   className={cn(
                     "flex w-full items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 text-left",
@@ -216,6 +218,29 @@ export default function SuperAdminSettingsPage() {
                     </div>
                   </div>
                   <div className={cn("h-2.5 w-2.5 rounded-full", form.allow_impersonate_user === "true" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-muted-foreground/30")} />
+                </button>
+
+                <button
+                  onClick={() => {
+                    const newVal = form.enable_billing_upgrade === "true" ? "false" : "true"
+                    setForm({...form, enable_billing_upgrade: newVal})
+                    handleSaveBatch(['enable_billing_upgrade'], { enable_billing_upgrade: newVal })
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 text-left",
+                    form.enable_billing_upgrade === "true" ? "border-primary bg-primary/5" : "border-transparent bg-muted/50 hover:bg-muted"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", form.enable_billing_upgrade === "true" ? "bg-primary/10" : "bg-muted")}>
+                      <CreditCard className={cn("h-5 w-5", form.enable_billing_upgrade === "true" ? "text-primary" : "text-muted-foreground")} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Fitur Upgrade Paket</p>
+                      <p className="text-xs text-muted-foreground">Izinkan pengguna melakukan upgrade paket ke PRO</p>
+                    </div>
+                  </div>
+                  <div className={cn("h-2.5 w-2.5 rounded-full", form.enable_billing_upgrade === "true" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-muted-foreground/30")} />
                 </button>
               </CardContent>
             </Card>

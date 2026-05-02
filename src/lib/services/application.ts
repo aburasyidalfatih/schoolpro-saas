@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import nodemailer from "nodemailer"
 import bcrypt from "bcryptjs"
+import crypto from "crypto"
 import { logger } from "@/lib/logger"
 
 /**
@@ -32,8 +33,9 @@ export async function sendApplicationNotification(applicationId: string) {
       message = `Halo ${app.adminName},\n\nSelamat! Formulir pendaftaran sekolah ${app.schoolName} telah kami terima dan saat ini sudah masuk ke dalam antrean peninjauan tim kami.\n\nKami akan segera menghubungi Anda kembali setelah proses verifikasi selesai.\n\nTerima kasih.`
       break
     case "APPROVED":
+      const tempPwd = app.adminMessage?.startsWith("temp_pwd:") ? app.adminMessage.replace("temp_pwd:", "") : "Hubungi admin untuk mendapatkan password"
       subject = `Selamat! Pendaftaran ${app.schoolName} Disetujui`
-      message = `Halo ${app.adminName},\n\nPendaftaran sekolah ${app.schoolName} telah disetujui. Anda sekarang dapat mengakses dashboard sekolah menggunakan kredensial berikut:\n\nURL Login: https://${app.schoolSlug}.${settings.NEXT_PUBLIC_ROOT_DOMAIN || 'schoolpro.id'}/login\nEmail: ${app.adminEmail}\nPassword Sementara: schoolpro123\n\n⚠️ PENTING: Harap segera mengganti password Anda setelah berhasil login pertama kali demi keamanan akun Anda.\n\nTerima kasih.`
+      message = `Halo ${app.adminName},\n\nPendaftaran sekolah ${app.schoolName} telah disetujui. Anda sekarang dapat mengakses dashboard sekolah menggunakan kredensial berikut:\n\nURL Login: https://${app.schoolSlug}.${settings.NEXT_PUBLIC_ROOT_DOMAIN || 'schoolpro.id'}/login\nEmail: ${app.adminEmail}\nPassword Sementara: ${tempPwd}\n\n⚠️ PENTING: Harap segera mengganti password Anda setelah berhasil login pertama kali demi keamanan akun Anda.\n\nTerima kasih.`
       break
     case "REVISION":
       subject = `Permintaan Revisi Pendaftaran: ${app.schoolName}`
@@ -120,9 +122,12 @@ export async function approveApplication(id: string) {
   // 2. Cek apakah user admin sudah ada
   let user = await db.user.findUnique({ where: { email: app.adminEmail } })
   
+  // Generate random temporary password
+  const tempPassword = crypto.randomBytes(8).toString("base64url")
+
   if (!user) {
-    // Buat user baru dengan password standar yang di-hash
-    const hashedPassword = await bcrypt.hash("schoolpro123", 12)
+    // Buat user baru dengan password random yang di-hash
+    const hashedPassword = await bcrypt.hash(tempPassword, 12)
     user = await db.user.create({
       data: {
         name: app.adminName,
@@ -142,14 +147,24 @@ export async function approveApplication(id: string) {
     }
   })
 
-  // 4. Update status pengajuan
+  // 4. Update status pengajuan + simpan temp password untuk notifikasi
   await db.tenantApplication.update({
     where: { id },
-    data: { status: "APPROVED" }
+    data: {
+      status: "APPROVED",
+      adminMessage: `temp_pwd:${tempPassword}`,
+    }
   })
 
-  // 5. Kirim Notifikasi
+  // 5. Kirim Notifikasi (akan membaca tempPassword dari adminMessage)
   await sendApplicationNotification(id)
+
+  // 6. Hapus temp password dari record setelah notifikasi terkirim
+  await db.tenantApplication.update({
+    where: { id },
+    data: { adminMessage: null }
+  })
 
   return tenant
 }
+

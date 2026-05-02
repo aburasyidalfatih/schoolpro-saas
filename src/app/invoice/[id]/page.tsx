@@ -3,12 +3,13 @@ import { db } from "@/lib/db"
 import { notFound, redirect } from "next/navigation"
 import { CheckCircle2, Clock, XCircle } from "lucide-react"
 
-export default async function InvoicePrintPage({ params }: { params: { id: string } }) {
+export default async function InvoicePrintPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth() as any
   if (!session) redirect("/login")
 
   const payment = await db.payment.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       tenant: true
     }
@@ -93,8 +94,8 @@ export default async function InvoicePrintPage({ params }: { params: { id: strin
                   <p className="font-bold text-gray-900">Upgrade / Perpanjang Paket PRO</p>
                   <p className="text-sm text-gray-500 mt-1">Biaya berlangganan per siswa (Tahunan)</p>
                 </td>
-                <td className="py-5 text-center text-gray-800 font-medium">{payment.studentCount}</td>
-                <td className="py-5 text-right text-gray-800 font-medium">Rp {(payment.amount / payment.studentCount).toLocaleString("id-ID")}</td>
+                <td className="py-5 text-center text-gray-800 font-medium">{(payment.metadata as any)?.studentCount ?? 1}</td>
+                <td className="py-5 text-right text-gray-800 font-medium">Rp {(payment.amount / ((payment.metadata as any)?.studentCount ?? 1)).toLocaleString("id-ID")}</td>
                 <td className="py-5 text-right text-gray-900 font-bold">Rp {payment.amount.toLocaleString("id-ID")}</td>
               </tr>
             </tbody>

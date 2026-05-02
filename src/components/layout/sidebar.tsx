@@ -140,7 +140,14 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
         {
           label: "PPDB Online",
           href: `${basePath}/ppdb`,
-          icon: Users,
+          icon: UserPlus,
+          children: [
+            { label: "Overview PPDB", href: `${basePath}/ppdb`, icon: LayoutDashboard },
+            { label: "Gelombang / Periode", href: `${basePath}/ppdb/periode`, icon: Calendar },
+            { label: "Persyaratan Berkas", href: `${basePath}/ppdb/persyaratan`, icon: FileText },
+            { label: "Meja Pendaftar", href: `${basePath}/ppdb/pendaftar`, icon: Users },
+            { label: "Tagihan & Bayar", href: `${basePath}/ppdb/tagihan`, icon: Wallet },
+          ],
         },
         {
           label: "Akademik & Siswa",
@@ -212,11 +219,11 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
         },
         { label: "Audit Log", href: `${basePath}/audit`, icon: FileText },
         {
-          label: "Keuangan",
+          label: "Langganan",
           href: `${basePath}/billing`,
           icon: CreditCard,
           children: [
-            { label: "Langganan", href: `${basePath}/billing`, icon: Wallet },
+            { label: "Paket Langganan", href: `${basePath}/billing`, icon: Wallet },
             { label: "Riwayat Pembayaran", href: `${basePath}/billing/history`, icon: Receipt },
           ],
         },
@@ -234,7 +241,7 @@ function getMemberMenu(basePath: string): MenuSection[] {
       ],
     },
     {
-      title: "Aktivitas",
+      title: "Layanan Siswa",
       items: [
         { label: "Dokumen Saya", href: `${basePath}/my-documents`, icon: FolderOpen },
         { label: "Jadwal", href: `${basePath}/my-schedule`, icon: Calendar },

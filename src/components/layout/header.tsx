@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react"
 import { useTheme } from "next-themes"
 import { usePathname } from "next/navigation"
-import { Bell, Moon, Sun, LogOut, User, Search, Home, ChevronRight } from "lucide-react"
+import { Bell, Moon, Sun, LogOut, User, Search, Home, ChevronRight, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -149,6 +149,16 @@ export function Header() {
             <span className="sr-only">Notifikasi</span>
           </Button>
         </Link>
+
+        {/* Daftar PPDB Button */}
+        {!isSuperAdminPanel && (
+          <Link href="/dashboard/ppdb/portal">
+            <Button className="hidden sm:flex rounded-xl btn-gradient text-white border-0 shadow-md shadow-primary/20 gap-2 h-9 px-4 ml-1">
+              <UserPlus className="h-4 w-4" />
+              <span className="text-sm font-bold">Portal PPDB</span>
+            </Button>
+          </Link>
+        )}
 
         {/* User menu */}
         <DropdownMenu>

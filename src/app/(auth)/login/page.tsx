@@ -22,12 +22,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.my.id"
-    const host = window.location.hostname
+    const host = window.location.hostname // tidak menyertakan port
     const main = host === rootDomain || host === `www.${rootDomain}` || host === "localhost"
     setIsMainDomain(main)
     
     if (!main) {
-      const slug = host.split('.')[0]
+      // Ambil slug dari subdomain, e.g. "demo" dari "demo.schoolpro.test"
+      const slug = host.replace(`.${rootDomain}`, "").split('.')[0]
       fetch(`/api/website/${slug}`)
         .then(res => res.json())
         .then(data => {

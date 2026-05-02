@@ -12,3 +12,9 @@ uploads/
 *.tsbuildinfo
 next-env.d.ts
 testsprite_tests/
+
+# Debug & log files
+next_log.txt
+next_turbo_log.txt
+vps_error*.html
+test.ts

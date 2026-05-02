@@ -41,10 +41,10 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
   productionBrowserSourceMaps: false, // Hemat RAM: jangan buat source maps
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   images: {
     remotePatterns: ALLOWED_IMAGE_DOMAINS,
@@ -58,6 +58,8 @@ const nextConfig: NextConfig = {
       "lucide-react",
       "recharts",
       "date-fns",
+      "bcryptjs",
+      "exceljs",
       "@radix-ui/react-icons",
       "@radix-ui/react-dialog",
       "@radix-ui/react-dropdown-menu",

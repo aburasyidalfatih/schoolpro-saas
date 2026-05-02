@@ -1,0 +1,51 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { logger } from "@/lib/logger";
+
+export async function GET(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const tenantId = searchParams.get("tenantId");
+    const status = searchParams.get("status");
+    const periodeId = searchParams.get("periodeId");
+
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant ID required" }, { status: 400 });
+    }
+
+    const where: any = { tenantId };
+    if (status) where.status = status;
+    if (periodeId) where.periodeId = periodeId;
+
+    const applicants = await db.pendaftarPpdb.findMany({
+      where,
+      include: {
+        periode: true,
+        tagihan: {
+          include: {
+            pembayaran: true
+          }
+        },
+        berkas: true,
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json(applicants);
+  } catch (error) {
+    logger.error("GET PPDB Pendaftar Error", error, { path: "/api/ppdb/pendaftar" });
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
