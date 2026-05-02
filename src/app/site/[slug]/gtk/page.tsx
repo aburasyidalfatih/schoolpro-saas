@@ -70,12 +70,6 @@ export default async function GTKPage({ params }: { params: Promise<{ slug: stri
 
       {/* ── TEACHERS GRID ── */}
       <section className="py-12 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-extrabold mb-4">Tim Pendidik & Staf</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Kolaborasi harmonis antara guru yang berpengalaman dan staf profesional untuk menciptakan ekosistem belajar yang ideal.
-          </p>
-        </div>
 
         {teachers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

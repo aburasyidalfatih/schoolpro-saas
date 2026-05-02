@@ -129,25 +129,29 @@ export default function EditAlumniPage() {
   if (loading) return <div className="skeleton h-96 max-w-3xl rounded-2xl" />
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-          <Link href="/dashboard/website/alumni">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Edit Alumni</h1>
-          <p className="text-muted-foreground mt-1">Perbarui data profil dan testimoni alumni.</p>
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+            <Link href="/dashboard/website/alumni">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Edit Alumni</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Perbarui data profil dan testimoni alumni.</p>
+          </div>
         </div>
       </div>
 
-      <Card className="glass border-0">
-        <form onSubmit={handleSubmit}>
-          <CardHeader>
-            <CardTitle className="text-base">Informasi Alumni</CardTitle>
-            <CardDescription className="text-xs">Lengkapi data diri dan aktivitas alumni saat ini.</CardDescription>
-          </CardHeader>
+      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3 items-start">
+        {/* Kolom Kiri: Konten Utama */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
+              <CardTitle className="text-base">Informasi Alumni</CardTitle>
+              <CardDescription className="text-xs">Lengkapi data diri dan aktivitas alumni saat ini.</CardDescription>
+            </CardHeader>
           <CardContent className="space-y-6">
             
             <div className="flex flex-col sm:flex-row gap-6 items-start">
@@ -247,23 +251,33 @@ export default function EditAlumniPage() {
               </div>
             </div>
           </CardContent>
-          <div className="px-6 py-4 border-t bg-muted/10 flex justify-end gap-3 rounded-b-xl">
-            <Button type="button" variant="ghost" className="rounded-xl" onClick={() => router.back()} disabled={saving}>
-              Batal
-            </Button>
-            <Button type="submit" className="gap-2 btn-gradient text-white border-0 rounded-xl" disabled={saving || !formData.name || !formData.graduationYear}>
-              {saving ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  {uploading ? "Mengunggah..." : "Menyimpan..."}
-                </>
-              ) : (
-                <><Save className="h-4 w-4" /> Simpan Perubahan</>
-              )}
-            </Button>
-          </div>
-        </form>
-      </Card>
+        </Card>
+      </div>
+
+        {/* Kolom Kanan: Pengaturan */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
+              <CardTitle className="text-base">Aksi</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <Button type="submit" className="w-full gap-2 btn-gradient text-white border-0 rounded-xl" disabled={saving || !formData.name || !formData.graduationYear}>
+                {saving ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    {uploading ? "Mengunggah..." : "Menyimpan..."}
+                  </>
+                ) : (
+                  <><Save className="h-4 w-4" /> Simpan Perubahan</>
+                )}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full rounded-xl" onClick={() => router.back()} disabled={saving}>
+                Batal
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </form>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { postSchema } from "@/lib/validations/post"
+import { categorySchema } from "@/lib/validations/category"
 import { parseBody } from "@/lib/api-utils"
 import { z } from "zod"
 
@@ -13,20 +13,12 @@ export async function GET(req: Request) {
   const tenantId = url.searchParams.get("tenantId")
   if (!tenantId) return NextResponse.json({ error: "tenantId harus diisi" }, { status: 400 })
 
-  const posts = await db.post.findMany({
+  const categories = await db.category.findMany({
     where: { tenantId },
     orderBy: { createdAt: 'desc' },
-    include: {
-      author: {
-        select: { id: true, name: true, email: true, avatar: true }
-      },
-      category: {
-        select: { id: true, name: true }
-      }
-    }
   })
 
-  return NextResponse.json(posts)
+  return NextResponse.json(categories)
 }
 
 export async function POST(req: Request) {
@@ -35,7 +27,7 @@ export async function POST(req: Request) {
 
   const schema = z.object({
     tenantId: z.string().min(1),
-  }).and(postSchema)
+  }).and(categorySchema)
 
   const parsed = await parseBody(req, schema)
   if (parsed.error) return parsed.error
@@ -49,20 +41,25 @@ export async function POST(req: Request) {
     })
     const allowedRoles = ["owner", "admin", "teacher", "operator"]
     if (!tu || !allowedRoles.includes(tu.role)) {
-      return NextResponse.json({ error: "Tidak punya izin untuk membuat artikel" }, { status: 403 })
+      return NextResponse.json({ error: "Tidak punya izin untuk membuat kategori" }, { status: 403 })
     }
   }
 
-  // Jika authorId tidak dikirim dari FE, ambil dari session user
-  const authorId = session.user.id
+  // Check unique slug
+  const existingCategory = await db.category.findFirst({
+    where: { tenantId, slug: data.slug }
+  })
 
-  const post = await db.post.create({
+  if (existingCategory) {
+    return NextResponse.json({ error: "Slug kategori sudah digunakan" }, { status: 400 })
+  }
+
+  const category = await db.category.create({
     data: {
       ...data,
       tenantId,
-      authorId
     }
   })
 
-  return NextResponse.json({ message: "Artikel berhasil dibuat", post })
+  return NextResponse.json({ message: "Kategori berhasil dibuat", category })
 }

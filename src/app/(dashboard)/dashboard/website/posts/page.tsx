@@ -18,6 +18,7 @@ interface Post {
   status: string
   createdAt: string
   author: { name: string }
+  category?: { name: string } | null
 }
 
 export default function PostsPage() {
@@ -117,6 +118,11 @@ export default function PostsPage() {
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">
                           {post.type.replace('_', ' ')}
                         </span>
+                        {post.category?.name && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground ml-1">
+                            {post.category.name}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {post.status === "PUBLISHED" ? (

@@ -53,7 +53,11 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
 
 export default async function middleware(request: NextRequest) {
   // Gunakan X-Forwarded-Host dari Nginx jika ada, jika tidak gunakan host bawaan
-  const hostname = request.headers.get("x-forwarded-host") || request.headers.get("host") || ""
+  let hostname = request.headers.get("x-forwarded-host") || request.headers.get("host") || ""
+  
+  // Hapus port jika ada untuk memastikan deteksi domain akurat di mode development
+  hostname = hostname.split(':')[0]
+  
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.id"
   const { pathname } = request.nextUrl
 

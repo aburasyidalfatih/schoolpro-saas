@@ -32,7 +32,8 @@ export default function EditStaffPage() {
     role: "",
     bio: "",
     sortOrder: 0,
-    imageUrl: ""
+    imageUrl: "",
+    email: ""
   })
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -50,7 +51,8 @@ export default function EditStaffPage() {
               role: d.role || "",
               bio: d.bio || "",
               sortOrder: d.sortOrder || 0,
-              imageUrl: d.imageUrl || ""
+              imageUrl: d.imageUrl || "",
+              email: (d as any).email || ""
             })
             if (d.imageUrl) setPreviewUrl(d.imageUrl)
           }
@@ -111,6 +113,7 @@ export default function EditStaffPage() {
         bio: formData.bio,
         sortOrder: Number(formData.sortOrder),
         imageUrl: finalImageUrl,
+        email: formData.email
       })
 
       toast({ title: "Data GTK berhasil diperbarui!" })
@@ -125,25 +128,29 @@ export default function EditStaffPage() {
   if (loading) return <div className="skeleton h-96 max-w-3xl rounded-2xl" />
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-          <Link href="/dashboard/website/gtk">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Edit GTK</h1>
-          <p className="text-muted-foreground mt-1">Perbarui profil guru atau staf.</p>
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+            <Link href="/dashboard/website/gtk">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Edit GTK</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Perbarui profil guru atau staf.</p>
+          </div>
         </div>
       </div>
 
-      <Card className="glass border-0">
-        <form onSubmit={handleSubmit}>
-          <CardHeader>
-            <CardTitle className="text-base">Informasi GTK</CardTitle>
-            <CardDescription className="text-xs">Lengkapi biodata dan foto profil.</CardDescription>
-          </CardHeader>
+      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3 items-start">
+        {/* Kolom Kiri: Konten Utama */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
+              <CardTitle className="text-base">Informasi GTK</CardTitle>
+              <CardDescription className="text-xs">Lengkapi biodata dan foto profil.</CardDescription>
+            </CardHeader>
           <CardContent className="space-y-4">
             
             <div className="flex flex-col sm:flex-row gap-6 items-start">
@@ -204,6 +211,19 @@ export default function EditStaffPage() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="email">Email (Opsional - Untuk Login)</Label>
+                  <Input 
+                    id="email" 
+                    type="email"
+                    value={formData.email} 
+                    onChange={e => setFormData({...formData, email: e.target.value})} 
+                    placeholder="Contoh: guru@sekolah.com" 
+                    className="rounded-xl"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Jika diisi, akun User otomatis dibuat dengan password: password123</p>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="sortOrder">Urutan Tampil (Semakin kecil semakin awal)</Label>
                   <Input 
                     id="sortOrder" 
@@ -227,23 +247,33 @@ export default function EditStaffPage() {
               />
             </div>
           </CardContent>
-          <div className="px-6 py-4 border-t bg-muted/10 flex justify-end gap-3 rounded-b-xl">
-            <Button type="button" variant="ghost" className="rounded-xl" onClick={() => router.back()} disabled={saving}>
-              Batal
-            </Button>
-            <Button type="submit" className="gap-2 btn-gradient text-white border-0 rounded-xl" disabled={saving || !formData.name || !formData.role}>
-              {saving ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  {uploading ? "Mengunggah..." : "Menyimpan..."}
-                </>
-              ) : (
-                <><Save className="h-4 w-4" /> Simpan Perubahan</>
-              )}
-            </Button>
-          </div>
-        </form>
-      </Card>
+        </Card>
+      </div>
+
+        {/* Kolom Kanan: Pengaturan */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
+              <CardTitle className="text-base">Aksi</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <Button type="submit" className="w-full gap-2 btn-gradient text-white border-0 rounded-xl" disabled={saving || !formData.name || !formData.role}>
+                {saving ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    {uploading ? "Mengunggah..." : "Menyimpan..."}
+                  </>
+                ) : (
+                  <><Save className="h-4 w-4" /> Simpan Perubahan</>
+                )}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full rounded-xl" onClick={() => router.back()} disabled={saving}>
+                Batal
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </form>
     </div>
   )
 }

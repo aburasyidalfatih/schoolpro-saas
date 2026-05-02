@@ -44,12 +44,55 @@ export async function createStaff(tenantId: string, data: any) {
   
   const parsed = staffSchema.parse(data)
   
+  let userId: string | null = null
+
+  // Jika email diisi, buat akun User untuk "Data Master -> Menu Guru"
+  if (parsed.email && parsed.email.trim() !== '') {
+    const email = parsed.email.trim()
+    let user = await db.user.findUnique({ where: { email } })
+
+    if (!user) {
+      const bcrypt = await import("bcryptjs")
+      const hashedPassword = await bcrypt.hash("password123", 12)
+      user = await db.user.create({
+        data: { name: parsed.name, email, password: hashedPassword },
+      })
+    }
+
+    const existingTu = await db.tenantUser.findUnique({
+      where: { tenantId_userId: { tenantId, userId: user.id } },
+    })
+
+    if (!existingTu) {
+      await db.tenantUser.create({
+        data: { tenantId, userId: user.id, role: "guru" },
+      })
+    }
+
+    userId = user.id
+  }
+  
   const staff = await db.staff.create({
     data: {
-      ...parsed,
+      name: parsed.name,
+      role: parsed.role,
+      bio: parsed.bio,
+      imageUrl: parsed.imageUrl,
+      sortOrder: parsed.sortOrder,
+      email: parsed.email || null,
+      userId,
       tenantId,
     }
   })
+  
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { slug: true } })
+  if (tenant) {
+    const { invalidatePublicTenantCache } = await import("@/lib/services/tenant-public")
+    await invalidatePublicTenantCache(tenant.slug)
+    revalidatePath(`/site/${tenant.slug}/gtk`, "page")
+    revalidatePath("/gtk", "page")
+    revalidatePath("/", "layout")
+  }
   
   revalidatePath("/(dashboard)/dashboard/website/gtk", "page")
   return staff
@@ -60,10 +103,54 @@ export async function updateStaff(id: string, tenantId: string, data: any) {
   
   const parsed = staffSchema.parse(data)
   
+  let userId: string | null = null
+
+  if (parsed.email && parsed.email.trim() !== '') {
+    const email = parsed.email.trim()
+    let user = await db.user.findUnique({ where: { email } })
+
+    if (!user) {
+      const bcrypt = await import("bcryptjs")
+      const hashedPassword = await bcrypt.hash("password123", 12)
+      user = await db.user.create({
+        data: { name: parsed.name, email, password: hashedPassword },
+      })
+    }
+
+    const existingTu = await db.tenantUser.findUnique({
+      where: { tenantId_userId: { tenantId, userId: user.id } },
+    })
+
+    if (!existingTu) {
+      await db.tenantUser.create({
+        data: { tenantId, userId: user.id, role: "guru" },
+      })
+    }
+
+    userId = user.id
+  }
+
   await db.staff.update({
     where: { id, tenantId },
-    data: parsed
+    data: {
+      name: parsed.name,
+      role: parsed.role,
+      bio: parsed.bio,
+      imageUrl: parsed.imageUrl,
+      sortOrder: parsed.sortOrder,
+      email: parsed.email || null,
+      userId,
+    }
   })
+  
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { slug: true } })
+  if (tenant) {
+    const { invalidatePublicTenantCache } = await import("@/lib/services/tenant-public")
+    await invalidatePublicTenantCache(tenant.slug)
+    revalidatePath(`/site/${tenant.slug}/gtk`, "page")
+    revalidatePath("/gtk", "page")
+    revalidatePath("/", "layout")
+  }
   
   revalidatePath("/(dashboard)/dashboard/website/gtk", "page")
 }
@@ -74,6 +161,15 @@ export async function deleteStaff(id: string, tenantId: string) {
   await db.staff.delete({
     where: { id, tenantId }
   })
+  
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { slug: true } })
+  if (tenant) {
+    const { invalidatePublicTenantCache } = await import("@/lib/services/tenant-public")
+    await invalidatePublicTenantCache(tenant.slug)
+    revalidatePath(`/site/${tenant.slug}/gtk`, "page")
+    revalidatePath("/gtk", "page")
+    revalidatePath("/", "layout")
+  }
   
   revalidatePath("/(dashboard)/dashboard/website/gtk", "page")
 }

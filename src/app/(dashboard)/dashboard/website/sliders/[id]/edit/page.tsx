@@ -124,23 +124,26 @@ export default function EditSliderPage() {
   if (loading) return <div className="skeleton h-96 max-w-4xl rounded-2xl" />
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-          <Link href="/dashboard/website/sliders">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Edit Slide</h1>
-          <p className="text-muted-foreground mt-1">Perbarui gambar dan informasi slider.</p>
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+            <Link href="/dashboard/website/sliders">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Edit Slide</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Perbarui gambar dan informasi slider.</p>
+          </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-6">
-          <Card className="glass border-0">
-            <CardHeader>
+      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3 items-start">
+        {/* Kolom Kiri: Konten Utama */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
               <CardTitle className="text-base">Gambar Slide</CardTitle>
               <CardDescription className="text-xs">Klik gambar untuk mengganti dengan yang baru.</CardDescription>
             </CardHeader>
@@ -166,8 +169,8 @@ export default function EditSliderPage() {
             </CardContent>
           </Card>
 
-          <Card className="glass border-0">
-            <CardHeader>
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
               <CardTitle className="text-base">Teks & Tombol (Opsional)</CardTitle>
               <CardDescription className="text-xs">Teks ini akan muncul di atas gambar slide.</CardDescription>
             </CardHeader>
@@ -220,9 +223,10 @@ export default function EditSliderPage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card className="glass border-0">
-            <CardHeader>
+        {/* Kolom Kanan: Pengaturan */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
               <CardTitle className="text-base">Pengaturan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">

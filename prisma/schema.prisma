@@ -51,6 +51,7 @@ model Tenant {
   payments           Payment[]
   popups             Popup[]
   posts              Post[]
+  categories         Category[]
   programs           Program[]
   sliders            Slider[]
   staff              Staff[]
@@ -88,6 +89,7 @@ model User {
   sessions             Session[]
   tenants              TenantUser[]
   verificationTokens   VerificationToken[]
+  staffProfiles        Staff[]
 
   @@index([isActive])
   @@index([isSuperAdmin])
@@ -300,17 +302,38 @@ model Post {
   featuredImage String?
   type          String   @default("BLOG_GURU")
   status        String   @default("PUBLISHED")
+  seoTitle      String?
+  seoDesc       String?
+  categoryId    String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category      Category? @relation(fields: [categoryId], references: [id])
 
   @@unique([tenantId, slug])
   @@index([tenantId])
   @@index([authorId])
+  @@index([categoryId])
   @@index([type])
   @@index([status])
   @@map("posts")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  slug        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  posts       Post[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("categories")
 }
 
 model Document {
@@ -434,6 +457,8 @@ model Alumni {
 model Staff {
   id        String   @id @default(cuid())
   tenantId  String
+  userId    String?
+  email     String?
   name      String
   role      String
   imageUrl  String?
@@ -442,8 +467,10 @@ model Staff {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([tenantId])
+  @@index([userId])
   @@map("staff")
 }
 

@@ -93,23 +93,26 @@ export default function NewPopupPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-          <Link href="/dashboard/website/popups">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Buat Popup Baru</h1>
-          <p className="text-muted-foreground mt-1">Atur pesan yang akan ditampilkan kepada pengunjung.</p>
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+            <Link href="/dashboard/website/popups">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Buat Popup Baru</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Atur pesan yang akan ditampilkan kepada pengunjung.</p>
+          </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-6">
-          <Card className="glass border-0">
-            <CardHeader>
+      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3 items-start">
+        {/* Kolom Kiri: Konten Utama */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
               <CardTitle className="text-base">Konten Pengumuman</CardTitle>
               <CardDescription className="text-xs">Informasi utama yang muncul di modal.</CardDescription>
             </CardHeader>
@@ -162,8 +165,8 @@ export default function NewPopupPage() {
             </CardContent>
           </Card>
 
-          <Card className="glass border-0">
-            <CardHeader>
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
               <CardTitle className="text-base">Media (Opsional)</CardTitle>
               <CardDescription className="text-xs">Tambahkan gambar atau video YouTube agar lebih menarik.</CardDescription>
             </CardHeader>
@@ -200,9 +203,10 @@ export default function NewPopupPage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card className="glass border-0">
-            <CardHeader>
+        {/* Kolom Kanan: Pengaturan */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="glass border-0 overflow-hidden shadow-sm">
+            <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
               <CardTitle className="text-base">Pengaturan Tampilan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">

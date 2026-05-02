@@ -103,6 +103,7 @@ function getTenantMenu(basePath: string, plan: string = "free"): MenuSection[] {
           icon: FileText,
           children: [
             { label: "Artikel & Pos", href: `${basePath}/website/posts`, icon: FileText },
+            { label: "Kategori Artikel", href: `${basePath}/website/categories`, icon: Tag },
             { label: "Agenda & Acara", href: `${basePath}/website/events`, icon: Calendar },
             { label: "Pusat Unduhan", href: `${basePath}/website/documents`, icon: Download },
           ],

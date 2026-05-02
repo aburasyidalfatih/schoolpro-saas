@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -171,10 +172,19 @@ export default function UsersPage() {
           </h1>
           <p className="text-muted-foreground mt-1">Kelola anggota organisasi ({filtered.length} data)</p>
         </div>
-        <Button className="gap-2 btn-gradient text-white border-0 rounded-xl" onClick={() => setShowAdd(!showAdd)}>
-          <UserPlus className="h-4 w-4" />
-          Tambah User
-        </Button>
+        {roleParam === "guru" ? (
+          <Button asChild className="gap-2 btn-gradient text-white border-0 rounded-xl">
+            <Link href="/dashboard/website/gtk/new">
+              <UserPlus className="h-4 w-4" />
+              Tambah Data Guru
+            </Link>
+          </Button>
+        ) : (
+          <Button className="gap-2 btn-gradient text-white border-0 rounded-xl" onClick={() => setShowAdd(!showAdd)}>
+            <UserPlus className="h-4 w-4" />
+            Tambah User
+          </Button>
+        )}
       </div>
 
       {/* Add User Form */}
