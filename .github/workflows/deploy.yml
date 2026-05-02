@@ -2,7 +2,7 @@ name: Deploy SchoolPro SaaS
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, main]
   workflow_dispatch:
     inputs:
       branch:
