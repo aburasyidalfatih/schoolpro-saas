@@ -60,7 +60,6 @@ const nextConfig: NextConfig = {
       "lucide-react",
       "recharts",
       "date-fns",
-      "bcryptjs",
       "exceljs",
       "@radix-ui/react-icons",
       "@radix-ui/react-dialog",
