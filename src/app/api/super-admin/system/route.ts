@@ -39,6 +39,24 @@ export async function GET() {
       logger.error("PM2 fetch failed", e)
     }
 
+    // Get Disk Status
+    let diskStats = { total: 0, used: 0, free: 0, usagePercentage: 0 }
+    try {
+      const { stdout: dfOut } = await execAsync("df -k /")
+      const lines = dfOut.trim().split("\n")
+      if (lines.length > 1) {
+        const parts = lines[1].trim().split(/\s+/)
+        diskStats = {
+          total: parseInt(parts[1]) * 1024,
+          used: parseInt(parts[2]) * 1024,
+          free: parseInt(parts[3]) * 1024,
+          usagePercentage: parseInt(parts[4].replace('%', '')),
+        }
+      }
+    } catch (e) {
+      logger.error("Disk fetch failed", e)
+    }
+
     return NextResponse.json({
       ram: {
         total: totalMem,
@@ -52,6 +70,7 @@ export async function GET() {
         loadAverage: loadAvg,
         usagePercentage: Math.min(cpuUsage, 100),
       },
+      disk: diskStats,
       os: {
         platform: os.platform(),
         release: os.release(),

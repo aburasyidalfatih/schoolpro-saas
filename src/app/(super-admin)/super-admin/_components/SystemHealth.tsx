@@ -31,6 +31,12 @@ interface SystemMetrics {
     loadAverage: number[]
     usagePercentage: number
   }
+  disk: {
+    total: number
+    used: number
+    free: number
+    usagePercentage: number
+  }
   os: {
     platform: string
     release: string
@@ -155,7 +161,7 @@ export function SystemHealth() {
         </CardHeader>
         
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mt-4">
             {/* RAM Usage */}
             <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
               <div className="flex items-center justify-between">
@@ -204,10 +210,36 @@ export function SystemHealth() {
               </div>
             </div>
 
+            {/* Disk Usage */}
+            {metrics.disk && (
+              <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <HardDrive className="h-4 w-4 text-violet-500" />
+                    Penyimpanan (Disk)
+                  </div>
+                  <span className="text-sm font-semibold">{metrics.disk.usagePercentage}%</span>
+                </div>
+                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full transition-all duration-500",
+                      metrics.disk.usagePercentage > 85 ? "bg-red-500" : metrics.disk.usagePercentage > 70 ? "bg-amber-500" : "bg-violet-500"
+                    )}
+                    style={{ width: `${metrics.disk.usagePercentage}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Terpakai: {formatBytes(metrics.disk.used)}</span>
+                  <span>Total: {formatBytes(metrics.disk.total)}</span>
+                </div>
+              </div>
+            )}
+
             {/* Status Host */}
             <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border/50">
               <div className="flex items-center gap-2 text-sm font-medium mb-1">
-                <Activity className="h-4 w-4 text-violet-500" />
+                <Activity className="h-4 w-4 text-orange-500" />
                 Status Host
               </div>
               <div className="space-y-1.5 text-xs">
