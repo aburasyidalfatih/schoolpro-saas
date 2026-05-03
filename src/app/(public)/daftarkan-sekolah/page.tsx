@@ -155,7 +155,7 @@ export default function RegisterSchoolPage() {
     <div className="min-h-screen bg-muted/30 py-12 px-4">
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="text-center space-y-3">
-          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0 px-3 py-1">Pendaftaran Tenant</Badge>
+          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0 px-3 py-1">Formulir Pendaftaran</Badge>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Daftarkan Sekolah Anda</h1>
           <p className="text-muted-foreground text-lg max-w-lg mx-auto leading-relaxed">
             Bergabunglah dengan ratusan sekolah lainnya dalam transformasi digital manajemen sekolah.
