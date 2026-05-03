@@ -374,7 +374,7 @@ export default async function LandingPage() {
             <div className="flex h-6 w-6 items-center justify-center rounded-md btn-gradient text-white font-bold text-[10px]">S</div>
             <span className="font-semibold text-foreground">SchoolPro</span>
           </div>
-          <p>&copy; {new Date().getFullYear()} Hak cipta dilindungi. <span className="opacity-50 text-xs ml-2">v1.0.3 ({process.env.NEXT_PUBLIC_ROOT_DOMAIN || "local"})</span></p>
+          <p>&copy; {new Date().getFullYear()} <a href="https://schoolpro.id" className="hover:underline text-foreground">SchoolPro.id</a>. Hak cipta dilindungi. <span className="opacity-50 text-xs ml-2">v1.0.5 ({process.env.NEXT_PUBLIC_ROOT_DOMAIN || "local"})</span></p>
           <div className="flex gap-4">
             <Link href="#" className="hover:text-foreground transition-colors">Kebijakan Privasi</Link>
             <Link href="#" className="hover:text-foreground transition-colors">Syarat & Ketentuan</Link>

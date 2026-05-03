@@ -638,9 +638,12 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
       )}
 
       {/* App Version */}
-      <div className={cn("p-4 text-center border-t border-border mt-auto", collapsed ? "hidden" : "block")}>
+      <div className={cn("p-4 text-center border-t border-border mt-auto flex flex-col gap-1", collapsed ? "hidden" : "block")}>
+        <p className="text-[10px] text-muted-foreground font-mono">
+          &copy; {new Date().getFullYear()} <a href="https://schoolpro.id" target="_blank" rel="noopener noreferrer" className="hover:underline text-foreground">SchoolPro.id</a>
+        </p>
         <p className="text-[10px] text-muted-foreground font-mono" title="Application Version">
-          v1.0.0 {process.env.NEXT_PUBLIC_APP_VERSION ? `(rev: ${process.env.NEXT_PUBLIC_APP_VERSION.substring(0, 7)})` : "(dev)"}
+          v1.0.5 {process.env.NEXT_PUBLIC_APP_VERSION ? `(rev: ${process.env.NEXT_PUBLIC_APP_VERSION.substring(0, 7)})` : "(dev)"}
         </p>
       </div>
     </aside>
