@@ -78,7 +78,7 @@ export async function sendWhatsApp(phone: string, message: string, tenantId?: st
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: apiKey,
     },
     body: JSON.stringify({ messageType: "text", to: phone, body: message }),
   })
