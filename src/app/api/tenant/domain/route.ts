@@ -62,13 +62,23 @@ export async function GET(req: Request) {
   const platformSetting = await db.platformSetting.findUnique({
     where: { key: "enable_custom_domain" },
   })
-  const isCustomDomainEnabled = platformSetting?.value === "true"
+  
+  // 1. Cek global toggle dari Super Admin
+  let isCustomDomainEnabled = platformSetting?.value === "true"
+  let lockedMessage = "Fitur Custom Domain saat ini dinonaktifkan secara global oleh sistem."
+
+  // 2. Cek paket langganan (hanya jika fitur aktif secara global)
+  if (isCustomDomainEnabled && tenant.plan === "free") {
+    isCustomDomainEnabled = false
+    lockedMessage = "Fitur Custom Domain eksklusif untuk paket PRO. Silakan upgrade paket Anda untuk menggunakan fitur ini."
+  }
 
   return NextResponse.json({
     slug: tenant.slug,
     domain: tenant.domain,
     customDomain: domainSettings,
     isCustomDomainEnabled,
+    lockedMessage,
   })
 }
 
@@ -91,7 +101,17 @@ export async function PUT(req: Request) {
     where: { key: "enable_custom_domain" },
   })
   if (platformSetting?.value !== "true") {
-    return NextResponse.json({ error: "Fitur custom domain dinonaktifkan oleh sistem. Silakan upgrade ke paket PRO atau hubungi admin." }, { status: 403 })
+    return NextResponse.json({ error: "Fitur custom domain saat ini dinonaktifkan secara global oleh sistem." }, { status: 403 })
+  }
+
+  // Cek plan tenant
+  const tenant = await db.tenant.findUnique({
+    where: { id: tenantId },
+    select: { plan: true },
+  })
+  
+  if (tenant?.plan === "free") {
+    return NextResponse.json({ error: "Fitur custom domain eksklusif untuk paket PRO. Silakan upgrade paket Anda." }, { status: 403 })
   }
 
   // Cek domain tidak dipakai tenant lain

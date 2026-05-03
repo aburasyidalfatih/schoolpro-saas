@@ -40,6 +40,7 @@ interface DomainData {
   domain: string | null
   customDomain: CustomDomainInfo | null
   isCustomDomainEnabled?: boolean
+  lockedMessage?: string
 }
 
 // ==================== STATUS BADGE ====================
@@ -354,7 +355,7 @@ export default function DomainSettingsPage() {
               <div className="space-y-1">
                 <p className="text-sm font-medium text-amber-700">Fitur Terkunci</p>
                 <p className="text-xs text-muted-foreground">
-                  Fitur Custom Domain saat ini dinonaktifkan oleh administrator. Silakan hubungi admin atau upgrade paket Anda ke PRO untuk menggunakan fitur ini.
+                  {data.lockedMessage || "Fitur Custom Domain saat ini dinonaktifkan."}
                 </p>
               </div>
             </div>
