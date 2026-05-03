@@ -58,7 +58,12 @@ export default async function middleware(request: NextRequest) {
   // Hapus port jika ada untuk memastikan deteksi domain akurat di mode development
   hostname = hostname.split(':')[0]
   
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.id"
+  let rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "schoolpro.id"
+  if (hostname.endsWith("schoolpro.my.id") || hostname === "schoolpro.my.id") {
+    rootDomain = "schoolpro.my.id"
+  } else if (hostname.endsWith("schoolpro.id") || hostname === "schoolpro.id") {
+    rootDomain = "schoolpro.id"
+  }
   const { pathname } = request.nextUrl
 
   // 1. Lewati aset statis secara manual (Security Layer 2)
