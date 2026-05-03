@@ -82,6 +82,7 @@ export default async function middleware(request: NextRequest) {
   const isMainDomain =
     hostname === rootDomain ||
     hostname === `www.${rootDomain}` ||
+    hostname === "localhost" ||
     hostname.startsWith("localhost:") ||
     hostname === "127.0.0.1"
 

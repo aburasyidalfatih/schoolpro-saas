@@ -26,6 +26,7 @@ export default function PpdbFormulirPage({ params }: { params: Promise<{ id: str
   const [currentStep, setCurrentStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [applicant, setApplicant] = useState<any>(null)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   // Step 1: Data Siswa
   const [dataSiswa, setDataSiswa] = useState({
@@ -78,16 +79,38 @@ export default function PpdbFormulirPage({ params }: { params: Promise<{ id: str
       .then(r => r.json())
       .then(data => {
         setApplicant(data)
-        // Pre-fill jika data sudah ada
-        if (data.dataFormulir) setDataSiswa({ ...dataSiswa, ...data.dataFormulir })
-        if (data.dataOrangtua) {
-          const d = data.dataOrangtua as any
-          setDataOrangtua({ ...dataOrangtua, ...d })
-          setDataSekolah({ ...dataSekolah, ...d.sekolah })
+        // Cek localStorage
+        const draftStr = localStorage.getItem(`ppdb_draft_${id}`)
+        if (draftStr) {
+           try {
+             const draft = JSON.parse(draftStr)
+             setDataSiswa(draft.dataSiswa || dataSiswa)
+             setDataOrangtua(draft.dataOrangtua || dataOrangtua)
+             setDataSekolah(draft.dataSekolah || dataSekolah)
+             setLastSaved(new Date())
+           } catch(e) {}
+        } else {
+           if (data.dataFormulir) setDataSiswa({ ...dataSiswa, ...data.dataFormulir })
+           if (data.dataOrangtua) {
+             const d = data.dataOrangtua as any
+             setDataOrangtua({ ...dataOrangtua, ...d })
+             setDataSekolah({ ...dataSekolah, ...d.sekolah })
+           }
         }
       })
       .catch(() => {})
   }, [id])
+
+  // Auto-save effect
+  useEffect(() => {
+    if (!applicant) return
+    const timer = setTimeout(() => {
+       const draft = { dataSiswa, dataOrangtua, dataSekolah }
+       localStorage.setItem(`ppdb_draft_${id}`, JSON.stringify(draft))
+       setLastSaved(new Date())
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [dataSiswa, dataOrangtua, dataSekolah, id, applicant])
 
   const handleSubmit = async () => {
     setSubmitting(true)
@@ -134,8 +157,13 @@ export default function PpdbFormulirPage({ params }: { params: Promise<{ id: str
         </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Formulir Pendaftaran</h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm flex items-center gap-2">
             {applicant?.namaLengkap} · <span className="font-mono text-xs">{applicant?.noPendaftaran}</span>
+            {lastSaved && (
+              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium ml-2 animate-pulse">
+                Tersimpan {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
           </p>
         </div>
       </div>

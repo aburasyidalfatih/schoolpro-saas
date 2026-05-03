@@ -15,6 +15,7 @@ import Link from "next/link"
 import { format } from "date-fns"
 import { id as localeId } from "date-fns/locale"
 import { derivePpdbStatus, PpdbStatus } from "@/features/ppdb/lib/ppdb-workflow"
+import confetti from "canvas-confetti"
 
 export default function PpdbStatusPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -39,6 +40,16 @@ export default function PpdbStatusPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     fetchDetail()
   }, [id])
+
+  useEffect(() => {
+    if (applicant?.status === "DITERIMA" || applicant?.status === "SINKRONISASI") {
+       confetti({
+         particleCount: 200,
+         spread: 90,
+         origin: { y: 0.6 }
+       })
+    }
+  }, [applicant?.status])
 
   const handleFinalize = async () => {
     try {

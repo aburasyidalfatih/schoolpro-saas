@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { format } from "date-fns"
 import { id as localeId } from "date-fns/locale"
+import confetti from "canvas-confetti"
 
 export default function PpdbPendaftarDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -18,6 +19,7 @@ export default function PpdbPendaftarDetailPage({ params }: { params: Promise<{ 
   const { toast } = useToast()
   const [applicant, setApplicant] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null)
 
   const fetchDetail = async () => {
     setLoading(true)
@@ -46,6 +48,13 @@ export default function PpdbPendaftarDetailPage({ params }: { params: Promise<{ 
 
       if (res.ok) {
         toast({ title: "Berhasil", description: `Status diupdate menjadi ${newStatus}` })
+        if (newStatus === "DITERIMA") {
+           confetti({
+             particleCount: 150,
+             spread: 70,
+             origin: { y: 0.6 }
+           })
+        }
         fetchDetail()
       }
     } catch (error) {
@@ -69,9 +78,9 @@ export default function PpdbPendaftarDetailPage({ params }: { params: Promise<{ 
             <div className="flex items-center gap-3">
                <h1 className="text-2xl font-bold tracking-tight">{applicant.namaLengkap}</h1>
                <Badge className={
-                 applicant.status === "DITERIMA" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                 applicant.status === "DITERIMA" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]" :
                  applicant.status === "DITOLAK" ? "bg-red-500/10 text-red-600 border-red-500/20" :
-                 "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                 "bg-amber-500/10 text-amber-600 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)] animate-pulse"
                }>
                  {applicant.status}
                </Badge>
@@ -135,35 +144,57 @@ export default function PpdbPendaftarDetailPage({ params }: { params: Promise<{ 
             </TabsContent>
 
             <TabsContent value="berkas">
-               <div className="grid gap-4 sm:grid-cols-2">
-                  {applicant.berkas?.length > 0 ? (
-                    applicant.berkas.map((file: any) => (
-                      <Card key={file.id} className="glass border-0 shadow-sm overflow-hidden group">
-                         <div className="p-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                               <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center">
-                                  <FileText className="h-5 w-5 text-primary" />
-                               </div>
-                               <div>
-                                  <p className="text-sm font-semibold">{file.requirement?.nama}</p>
-                                  <Badge variant="outline" className="text-[9px] uppercase tracking-widest mt-1">
-                                    {file.status}
-                                  </Badge>
-                               </div>
-                            </div>
-                            <a href={file.fileUrl} target="_blank" rel="noreferrer">
-                               <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <ExternalLink className="h-4 w-4" />
-                               </Button>
-                            </a>
-                         </div>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl text-muted-foreground">
-                       Belum ada berkas yang diunggah.
-                    </div>
-                  )}
+               <div className="flex flex-col xl:flex-row gap-6">
+                 {/* Daftar Berkas */}
+                 <div className={`space-y-4 ${selectedFileUrl ? 'w-full xl:w-1/3' : 'w-full grid gap-4 sm:grid-cols-2'}`}>
+                    {applicant.berkas?.length > 0 ? (
+                      applicant.berkas.map((file: any) => (
+                        <Card 
+                          key={file.id} 
+                          className={`glass border-0 shadow-sm overflow-hidden group cursor-pointer transition-all ${selectedFileUrl === file.fileUrl ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-white/50 dark:hover:bg-white/5'}`}
+                          onClick={() => setSelectedFileUrl(file.fileUrl)}
+                        >
+                           <div className="p-4 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                 <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center">
+                                    <FileText className="h-5 w-5 text-primary" />
+                                 </div>
+                                 <div>
+                                    <p className="text-sm font-semibold line-clamp-1">{file.requirement?.nama}</p>
+                                    <Badge variant="outline" className="text-[9px] uppercase tracking-widest mt-1">
+                                      {file.status}
+                                    </Badge>
+                                 </div>
+                              </div>
+                              <a href={file.fileUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                                 <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <ExternalLink className="h-4 w-4" />
+                                 </Button>
+                              </a>
+                           </div>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl text-muted-foreground">
+                         Belum ada berkas yang diunggah.
+                      </div>
+                    )}
+                 </div>
+
+                 {/* Viewer PDF / Gambar Inline */}
+                 {selectedFileUrl && (
+                   <div className="w-full xl:w-2/3 h-[600px] border rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900 relative group">
+                      <Button 
+                         variant="secondary" 
+                         size="icon" 
+                         className="absolute top-4 right-4 z-10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                         onClick={() => setSelectedFileUrl(null)}
+                      >
+                         <XCircle className="h-5 w-5" />
+                      </Button>
+                      <iframe src={selectedFileUrl} className="w-full h-full border-0" title="Document Viewer" />
+                   </div>
+                 )}
                </div>
             </TabsContent>
 
