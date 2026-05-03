@@ -50,7 +50,7 @@ export async function GET(req: Request) {
 
   const tenant = await db.tenant.findUnique({
     where: { id: tenantId },
-    select: { domain: true, settings: true, slug: true },
+    select: { domain: true, settings: true, slug: true, plan: true },
   })
 
   if (!tenant) {
