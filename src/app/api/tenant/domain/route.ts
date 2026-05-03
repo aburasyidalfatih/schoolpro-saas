@@ -58,10 +58,16 @@ export async function GET(req: Request) {
 
   const domainSettings = getDomainSettings(tenant.settings as any)
 
+  const platformSetting = await db.platformSetting.findUnique({
+    where: { key: "enable_custom_domain" },
+  })
+  const isCustomDomainEnabled = platformSetting?.value === "true"
+
   return NextResponse.json({
     slug: tenant.slug,
     domain: tenant.domain,
     customDomain: domainSettings,
+    isCustomDomainEnabled,
   })
 }
 
@@ -78,6 +84,13 @@ export async function PUT(req: Request) {
   const hasAccess = await checkTenantAccess(tenantId, session.user.id, session.user.isSuperAdmin)
   if (!hasAccess) {
     return NextResponse.json({ error: "Tidak punya izin" }, { status: 403 })
+  }
+
+  const platformSetting = await db.platformSetting.findUnique({
+    where: { key: "enable_custom_domain" },
+  })
+  if (platformSetting?.value !== "true") {
+    return NextResponse.json({ error: "Fitur custom domain dinonaktifkan oleh sistem. Silakan upgrade ke paket PRO atau hubungi admin." }, { status: 403 })
   }
 
   // Cek domain tidak dipakai tenant lain

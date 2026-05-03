@@ -39,6 +39,7 @@ interface DomainData {
   slug: string
   domain: string | null
   customDomain: CustomDomainInfo | null
+  isCustomDomainEnabled?: boolean
 }
 
 // ==================== STATUS BADGE ====================
@@ -345,6 +346,17 @@ export default function DomainSettingsPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {data && data.isCustomDomainEnabled === false && (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 mb-4">
+              <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-amber-700">Fitur Terkunci</p>
+                <p className="text-xs text-muted-foreground">
+                  Fitur Custom Domain saat ini dinonaktifkan oleh administrator. Silakan hubungi admin atau upgrade paket Anda ke PRO untuk menggunakan fitur ini.
+                </p>
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>Custom Domain</Label>
             <div className="flex gap-2">
@@ -353,11 +365,12 @@ export default function DomainSettingsPage() {
                 onChange={(e) => setDomainInput(e.target.value.toLowerCase().trim())}
                 placeholder="contoh: mybusiness.com"
                 className="rounded-xl font-mono"
+                disabled={data?.isCustomDomainEnabled === false}
               />
               <Button
                 className="btn-gradient text-white border-0 rounded-xl gap-2 shrink-0"
                 onClick={handleSave}
-                disabled={saving || !domainInput.trim()}
+                disabled={saving || !domainInput.trim() || data?.isCustomDomainEnabled === false}
               >
                 {saving ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
