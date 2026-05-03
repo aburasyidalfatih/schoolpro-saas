@@ -84,9 +84,13 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         <div className="glass rounded-3xl p-8 md:p-10 shadow-2xl">
           <div className="flex flex-col items-center mb-8 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl btn-gradient text-white font-bold text-xl shadow-lg glow-primary mb-4">
-              {tenantNameDisplay ? tenantNameDisplay.charAt(0) : "S"}
-            </div>
+            {isMainDomain ? (
+              <img src="/logo-schoolpro.png" alt="SchoolPro Logo" className="h-20 w-auto mb-2 object-contain" />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl btn-gradient text-white font-bold text-xl shadow-lg glow-primary mb-4">
+                {tenantNameDisplay ? tenantNameDisplay.charAt(0) : "S"}
+              </div>
+            )}
             <h1 className="text-2xl font-bold tracking-tight">Selamat datang</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {isMainDomain 

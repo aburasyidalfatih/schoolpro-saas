@@ -147,9 +147,7 @@ export default function LandingPage() {
       <nav className="glass sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl btn-gradient text-white font-bold text-sm shadow-lg glow-primary">
-              S
-            </div>
+            <img src="/logo-schoolpro.png" alt="SchoolPro Logo" className="h-9 w-auto object-contain" />
             <span className="font-bold text-lg tracking-tight">SchoolPro</span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">

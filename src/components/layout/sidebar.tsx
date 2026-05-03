@@ -430,12 +430,10 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
             <Link href={homeHref} className="flex items-center gap-2.5">
               <div className={cn(
                 "flex h-9 w-9 items-center justify-center rounded-xl text-white font-bold text-sm shadow-lg overflow-hidden",
-                isSuperAdminPath
-                  ? "bg-gradient-to-br from-red-500 to-orange-500"
-                  : brandLogo ? "bg-transparent shadow-none" : "btn-gradient"
+                brandLogo || isSuperAdminPath ? "bg-transparent shadow-none" : "btn-gradient"
               )}>
                 {isSuperAdminPath
-                  ? "⚡"
+                  ? <img src="/logo-schoolpro.png" alt="SchoolPro Logo" className="h-full w-full object-contain" />
                   : brandLogo
                     ? <img src={brandLogo} alt={brandName} className="h-full w-full object-contain" />
                     : brandInitial
@@ -460,13 +458,11 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
             onClick={() => setCollapsed(false)}
             className={cn(
               "flex h-9 w-9 mx-auto items-center justify-center rounded-xl text-white font-bold text-sm shadow-lg hover:opacity-90 transition-opacity overflow-hidden",
-              isSuperAdminPath
-                ? "bg-gradient-to-br from-red-500 to-orange-500"
-                : brandLogo ? "bg-transparent shadow-none" : "btn-gradient"
+              brandLogo || isSuperAdminPath ? "bg-transparent shadow-none" : "btn-gradient"
             )}
           >
             {isSuperAdminPath
-              ? "⚡"
+              ? <img src="/logo-schoolpro.png" alt="SchoolPro Logo" className="h-full w-full object-contain" />
               : brandLogo
                 ? <img src={brandLogo} alt={brandName} className="h-full w-full object-contain" />
                 : brandInitial
