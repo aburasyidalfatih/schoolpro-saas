@@ -27,6 +27,7 @@ export default function SuperAdminSettingsPage() {
   // Form State
   const [form, setForm] = useState({
     // General
+    app_logo: "",
     platform_name: "SchoolPro",
     platform_tagline: "Solusi Manajemen Sekolah Digital",
     allow_impersonate_user: "true",
@@ -54,6 +55,35 @@ export default function SuperAdminSettingsPage() {
 
   const [testEmail, setTestEmail] = useState("")
   const [testWANumber, setTestWANumber] = useState("")
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setUploadingLogo(true)
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("subDir", "platform")
+    
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setForm(prev => ({ ...prev, app_logo: data.url }))
+        handleSaveBatch(['app_logo'], { app_logo: data.url })
+      } else {
+        toast({ title: "Upload gagal", description: data.error, variant: "destructive" })
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Terjadi kesalahan sistem", variant: "destructive" })
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
 
   useEffect(() => {
     fetch("/api/super-admin/settings")
@@ -167,6 +197,30 @@ export default function SuperAdminSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
+                <Label>Logo Platform (SaaS)</Label>
+                <div className="flex items-center gap-4">
+                  {form.app_logo ? (
+                    <img src={form.app_logo} alt="Logo" className="h-16 w-auto object-contain rounded-lg border bg-white p-1" />
+                  ) : (
+                    <div className="h-16 w-16 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted/50">
+                      <Globe className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input 
+                      type="file" 
+                      accept="image/png, image/jpeg, image/webp"
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                      className="rounded-xl h-11"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {uploadingLogo ? "Mengunggah..." : "Maks 2MB. Format: JPG, PNG, WEBP."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Label>Nama Platform</Label>
                 <Input value={form.platform_name} onChange={e => setForm({...form, platform_name: e.target.value})} placeholder="SchoolPro" className="rounded-xl" />
               </div>
@@ -182,7 +236,7 @@ export default function SuperAdminSettingsPage() {
               <Button 
                 className="w-full gap-2 btn-gradient text-white border-0 rounded-xl"
                 onClick={() => handleSaveBatch(['platform_name', 'platform_tagline', 'contact_email'])}
-                disabled={saving}
+                disabled={saving || uploadingLogo}
               >
                 {saving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save className="h-4 w-4" />}
                 Simpan Identitas Platform

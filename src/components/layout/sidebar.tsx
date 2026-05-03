@@ -354,6 +354,16 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({})
   const [pendingPayments, setPendingPayments] = useState(0)
+  const [platformLogo, setPlatformLogo] = useState("/logo-schoolpro.png")
+
+  useEffect(() => {
+    fetch("/api/public/platform-info")
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.app_logo) setPlatformLogo(data.app_logo)
+      })
+      .catch(console.error)
+  }, [])
 
   const basePath = "/dashboard"
   const isSuperAdminPath = pathname.startsWith("/super-admin")
@@ -376,6 +386,7 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
   // Branding: pakai context (update instan) untuk nama & logo, fallback ke session
   const brandName = isSuperAdminPath ? "SchoolPro" : (branding.name || currentTenant?.name || "SchoolPro")
   const brandLogo = isSuperAdminPath ? null : (branding.logo || (currentTenant as any)?.logo || null)
+  const finalBrandLogo = brandLogo || platformLogo
   const brandInitial = brandName.charAt(0).toUpperCase()
 
   // Saat impersonate, super admin dianggap admin tenant
@@ -430,12 +441,12 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
             <Link href={homeHref} className="flex items-center gap-2.5">
               <div className={cn(
                 "flex h-9 w-9 items-center justify-center rounded-xl text-white font-bold text-sm shadow-lg overflow-hidden",
-                brandLogo || isSuperAdminPath ? "bg-transparent shadow-none" : "btn-gradient"
+                finalBrandLogo || isSuperAdminPath ? "bg-transparent shadow-none" : "btn-gradient"
               )}>
                 {isSuperAdminPath
-                  ? <img src="/logo-schoolpro.png" alt="SchoolPro Logo" className="h-full w-full object-contain" />
-                  : brandLogo
-                    ? <img src={brandLogo} alt={brandName} className="h-full w-full object-contain" />
+                  ? <img src={platformLogo} alt="SchoolPro Logo" className="h-full w-full object-contain" />
+                  : finalBrandLogo
+                    ? <img src={finalBrandLogo} alt={brandName} className="h-full w-full object-contain" />
                     : brandInitial
                 }
               </div>
@@ -458,13 +469,13 @@ export function Sidebar({ isSuperAdmin }: SidebarProps) {
             onClick={() => setCollapsed(false)}
             className={cn(
               "flex h-9 w-9 mx-auto items-center justify-center rounded-xl text-white font-bold text-sm shadow-lg hover:opacity-90 transition-opacity overflow-hidden",
-              brandLogo || isSuperAdminPath ? "bg-transparent shadow-none" : "btn-gradient"
+              finalBrandLogo || isSuperAdminPath ? "bg-transparent shadow-none" : "btn-gradient"
             )}
           >
             {isSuperAdminPath
-              ? <img src="/logo-schoolpro.png" alt="SchoolPro Logo" className="h-full w-full object-contain" />
-              : brandLogo
-                ? <img src={brandLogo} alt={brandName} className="h-full w-full object-contain" />
+              ? <img src={platformLogo} alt="SchoolPro Logo" className="h-full w-full object-contain" />
+              : finalBrandLogo
+                ? <img src={finalBrandLogo} alt={brandName} className="h-full w-full object-contain" />
                 : brandInitial
             }
           </button>

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { db } from "@/lib/db"
 import {
   ArrowRight,
   Globe,
@@ -141,14 +142,28 @@ const plans = [
   },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const settings = await db.platformSetting.findMany({
+    where: { key: { in: ["app_logo", "platform_name", "platform_tagline"] } }
+  })
+  
+  let appLogo = "/logo-schoolpro.png"
+  let platformName = "SchoolPro"
+  let platformTagline = "Solusi Manajemen Sekolah Digital"
+
+  settings.forEach(s => {
+    if (s.key === "app_logo" && s.value) appLogo = s.value
+    if (s.key === "platform_name" && s.value) platformName = s.value
+    if (s.key === "platform_tagline" && s.value) platformTagline = s.value
+  })
+
   return (
     <div className="min-h-screen bg-mesh">
       <nav className="glass sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/logo-schoolpro.png" alt="SchoolPro Logo" className="h-9 w-auto object-contain" />
-            <span className="font-bold text-lg tracking-tight">SchoolPro</span>
+            <img src={appLogo} alt={`${platformName} Logo`} className="h-9 w-auto object-contain" />
+            <span className="font-bold text-lg tracking-tight">{platformName}</span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="#fitur" className="hover:text-foreground transition-colors">Fitur Terpadu</Link>
