@@ -110,7 +110,7 @@ export default function RegisterSchoolPage() {
       }
     }
 
-    const payload = { ...form, logo: uploadedLogoUrl }
+    const payload = { ...form, logo: uploadedLogoUrl || null }
 
     const res = await fetch("/api/public/register-school", {
       method: "POST",
