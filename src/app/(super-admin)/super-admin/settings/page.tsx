@@ -120,8 +120,9 @@ export default function SuperAdminSettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "whatsapp",
+          waApiUrl: "https://api.starsender.online/api",
           waApiKey: form.STARSENDER_API_KEY,
-          waTo: testWANumber,
+          waPhone: testWANumber,
           message: "Tes koneksi WhatsApp dari Platform SchoolPro.",
         }),
       })
