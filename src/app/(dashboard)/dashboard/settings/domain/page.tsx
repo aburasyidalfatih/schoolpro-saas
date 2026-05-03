@@ -115,7 +115,9 @@ export default function DomainSettingsPage() {
     if (!tenantId) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/tenant/domain?tenantId=${tenantId}`)
+      const res = await fetch(`/api/tenant/domain?tenantId=${tenantId}`, {
+        cache: "no-store",
+      })
       const json = await res.json()
       setData(json)
       if (json.domain) setDomainInput(json.domain)

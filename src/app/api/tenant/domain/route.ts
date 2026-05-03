@@ -9,6 +9,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { logger } from "@/lib/logger"
+export const dynamic = "force-dynamic"
 import { parseBody, requireAuth } from "@/lib/api-utils"
 import { setDomainSchema, removeDomainSchema } from "@/lib/validations/domain"
 import {
